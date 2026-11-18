@@ -1,0 +1,30 @@
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Node (tooling, if any)
+node_modules/
+
+# Environment and secrets
+.env
+*.keystore
+*.jks
+secrets.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local-only working files
+rancangan.md
+
+# Security working files (kept out of the repo on purpose)
+SECURITY_MAP.md
+SECURITY_REVIEW.md
+SECURITY_REPORT.md

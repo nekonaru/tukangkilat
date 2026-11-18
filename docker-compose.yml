@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tukangkilat-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tukangkilat}
+      POSTGRES_USER: ${POSTGRES_USER:-tukangkilat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tukangkilat}
+    ports:
+      - "5432:5432"
+    volumes:
+      - tukangkilat-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tukangkilat} -d ${POSTGRES_DB:-tukangkilat}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tukangkilat-pgdata:
