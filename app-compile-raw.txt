@@ -1,0 +1,121 @@
+Starting a Gradle Daemon, 1 incompatible and 1 stopped Daemons could not be reused, use --status for details
+> Task :app:preBuild UP-TO-DATE
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateDebugBuildConfig
+> Task :app:checkDebugAarMetadata
+> Task :app:processDebugNavigationResources
+> Task :app:compileDebugNavigationResources
+> Task :app:generateDebugResValues
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:mergeDebugShaders
+> Task :app:javaPreCompileDebug
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:desugarDebugFileDependencies
+> Task :app:compressDebugAssets
+> Task :app:mergeDebugJniLibFolders
+> Task :app:validateSigningDebug
+> Task :app:checkDebugDuplicateClasses
+> Task :app:writeDebugAppMetadata
+> Task :shared:compileKotlin
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeExtDexDebug
+> Task :shared:processResources NO-SOURCE
+> Task :shared:compileJava NO-SOURCE
+> Task :shared:classes UP-TO-DATE
+> Task :shared:jar
+> Task :app:mergeDebugNativeLibs
+> Task :app:writeDebugSigningConfigVersions
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:mergeLibDexDebug
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+> Task :app:compileDebugKotlin
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/data/api/AuthInterceptor.kt:64:40 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/data/api/AuthInterceptor.kt:65:34 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/data/di/AppModule.kt:72:14 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<TukangKilatDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/data/local/SessionManager.kt:96:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/TukangKilatApp.kt:85:31 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/TukangKilatApp.kt:115:64 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/TukangKilatApp.kt:120:64 'val Icons.Filled.Assignment: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Assignment.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminOrdersScreen.kt:117:39 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminOrdersScreen.kt:164:48 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminReportsScreen.kt:105:40 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminReportsScreen.kt:125:13 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminServicesScreen.kt:91:41 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminSummaryScreen.kt:79:33 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminSummaryScreen.kt:102:43 'val Icons.Filled.Logout: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Logout.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminSummaryScreen.kt:120:55 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/admin/AdminVerifyScreen.kt:106:39 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/LoginScreen.kt:102:33 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/LoginScreen.kt:159:72 'constructor(capitalization: KeyboardCapitalization = ..., autoCorrect: Boolean, keyboardType: KeyboardType = ..., imeAction: ImeAction = ..., platformImeOptions: PlatformImeOptions? = ..., showKeyboardOnFocus: Boolean? = ..., hintLocales: LocaleList? = ...): KeyboardOptions' is deprecated. Please use the new constructor that takes optional autoCorrectEnabled parameter.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/RegisterScreen.kt:94:36 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/RegisterTechnicianScreen.kt:132:56 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/RegisterTechnicianScreen.kt:133:62 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/auth/RegisterTechnicianScreen.kt:153:46 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/components/TKComponents.kt:180:35 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/AccountScreen.kt:137:35 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/AccountScreen.kt:178:45 'val Icons.Filled.Logout: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Logout.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/ChatScreen.kt:114:32 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/ChatScreen.kt:197:35 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/ConfirmScreen.kt:83:35 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/DoneScreen.kt:84:32 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/HomeScreen.kt:140:32 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrderFormScreen.kt:238:37 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrderStatusScreen.kt:132:39 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrderStatusScreen.kt:164:74 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrderStatusScreen.kt:298:59 'val Icons.Filled.Chat: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Chat.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrdersScreen.kt:93:34 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrdersScreen.kt:104:9 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/OrdersScreen.kt:124:44 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/PaymentScreen.kt:202:35 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/RatingScreen.kt:101:34 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/ReceiptScreen.kt:48:35 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/ReportScreen.kt:141:34 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/consumer/SearchingScreen.kt:148:37 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechAccountScreen.kt:129:39 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechAccountScreen.kt:237:45 'val Icons.Filled.Logout: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Logout.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechEarningsScreen.kt:76:40 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechFinishScreen.kt:150:38 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechHomeScreen.kt:155:36 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobScreen.kt:101:35 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobScreen.kt:144:74 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobScreen.kt:163:51 'val Icons.Filled.Chat: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Chat.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobScreen.kt:257:85 'val Icons.Filled.DirectionsRun: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DirectionsRun.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobsScreen.kt:155:36 'fun <reified VM : ViewModel> hiltViewModel(viewModelStoreOwner: ViewModelStoreOwner = ..., key: String? = ...): VM' is deprecated. Moved to package: androidx.hilt.lifecycle.viewmodel.compose.
+w: file:///C:/MyDocument/GitHub/tukangkilat/app/src/main/kotlin/id/tukangkilat/app/ui/technician/TechJobsScreen.kt:175:13 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+
+> Task :app:compileDebugJavaWithJavac
+> Task :app:hiltAggregateDepsDebug
+> Task :app:hiltJavaCompileDebug
+> Task :app:processDebugJavaRes
+> Task :app:transformDebugClassesWithAsm
+> Task :app:mergeDebugJavaResource
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics
+> Task :app:mergeProjectDexDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+
+BUILD SUCCESSFUL in 7m 11s
+45 actionable tasks: 45 executed

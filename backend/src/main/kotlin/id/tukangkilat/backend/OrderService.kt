@@ -228,6 +228,7 @@ object OrderService {
                 it[PromoCodesTable.quota] = promoQuotaRemaining - 1
             }
         }
+        linkPhotoPublicIds(orderId, req.photoUrls.take(3), PhotoKind.MASALAH)
 
         OrderEventsTable.insert {
             it[OrderEventsTable.orderId] = orderId
@@ -284,6 +285,36 @@ object OrderService {
                 throw ConflictException("Pesanan tidak menunggu pembayaran")
             }
             val now = OffsetDateTime.now()
+
+            // apply a promo code entered on the payment screen, if any
+            var effectiveTotal = row[OrdersTable.total]
+            val promoCode = req.promoCode?.trim()?.uppercase()?.ifBlank { null }
+            if (promoCode != null) {
+                if (row[OrdersTable.discount] > 0L) {
+                    throw ConflictException("Pesanan sudah memakai kode promo")
+                }
+                val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.singleOrNull()
+                    ?: throw BadRequestException("Kode promo tidak valid")
+                if (promo[PromoCodesTable.validUntil].isBefore(now)) {
+                    throw BadRequestException("Kode promo sudah kedaluwarsa")
+                }
+                val quota = promo[PromoCodesTable.quota]
+                if (quota <= 0) throw BadRequestException("Kuota kode promo habis")
+                val subtotal = row[OrdersTable.serviceFee] + row[OrdersTable.visitFee]
+                val discount = when (promo[PromoCodesTable.promoType]) {
+                    "PERSEN" -> subtotal * promo[PromoCodesTable.promoValue] / 100
+                    else -> promo[PromoCodesTable.promoValue]
+                }.coerceAtMost(subtotal)
+                effectiveTotal = subtotal - discount
+                OrdersTable.update({ OrdersTable.id eq orderId }) {
+                    it[OrdersTable.discount] = discount
+                    it[OrdersTable.total] = effectiveTotal
+                    it[updatedAt] = now
+                }
+                PromoCodesTable.update({ PromoCodesTable.code eq promoCode }) {
+                    it[PromoCodesTable.quota] = quota - 1
+                }
+            }
         when (req.method) {
             PaymentMethod.TUNAI -> {
                 OrdersTable.update({ OrdersTable.id eq orderId }) {
@@ -295,12 +326,12 @@ object OrderService {
                 val paymentId = PaymentsTable.insert {
                     it[PaymentsTable.orderId] = orderId
                     it[PaymentsTable.method] = PaymentMethod.TUNAI.name
-                    it[PaymentsTable.amount] = row[OrdersTable.total]
+                    it[PaymentsTable.amount] = effectiveTotal
                     it[PaymentsTable.referenceNo] = null
                     it[PaymentsTable.status] = PaymentStatus.BELUM_DIBAYAR.name
                     it[createdAt] = now
                 } get PaymentsTable.id
-                PayResponse(orderId, paymentId, PaymentMethod.TUNAI, row[OrdersTable.total], null, PaymentStatus.BELUM_DIBAYAR, null)
+                PayResponse(orderId, paymentId, PaymentMethod.TUNAI, effectiveTotal, null, PaymentStatus.BELUM_DIBAYAR, null)
             }
             else -> {
                 val reference = (if (req.method == PaymentMethod.TRANSFER) "BCA-" else "DOMPET-") + randomDigits(10)
@@ -313,13 +344,13 @@ object OrderService {
                 val paymentId = PaymentsTable.insert {
                     it[PaymentsTable.orderId] = orderId
                     it[PaymentsTable.method] = req.method.name
-                    it[PaymentsTable.amount] = row[OrdersTable.total]
+                    it[PaymentsTable.amount] = effectiveTotal
                     it[PaymentsTable.referenceNo] = reference
                     it[PaymentsTable.status] = PaymentStatus.MENUNGGU.name
                     it[expiresAt] = expires
                     it[createdAt] = now
                 } get PaymentsTable.id
-                PayResponse(orderId, paymentId, req.method, row[OrdersTable.total], reference, PaymentStatus.MENUNGGU, expires.toString())
+                PayResponse(orderId, paymentId, req.method, effectiveTotal, reference, PaymentStatus.MENUNGGU, expires.toString())
             }
         }
     }

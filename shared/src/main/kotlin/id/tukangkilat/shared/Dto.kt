@@ -113,7 +113,8 @@ data class CreateOrderRequest(
     val addressId: Long,
     val scheduledDate: String,
     val slotId: Long,
-    val promoCode: String? = null
+    val promoCode: String? = null,
+    val photoUrls: List<String> = emptyList()
 )
 
 @Serializable
