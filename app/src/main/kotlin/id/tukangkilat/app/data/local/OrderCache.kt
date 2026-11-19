@@ -37,6 +37,7 @@ interface OrderDao {
     suspend fun clear()
 }
 
+@androidx.room.Database(entities = [CachedOrder::class], version = 1, exportSchema = false)
 abstract class TukangKilatDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
 }
