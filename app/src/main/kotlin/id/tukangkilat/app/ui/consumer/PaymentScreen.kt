@@ -293,7 +293,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.TRANSFER,
                     title = "Transfer bank",
                     subtitle = "BCA · Nomor pembayaran otomatis",
-                    icon = { Icon(Icons.Filled.AccountBalance, null, tint = TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.AccountBalance, null, tint = if (state.selectedMethod == PaymentMethod.TRANSFER) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.TRANSFER) }
                 )
                 Spacer(Modifier.height(10.dp))
@@ -301,7 +301,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.DOMPET_DIGITAL,
                     title = "Dompet digital",
                     subtitle = "GoPay, OVO, atau DANA",
-                    icon = { Icon(Icons.Filled.Wallet, null, tint = TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.Wallet, null, tint = if (state.selectedMethod == PaymentMethod.DOMPET_DIGITAL) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.DOMPET_DIGITAL) }
                 )
                 Spacer(Modifier.height(10.dp))
@@ -309,7 +309,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.TUNAI,
                     title = "Tunai",
                     subtitle = "Bayar setelah pekerjaan selesai",
-                    icon = { Icon(Icons.Filled.LocalAtm, null, tint = TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.LocalAtm, null, tint = if (state.selectedMethod == PaymentMethod.TUNAI) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.TUNAI) }
                 )
                 Spacer(Modifier.height(14.dp))
@@ -359,6 +359,10 @@ private fun MethodCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(if (selected) TKColor.Cream else TKColor.Card)
+            .then(
+                if (selected) Modifier.border(2.dp, TKColor.Orange, RoundedCornerShape(14.dp))
+                else Modifier
+            )
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically

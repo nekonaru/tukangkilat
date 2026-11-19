@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="assets/tukangkilat-mark.png" alt="Logo Tukang Kilat" width="120" />
   <h1>Tukang Kilat: Ahlinya rumah, siap membantu</h1>
   <p><b>Aplikasi Android native untuk memesan teknisi rumah tepercaya,<br/>
   listrik, pipa, dan AC, dengan harga transparan dan pelacakan langsung.</b></p>
@@ -249,6 +250,7 @@ tukangkilat/
   shared/          Modul Kotlin bersama: DTO, enum, OrderStateMachine
   docker-compose.yml   Layanan PostgreSQL
   docs/            PRD, ERD, diagram status, audit desain, tangkapan layar
+  assets/          Aset merek untuk dokumentasi (logo README)
   scripts/         verify.sh (gerbang CI lokal)
   README.en.md     Versi Inggris
   README.md        Berkas ini (Bahasa Indonesia)
