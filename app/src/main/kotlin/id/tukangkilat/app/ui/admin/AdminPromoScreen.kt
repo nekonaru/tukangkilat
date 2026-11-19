@@ -129,7 +129,7 @@ fun AdminPromoScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) { Icon(Icons.Filled.Cancel, "Kembali", tint = TKColor.White) }
+                    IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, "Kembali", tint = TKColor.White) }
                     Text(
                         "Kelola promo",
                         color = TKColor.White,
