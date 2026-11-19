@@ -28,3 +28,11 @@ rancangan.md
 SECURITY_MAP.md
 SECURITY_REVIEW.md
 SECURITY_REPORT.md
+
+# Local runtime and test artifacts
+backend-run*.log
+app-compile*.txt
+app-deps.txt
+app-ksp*.txt
+app-kapt.txt
+
