@@ -97,10 +97,10 @@ object AdminService {
             val orderId = report[IssueReportsTable.orderId]
             IssueReportsTable.update({ IssueReportsTable.id eq reportId }) { it[IssueReportsTable.status] = IssueStatus.KUNJUNGAN_ULANG.name }
             OrderService.transitionInTx(orderId, OrderStatus.KUNJUNGAN_ULANG, adminId, OrderStateMachine.Actor.ADMIN)
-            // fresh dispatch: clear Menunggu offers so they do not confuse the selection
+            // fresh dispatch: clear earlier offers so the cycle restarts and the same technician can be prioritized
             JobOffersTable.deleteWhere {
                 with(SqlExpressionBuilder) {
-                    (JobOffersTable.orderId eq orderId) and (JobOffersTable.status eq OfferStatus.MENUNGGU.name)
+                    JobOffersTable.orderId eq orderId
                 }
             }
             orderId

@@ -100,12 +100,25 @@ fun TukangKilatApp(
         }
     }
 
-    val startDestination = remember(session.isLoggedIn, session.role) {
+    val startDestination = remember {
         when {
             !session.isLoggedIn -> Routes.LOGIN
             session.role == Role.KONSUMEN -> Routes.C_HOME
             session.role == Role.TUKANG -> Routes.T_HOME
             else -> Routes.A_SUMMARY
+        }
+    }
+
+    // after a cold start the session is restored asynchronously; leave the login screen once it resolves
+    LaunchedEffect(session.isLoggedIn, session.role) {
+        val route = when {
+            !session.isLoggedIn -> null
+            session.role == Role.KONSUMEN -> Routes.C_HOME
+            session.role == Role.TUKANG -> Routes.T_HOME
+            else -> Routes.A_SUMMARY
+        } ?: return@LaunchedEffect
+        if (navController.currentDestination?.route == Routes.LOGIN) {
+            navController.navigate(route) { popUpTo(0) { inclusive = true } }
         }
     }
 
