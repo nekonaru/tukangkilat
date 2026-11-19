@@ -36,3 +36,6 @@ app-deps.txt
 app-ksp*.txt
 app-kapt.txt
 
+
+release-build.txt
+
