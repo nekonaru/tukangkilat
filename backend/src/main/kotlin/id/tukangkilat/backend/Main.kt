@@ -258,6 +258,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 post("/orders/{id}/finish") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.jobAction(call.authUser().id, call.parameters["id"]!!.toLong(), "finish", call.receive())) }
                 get("/orders") { call.requireRole(Role.TUKANG); call.respond(OrderService.listOrdersForTechnician(call.authUser().id)) }
                 get("/earnings") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.earnings(call.authUser().id)) }
+                get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
                 get("/orders/{id}/messages") {
                     call.requireRole(Role.TUKANG)
                     call.respond(listMessages(call.parameters["id"]!!.toLong(), call.authUser()))
@@ -308,6 +309,11 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(AdminService.listOrders(call.request.queryParameters["status"], limit))
                 }
                 get("/services") { call.requireRole(Role.ADMIN); call.respond(AdminService.listServices()) }
+                get("/promo-codes") { call.requireRole(Role.ADMIN); call.respond(PromoService.list()) }
+                put("/promo-codes") {
+                    call.requireRole(Role.ADMIN)
+                    call.respond(PromoService.upsert(call.receive()))
+                }
                 put("/services/{id}") {
                     call.requireRole(Role.ADMIN)
                     call.respond(AdminService.updateService(call.parameters["id"]!!.toLong(), call.receive()))

@@ -69,7 +69,7 @@
 | **Bukti kerja** | Foto bukti dan catatan teknisi tampil sebelum konfirmasi |
 | **Penilaian** | Bintang 1-5, tag cepat, dan komentar setelah pekerjaan selesai |
 | **Lapor masalah** | Minta kunjungan ulang dengan 3 alasan dan foto bukti |
-| **Kode promo** | Hemat biaya dengan `HEMAT25` (demo simulator) |
+| **Kode promo** | Hemat biaya dengan `HEMAT25` (demo simulator) atau promo yang dibuat dari panel admin |
 | **Chat** | Obrolan dua arah dengan teknisi, per pesanan |
 
 ### Untuk tukang
@@ -81,7 +81,7 @@
 | **Keahlian dan radius** | Atur keahlian (listrik, pipa, AC) dan radius layanan |
 | **Aksi pekerjaan berurutan** | Berangkat, tiba, mulai bekerja, selesaikan dengan foto bukti |
 | **Pendapatan** | Rincian per pekerjaan: tarif, komisi platform 15%, biaya kunjungan penuh |
-| **Rating dan ulasan** | Profil menampilkan rating rata-rata dan jumlah pekerjaan |
+| **Ratings dan ulasan** | Profil menampilkan rating rata-rata, jumlah pekerjaan, dan daftar ulasan (bintang, tag, komentar, tanggal) |
 
 ### Untuk admin
 
@@ -91,6 +91,7 @@
 | **Laporan masalah** | Lihat laporan, jadwalkan kunjungan ulang, atau tutup |
 | **Simulasi pembayaran** | Tombol "Simulasikan berhasil/gagal" untuk demo transfer dan dompet digital |
 | **Kelola layanan** | Ubah nama, harga, biaya kunjungan, dan status aktif |
+| **Kelola kode promo** | Buat, aktifkan, dan nonaktifkan kode promo dari panel admin |
 | **Tangguhkan akun** | Tangguhkan atau aktifkan kembali akun tukang dan konsumen |
 
 ---

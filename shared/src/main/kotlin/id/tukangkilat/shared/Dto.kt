@@ -397,6 +397,41 @@ data class UserStatusUpdateRequest(
     val status: String
 )
 
+// ---------- Technician reviews ----------
+
+@Serializable
+data class ReviewDto(
+    val orderId: Long,
+    val orderCode: String,
+    val serviceName: String,
+    val stars: Int,
+    val tags: List<String> = emptyList(),
+    val comment: String,
+    val createdAt: String
+)
+
+// ---------- Promo admin ----------
+
+@Serializable
+data class PromoCodeDto(
+    val code: String,
+    val type: String,
+    val value: Long,
+    val validUntil: String,
+    val quota: Int,
+    val isActive: Boolean
+)
+
+@Serializable
+data class PromoUpsertRequest(
+    val code: String,
+    val type: String,
+    val value: Long,
+    val validUntil: String,
+    val quota: Int,
+    val isActive: Boolean = true
+)
+
 // ---------- WebSocket ----------
 
 @Serializable

@@ -108,8 +108,8 @@ class TechHomeViewModel @Inject constructor(
                     todayEarnings = earnings?.totalEarned ?: 0,
                     activeOrder = active,
                     upcoming = orders.filter {
-                        it.status in setOf(OrderStatus.TEKNISI_DITEMUKAN, OrderStatus.DALAM_PERJALANAN, OrderStatus.TIBA, OrderStatus.SEDANG_BEKERJA)
-                    }.take(3),
+                        it.status == OrderStatus.TEKNISI_DITEMUKAN && it.id != active?.id
+                    }.sortedBy { it.scheduledDate + it.slotLabel }.take(5),
                     offerCount = runCatching { technicianRepository.offers().size }.getOrDefault(0),
                     error = null
                 )
@@ -283,6 +283,17 @@ fun TechHomeScreen(
                                 }
                             }
                         }
+
+                        if (state.upcoming.isNotEmpty()) {
+                            item {
+                                Spacer(Modifier.height(4.dp))
+                                SectionLabel("Jadwal berikutnya")
+                                Spacer(Modifier.height(4.dp))
+                            }
+                            items(state.upcoming, key = { it.id }) { order ->
+                                UpcomingJobCard(order = order, onClick = { onOpenJob(order.id) })
+                            }
+                        }
                         item { Spacer(Modifier.height(20.dp)) }
                     }
                 }
@@ -334,10 +345,31 @@ private fun ActiveJobCard(order: OrderSummaryDto, onClick: () -> Unit) {
 }
 
 private fun statusLabel(status: OrderStatus): String = when (status) {
-    OrderStatus.TEKNISI_DITEMUKAN -> "Menunggu berangkat"
+    OrderStatus.TEKNISI_DITEMUKAN -> "Terjadwal"
     OrderStatus.DALAM_PERJALANAN -> "Dalam perjalanan"
     OrderStatus.TIBA -> "Sudah tiba"
     OrderStatus.SEDANG_BEKERJA -> "Sedang bekerja"
     OrderStatus.MENUNGGU_KONFIRMASI -> "Menunggu konfirmasi"
     else -> status.name
+}
+
+@Composable
+private fun UpcomingJobCard(order: OrderSummaryDto, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(TKColor.InkSoft)
+            .clickable(onClick = onClick)
+            .padding(12.dp)
+    ) {
+        Row {
+            Text(order.code, color = TKColor.Mist, fontSize = 11.sp)
+            Spacer(Modifier.weight(1f))
+            Text(order.slotLabel, color = TKColor.Orange, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(2.dp))
+        Text(order.serviceName, color = TKColor.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+        Text(order.scheduledDate, color = TKColor.Mist, fontSize = 12.sp)
+    }
 }

@@ -187,6 +187,7 @@ object OrderService {
         if (promoCode != null) {
             val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.singleOrNull()
                 ?: throw BadRequestException("Kode promo tidak valid")
+            if (!promo[PromoCodesTable.isActive]) throw BadRequestException("Kode promo tidak aktif")
             if (promo[PromoCodesTable.validUntil].isBefore(OffsetDateTime.now())) {
                 throw BadRequestException("Kode promo sudah kedaluwarsa")
             }
@@ -295,6 +296,7 @@ object OrderService {
                 }
                 val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.singleOrNull()
                     ?: throw BadRequestException("Kode promo tidak valid")
+                if (!promo[PromoCodesTable.isActive]) throw BadRequestException("Kode promo tidak aktif")
                 if (promo[PromoCodesTable.validUntil].isBefore(now)) {
                     throw BadRequestException("Kode promo sudah kedaluwarsa")
                 }

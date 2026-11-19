@@ -65,6 +65,7 @@ object Routes {
     const val A_REPORTS = "admin/reports"
     const val A_ORDERS = "admin/orders"
     const val A_SERVICES = "admin/services"
+    const val A_PROMO = "admin/promo"
 
     fun status(orderId: Long) = "consumer/order/$orderId/status"
     fun payment(orderId: Long) = "consumer/order/$orderId/payment"
@@ -340,6 +341,7 @@ fun TukangKilatApp(
                     onReports = { navController.navigate(Routes.A_REPORTS) },
                     onOrders = { navController.navigate(Routes.A_ORDERS) },
                     onServices = { navController.navigate(Routes.A_SERVICES) },
+                    onPromo = { navController.navigate(Routes.A_PROMO) },
                     onLoggedOut = {}
                 )
             }
@@ -347,6 +349,7 @@ fun TukangKilatApp(
             composable(Routes.A_REPORTS) { AdminReportsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_ORDERS) { AdminOrdersScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_SERVICES) { AdminServicesScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.A_PROMO) { AdminPromoScreen(onBack = { navController.navigateUp() }) }
         }
     }
 }

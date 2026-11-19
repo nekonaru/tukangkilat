@@ -48,7 +48,8 @@ data class TechAccountUiState(
     val radius: Int = 10,
     val skills: Set<String> = emptySet(),
     val saving: Boolean = false,
-    val snackbar: String? = null
+    val snackbar: String? = null,
+    val reviews: List<id.tukangkilat.shared.ReviewDto> = emptyList()
 )
 
 @HiltViewModel
@@ -69,11 +70,13 @@ class TechAccountViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val profile = technicianRepository.profile()
+                val reviews = runCatching { technicianRepository.reviews() }.getOrDefault(emptyList())
                 _state.value = _state.value.copy(
                     isLoading = false,
                     profile = profile,
                     radius = profile.serviceRadiusKm,
                     skills = profile.skills.toSet(),
+                    reviews = reviews,
                     error = null
                 )
             } catch (e: Exception) {
@@ -183,6 +186,25 @@ fun TechAccountScreen(
                     }
                     Spacer(Modifier.height(20.dp))
 
+                    // Ulasan diterima
+                    if (state.reviews.isNotEmpty()) {
+                        Text(
+                            "Ulasan saya (${state.reviews.size})",
+                            color = TKColor.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            modifier = Modifier.padding(horizontal = 20.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            state.reviews.take(3).forEach { review ->
+                                ReviewCard(review)
+                                Spacer(Modifier.height(8.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                    }
+
                     // edit skills
                     Text("Keahlian", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(horizontal = 20.dp))
                     Spacer(Modifier.height(8.dp))
@@ -246,6 +268,42 @@ fun TechAccountScreen(
             onDismiss = { showPasswordDialog = false },
             onSubmit = { old, new -> viewModel.changePassword(old, new) { showPasswordDialog = false } }
         )
+    }
+}
+
+@Composable
+private fun ReviewCard(review: id.tukangkilat.shared.ReviewDto) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(TKColor.InkSoft)
+            .padding(12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                for (i in 1..5) {
+                    Icon(
+                        if (i <= review.stars) Icons.Filled.Star else Icons.Filled.StarBorder,
+                        contentDescription = null,
+                        tint = TKColor.Orange,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(review.orderCode, color = TKColor.Mist, fontSize = 11.sp)
+        }
+        if (review.tags.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            Text(review.tags.joinToString(" · "), color = TKColor.Orange, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+        }
+        if (review.comment.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(review.comment, color = TKColor.White, fontSize = 13.sp)
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(review.createdAt.take(10), color = TKColor.Mist, fontSize = 10.sp)
     }
 }
 
