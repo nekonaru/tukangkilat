@@ -1,165 +1,163 @@
 <div align="center">
   <h1>Tukang Kilat: Ahlinya rumah, siap membantu</h1>
-  <p><b>A native Android app to book trusted home technicians:<br/>
-  electricians, plumbers, and AC technicians, with transparent prices and live tracking.</b></p>
+  <p><b>Aplikasi Android native untuk memesan teknisi rumah tepercaya,<br/>
+  listrik, pipa, dan AC, dengan harga transparan dan pelacakan langsung.</b></p>
 
-  <a href="https://github.com/nekonaru/tukangkilat/releases"><img src="https://img.shields.io/github/v/release/nekonaru/tukangkilat?style=flat-square&color=blue" alt="Release" /></a>
+  <a href="https://github.com/nekonaru/tukangkilat/releases"><img src="https://img.shields.io/github/v/release/nekonaru/tukangkilat?style=flat-square&color=blue" alt="Rilis" /></a>
   <a href="https://github.com/nekonaru/tukangkilat/actions/workflows/ci.yml"><img src="https://github.com/nekonaru/tukangkilat/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/Kotlin-2.3-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Platform" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="Lisensi" />
   <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square" alt="Status" />
 </div>
 
 <br />
 
-**English** | [Bahasa Indonesia](README.id.md)
+**Bahasa Indonesia** | [English](README.en.md)
 
 > [!NOTE]
-> Tukang Kilat is a college final project (tugas akhir) and is distributed as a sideloaded APK, not via the Play Store. All payment flows run on a built-in simulator; no real money is involved.
+> Tukang Kilat adalah tugas akhir kuliah dan didistribusikan sebagai APK sideload, bukan lewat Play Store. Semua alur pembayaran berjalan di simulator bawaan; tidak ada uang nyata yang terlibat.
 
 ---
 
-## Table of Contents
+## Daftar Isi
 
-- [About](#about)
-- [Screenshots](#screenshots)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Data Sources](#data-sources)
-- [Project Structure](#project-structure)
-- [Development](#development)
-- [Testing](#testing)
+- [Tentang](#tentang)
+- [Tangkapan Layar](#tangkapan-layar)
+- [Fitur](#fitur)
+- [Persyaratan](#persyaratan)
+- [Instalasi](#instalasi)
+- [Cara Pakai](#cara-pakai)
+- [Sumber Data](#sumber-data)
+- [Struktur Proyek](#struktur-proyek)
+- [Pengembangan](#pengembangan)
+- [Pengujian](#pengujian)
 - [Continuous Integration](#continuous-integration)
 - [FAQ](#faq)
-- [Author](#author)
+- [Penulis](#penulis)
 - [Disclaimer](#disclaimer)
-- [License](#license)
+- [Lisensi](#lisensi)
 
 ---
 
-## About
+## Tentang
 
-**Tukang Kilat** connects consumers with verified home technicians: electricians, plumbers, and AC technicians. Consumers see the price up front, track the technician live on the map, and get photo proof of the work before confirming and paying. Technicians get an orderly queue of jobs, proof of completed work, and a measurable reputation. Admins verify technicians and handle problem reports.
+**Tukang Kilat** mempertemukan konsumen dengan teknisi rumah terverifikasi: listrik, pipa, dan servis AC. Konsumen tahu harga di muka, bisa melacak kedatangan teknisi secara langsung di peta, dan punya bukti foto hasil pekerjaan sebelum mengonfirmasi dan membayar. Teknisi mendapat antrean pesanan yang rapi, bukti pekerjaan selesai, dan reputasi yang terukur. Admin memverifikasi teknisi dan menangani laporan masalah.
 
 > _"Bantuan datang ke rumah, dan datang cepat."_
->
-> _"Help arrives at your door, and arrives fast."_
 
 ---
 
-## Screenshots
+## Tangkapan Layar
 
 | Beranda | Pesanan | Akun |
 |---------|---------|------|
 | ![Beranda](docs/screenshots/beranda.jpg) | ![Pesanan](docs/screenshots/pesanan.jpg) | ![Akun](docs/screenshots/akun.jpg) |
-| Service list with starting prices | Active orders and history | Profile and saved addresses |
+| Daftar layanan dengan harga mulai | Pesanan aktif dan riwayat | Profil dan alamat tersimpan |
 
 ---
 
-## Features
+## Fitur
 
-### For consumers
+### Untuk konsumen
 
-| Feature | Description |
-|---------|-------------|
-| **Book in minutes** | From home screen to paid order in a few taps |
-| **Transparent pricing** | Total = service fee + visit fee, visible before you pay |
-| **Live tracking** | Real-time map with the technician's position, ETA, and timeline |
-| **Proof of work** | Photo evidence and the technician's note shown before you confirm |
-| **Ratings** | 1-5 stars, quick tags, and comment after the work is done |
-| **Problem reports** | Request a revisit with 3 reasons and photo evidence |
-| **Promo codes** | Save money with `HEMAT25` (simulator demo) or promos created from the admin panel |
-| **Chat** | Two-way chat with the technician, per order |
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Pesan dalam menit** | Dari Beranda sampai pembayaran selesai dalam beberapa langkah |
+| **Harga transparan** | Total = biaya jasa + biaya kunjungan, terlihat sebelum bayar |
+| **Pelacakan langsung** | Peta posisi teknisi bergerak, estimasi tiba, dan linimasa |
+| **Bukti kerja** | Foto bukti dan catatan teknisi tampil sebelum konfirmasi |
+| **Penilaian** | Bintang 1-5, tag cepat, dan komentar setelah pekerjaan selesai |
+| **Lapor masalah** | Minta kunjungan ulang dengan 3 alasan dan foto bukti |
+| **Kode promo** | Hemat biaya dengan `HEMAT25` (demo simulator) atau promo yang dibuat dari panel admin |
+| **Chat** | Obrolan dua arah dengan teknisi, per pesanan |
 
-### For technicians
+### Untuk tukang
 
-| Feature | Description |
-|---------|-------------|
-| **Real-time offers** | Offers arrive with a 60-second countdown over WebSocket |
-| **Online/offline toggle** | Only online technicians receive offers |
-| **Skills and radius** | Set your skills (listrik, pipa, AC) and service radius |
-| **Ordered job actions** | Depart, arrive, start work, finish with photo proof |
-| **Earnings** | Per-job breakdown: fee, 15% platform commission, full visit fee |
-| **Ratings and reviews** | Profile shows rating average and jobs completed, plus a list of reviews (stars, tags, comment, date) |
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Tawaran real-time** | Tawaran masuk dengan hitung mundur 60 detik lewat WebSocket |
+| **Sakelar online/offline** | Hanya teknisi online yang menerima tawaran |
+| **Keahlian dan radius** | Atur keahlian (listrik, pipa, AC) dan radius layanan |
+| **Aksi pekerjaan berurutan** | Berangkat, tiba, mulai bekerja, selesaikan dengan foto bukti |
+| **Pendapatan** | Rincian per pekerjaan: tarif, komisi platform 15%, biaya kunjungan penuh |
+| **Ratings dan ulasan** | Profil menampilkan rating rata-rata, jumlah pekerjaan, dan daftar ulasan (bintang, tag, komentar, tanggal) |
 
-### For admins
+### Untuk admin
 
-| Feature | Description |
-|---------|-------------|
-| **Verify technicians** | Approve or reject registrations with KTP and selfie photos |
-| **Problem reports** | View reports, schedule a revisit, or close them |
-| **Payment simulation** | "Simulasikan berhasil/gagal" buttons for transfer and e-wallet demos |
-| **Manage services** | Edit name, price, visit fee, and active status |
-| **Manage promo codes** | Create, activate and deactivate promo codes from the admin panel |
-| **Suspend accounts** | Suspend or re-activate technician and consumer accounts |
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Verifikasi tukang** | Setujui atau tolak pendaftaran dengan foto KTP dan selfie |
+| **Laporan masalah** | Lihat laporan, jadwalkan kunjungan ulang, atau tutup |
+| **Simulasi pembayaran** | Tombol "Simulasikan berhasil/gagal" untuk demo transfer dan dompet digital |
+| **Kelola layanan** | Ubah nama, harga, biaya kunjungan, dan status aktif |
+| **Kelola kode promo** | Buat, aktifkan, dan nonaktifkan kode promo dari panel admin |
+| **Tangguhkan akun** | Tangguhkan atau aktifkan kembali akun tukang dan konsumen |
 
 ---
 
-## Requirements
+## Persyaratan
 
-| Dependency | Minimum Version | Notes |
-|------------|-----------------|-------|
-| **Android device or emulator** | Android 8.0 (API 26) | Runs the app |
-| **JDK** | 21 | Required only to build from source |
-| **Android SDK** | compileSdk 36 | Required only to build from source |
-| **Docker with Docker Compose** | any recent version | Required to run PostgreSQL locally |
-| **Gradle** | 8.13 (wrapper included) | Required only to build from source |
+| Ketergantungan | Versi Minimum | Catatan |
+|----------------|---------------|---------|
+| **Perangkat Android atau emulator** | Android 8.0 (API 26) | Menjalankan aplikasi |
+| **JDK** | 21 | Hanya dibutuhkan untuk build dari source |
+| **Android SDK** | compileSdk 36 | Hanya dibutuhkan untuk build dari source |
+| **Docker dengan Docker Compose** | versi terbaru | Hanya dibutuhkan untuk PostgreSQL lokal |
+| **Gradle** | 8.13 (wrapper disertakan) | Hanya dibutuhkan untuk build dari source |
 
 > [!TIP]
-> If you only want to use the app, you do not need the JDK, the Android SDK, or Docker. Download the APK from the [Releases](https://github.com/nekonaru/tukangkilat/releases) page instead.
+> Jika kamu hanya ingin memakai aplikasinya, JDK, Android SDK, dan Docker tidak diperlukan. Unduh APK dari halaman [Releases](https://github.com/nekonaru/tukangkilat/releases).
 
-### Never used a terminal? Start here
+### Belum pernah pakai terminal? Mulai di sini
 
 <details>
-<summary><b>How to open a terminal on Windows</b></summary>
+<summary><b>Cara membuka terminal di Windows</b></summary>
 
-1. Press the **Windows** key, type `PowerShell`, then press **Enter**
-2. A blue window opens. That is where you type commands
-3. Every command in this guide is typed in that window, followed by **Enter**
+1. Tekan tombol **Windows**, ketik `PowerShell`, lalu tekan **Enter**
+2. Jendela biru akan terbuka. Di situlah kamu mengetik perintah
+3. Setiap perintah di panduan ini diketik di jendela itu, lalu tekan **Enter**
 
 </details>
 
 ---
 
-## Installation
+## Instalasi
 
-### Option A: Download the APK (easiest)
+### Opsi A: Unduh APK (termudah)
 
-1. Open the [Releases](https://github.com/nekonaru/tukangkilat/releases) page
-2. Download the APK attached to the latest release
-3. Open it on your phone, allow installs from unknown sources if asked
-4. Log in with a demo account below
+1. Buka halaman [Releases](https://github.com/nekonaru/tukangkilat/releases)
+2. Unduh APK yang terlampir pada rilis terbaru
+3. Buka di ponselmu, izinkan instalasi dari sumber tidak dikenal bila diminta
+4. Masuk dengan akun demo di bawah
 
-Demo accounts (seeded, passwords from `.env`; defaults shown for local development):
+Akun demo (di-seed, password dari `.env`; default ditampilkan untuk pengembangan lokal):
 
-| Role | Username | Password |
-|------|----------|----------|
-| Consumer | `rina` | `rina12345` |
-| Technician (verified) | `budi` | `budi12345` |
-| Technician (verified) | `sari` | `sari12345` |
+| Peran | Username | Password |
+|-------|----------|----------|
+| Konsumen | `rina` | `rina12345` |
+| Teknisi (terverifikasi) | `budi` | `budi12345` |
+| Teknisi (terverifikasi) | `sari` | `sari12345` |
 | Admin | `admin` | `admin12345` |
 
 > [!IMPORTANT]
-> These are demo credentials for the local backend only. Change `DEMO_*_PASSWORD` in `.env` before deploying anywhere real.
+> Ini adalah kredensial demo untuk backend lokal. Ubah `DEMO_*_PASSWORD` di `.env` sebelum men-deploy ke mana pun.
 
-### Option B: Build from source (for development / to read or change the code)
+### Opsi B: Build dari source (untuk development / membaca atau mengubah kode)
 
-#### 1. Get the project code
+#### 1. Ambil kode proyek
 
 <details>
-<summary><b>I have Git installed</b></summary>
+<summary><b>Saya sudah instal Git</b></summary>
 
-1. Open a terminal and clone the repository:
+1. Buka terminal dan clone repositori:
 
    ```bash
    git clone https://github.com/nekonaru/tukangkilat.git
    cd tukangkilat
    ```
 
-2. Copy the environment template and adjust if needed:
+2. Salin template environment dan sesuaikan bila perlu:
 
    ```bash
    cp .env.example .env
@@ -168,173 +166,173 @@ Demo accounts (seeded, passwords from `.env`; defaults shown for local developme
 </details>
 
 <details>
-<summary><b>I don't have Git</b></summary>
+<summary><b>Saya belum instal Git</b></summary>
 
-1. Download the repository as a ZIP from the [code page](https://github.com/nekonaru/tukangkilat) and extract it
-2. Open a terminal in the extracted folder
-3. Copy the environment template: `cp .env.example .env`
+1. Unduh repositori sebagai ZIP dari [halaman kode](https://github.com/nekonaru/tukangkilat) lalu ekstrak
+2. Buka terminal di folder hasil ekstrak
+3. Salin template environment: `cp .env.example .env`
 
 </details>
 
-#### 2. Start the backend
+#### 2. Jalankan backend
 
-1. Start PostgreSQL:
+1. Nyalakan PostgreSQL:
 
    ```bash
    docker compose up -d db
    ```
 
-2. Run the backend:
+2. Jalankan backend:
 
    ```bash
    ./gradlew :backend:run
    ```
 
-   The backend applies migrations and seeds the demo accounts automatically when the database is empty. It serves on `http://localhost:8080`.
+   Backend menerapkan migrasi dan men-seed akun demo otomatis saat database kosong. Backend berjalan di `http://localhost:8080`.
 
-#### 3. Build and run the Android app
+#### 3. Build dan jalankan aplikasi Android
 
-1. Install the debug APK on a device or emulator:
+1. Instal APK debug ke perangkat atau emulator:
 
    ```bash
    ./gradlew :app:installDebug
    ```
 
-   Or build the APK only:
+   Atau build APK saja:
 
    ```bash
    ./gradlew :app:assembleDebug
    ```
 
-2. Launch the app and log in with a demo account.
+2. Buka aplikasi dan masuk dengan akun demo.
 
 > [!IMPORTANT]
-> The emulator reaches the host backend through `10.0.2.2`. The `BASE_URL` used by the app defaults to `http://10.0.2.2:8080` and can be overridden: `./gradlew :app:assembleDebug -PbaseUrl=http://<your-lan-ip>:8080`.
+> Emulator mengakses backend di host melalui `10.0.2.2`. `BASE_URL` yang dipakai aplikasi default ke `http://10.0.2.2:8080` dan bisa di-override: `./gradlew :app:assembleDebug -PbaseUrl=http://<ip-lan-kamu>:8080`.
 
 ---
 
-## Usage
+## Cara Pakai
 
-### First launch
+### Saat pertama dibuka
 
-1. Open the app. You land on the login screen
-2. Log in with a demo account or register with **Daftar**
-3. The app reads the role from the server and opens the right interface: consumer, technician, or admin
+1. Buka aplikasi. Kamu akan mendarat di layar login
+2. Masuk dengan akun demo atau daftar dengan **Daftar**
+3. Aplikasi membaca peran dari server dan membuka antarmuka yang sesuai: konsumen, tukang, atau admin
 
-### Everyday use
+### Pemakaian sehari-hari
 
-- **Consumer:** choose a service, tell the problem, pick a schedule, pay (or choose cash), track the technician live, confirm the work, and rate it
-- **Technician:** toggle Online, accept offers, Depart, Arrive, Start work, Finish with photo proof
-- **Admin:** verify technicians, handle reports, and trigger payment simulation for transfer and e-wallet demos
+- **Konsumen:** pilih layanan, ceritakan masalahnya, pilih jadwal, bayar (atau pilih tunai), lacak teknisi secara langsung, konfirmasi hasil, lalu beri penilaian
+- **Tukang:** aktifkan Online, terima tawaran, Berangkat, Saya sudah tiba, Mulai bekerja, Selesaikan dengan foto bukti
+- **Admin:** verifikasi teknisi, tangani laporan, dan picu simulasi pembayaran untuk demo transfer dan e-wallet
 
 ---
 
-## Data Sources
+## Sumber Data
 
-| Purpose | Source |
-|---------|--------|
-| Map tiles | OpenStreetMap contributors, via osmdroid (no API key) |
-| Service icons | Material Icons (built into the app) |
-| Demo data | Seeded by the backend from `.env` (`DEMO_*_PASSWORD`) |
+| Keperluan | Sumber |
+|-----------|--------|
+| Tile peta | Kontributor OpenStreetMap, lewat osmdroid (tanpa API key) |
+| Ikon layanan | Material Icons (bawaan aplikasi) |
+| Data demo | Di-seed backend dari `.env` (`DEMO_*_PASSWORD`) |
 
 > [!NOTE]
-> All operational data (users, orders, services, payments) lives in the local PostgreSQL database created by `docker compose`. No third-party analytics, no telemetry.
+> Semua data operasional (pengguna, pesanan, layanan, pembayaran) tersimpan di PostgreSQL lokal yang dibuat oleh `docker compose`. Tidak ada analitik pihak ketiga, tidak ada telemetri.
 
 ---
 
-## Project Structure
+## Struktur Proyek
 
 ```
 tukangkilat/
-  app/             Android app: ui/consumer, ui/technician, ui/admin, data, di
-  backend/         Ktor backend: routes, services, Exposed tables, Flyway migrations
-  shared/          Shared Kotlin module: DTOs, enums, OrderStateMachine
-  docker-compose.yml   PostgreSQL service
-  docs/            PRD, ERD, state machine, design audit, screenshots
-  scripts/         verify.sh (local CI gate)
-  README.md        This file (English)
-  README.id.md     Indonesian version
+  app/             Aplikasi Android: ui/consumer, ui/technician, ui/admin, data, di
+  backend/         Backend Ktor: routes, services, tabel Exposed, migrasi Flyway
+  shared/          Modul Kotlin bersama: DTO, enum, OrderStateMachine
+  docker-compose.yml   Layanan PostgreSQL
+  docs/            PRD, ERD, diagram status, audit desain, tangkapan layar
+  scripts/         verify.sh (gerbang CI lokal)
+  README.en.md     Versi Inggris
+  README.md        Berkas ini (Bahasa Indonesia)
 ```
 
 ---
 
-## Development
+## Pengembangan
 
-### Change the UI text or add a screen
+### Mengubah teks UI atau menambah layar
 
-1. Edit the composable under `app/src/main/kotlin/id/tukangkilat/app/ui/<role>/`
-2. Follow the design tokens in `ui/theme/Color.kt`; do not hardcode colors
-3. UI text stays in Bahasa Indonesia; code identifiers and comments stay in English
+1. Edit composable di `app/src/main/kotlin/id/tukangkilat/app/ui/<peran>/`
+2. Ikuti design token di `ui/theme/Color.kt`; jangan hardcode warna
+3. Teks UI tetap Bahasa Indonesia; identifier kode dan komentar tetap Bahasa Inggris
 
-### Change an order rule
+### Mengubah aturan pesanan
 
-1. Edit `shared/src/main/kotlin/id/tukangkilat/shared/OrderStateMachine.kt` and keep the tables in `docs/PRD.md` and `docs/STATE_MACHINE.md` in sync
-2. Update the unit tests in the same module
-3. Run the backend integration tests: `./gradlew :backend:test`
+1. Edit `shared/src/main/kotlin/id/tukangkilat/shared/OrderStateMachine.kt` dan jaga sinkron tabel di `docs/PRD.md` dan `docs/STATE_MACHINE.md`
+2. Perbarui unit test di modul yang sama
+3. Jalankan integrasi backend: `./gradlew :backend:test`
 
-### Add a database migration
+### Menambah migrasi database
 
-1. Add a `V<next>__name.sql` file under `backend/src/main/resources/db/migration/`
-2. Flyway applies it automatically on the next startup
+1. Tambahkan berkas `V<berikutnya>__nama.sql` di `backend/src/main/resources/db/migration/`
+2. Flyway menerapkannya otomatis saat startup berikutnya
 
 > [!WARNING]
-> Never edit a migration that has already been applied. Add a new one instead. Generated files under `build/` are rebuilt on every compile; do not edit them.
+> Jangan pernah mengedit migrasi yang sudah diterapkan. Buat migrasi baru. Berkas di folder `build/` dibangun ulang setiap compile; jangan diedit.
 
 ---
 
-## Testing
+## Pengujian
 
 ```bash
 ./gradlew :shared:test :backend:test :app:assembleDebug
 ```
 
-| Check | Requirement |
-|-------|-------------|
-| Unit tests (`shared`) | All valid and invalid `OrderStateMachine` transitions, and price/promo calculation |
-| Integration tests (`backend`) | Full flow: register, login, order, pay (simulation), offer accepted, technician actions, confirm, rate, RBAC, IDOR access checks |
-| Android build (`app`) | `assembleDebug` is green |
+| Pemeriksaan | Kebutuhan |
+|-------------|-----------|
+| Unit test (`shared`) | Semua transisi OrderStateMachine yang sah dan tidak sah, serta perhitungan biaya dan promo |
+| Integrasi (`backend`) | Alur lengkap: register, login, pesan, bayar (simulasi), terima tawaran, aksi tukang, konfirmasi, nilai, RBAC, akses IDOR |
+| Build Android (`app`) | `assembleDebug` hijau |
 
 ---
 
 ## Continuous Integration
 
-| Workflow | Purpose |
-|----------|---------|
-| `ci.yml` | Backend and shared tests, Android debug build, gitleaks secret scan |
+| Workflow | Tujuan |
+|----------|--------|
+| `ci.yml` | Test backend dan shared, build debug Android, scan rahasia gitleaks |
 
-CI runs on pushes to `main`, on pull requests, and on `v*` tags.
+CI berjalan pada push ke `main`, pada pull request, dan pada tag `v*`.
 
 ---
 
 ## FAQ
 
 <details>
-<summary><b>Does this app use real payments?</b></summary>
+<summary><b>Apakah aplikasi ini memakai pembayaran sungguhan?</b></summary>
 
-No. All payments go through `SimulatorProvider`. An admin marks a demo transfer or e-wallet payment as successful or failed from the admin panel. Cash is handled by the technician at the doorstep.
+Tidak. Semua pembayaran lewat `SimulatorProvider`. Admin menandai pembayaran transfer atau e-wallet demo sebagai berhasil atau gagal dari panel admin. Uang tunai ditangani teknisi di lokasi.
 </details>
 
 <details>
-<summary><b>Why is the same account possible on two phones?</b></summary>
+<summary><b>Kenapa akun yang sama bisa masuk di dua ponsel?</b></summary>
 
-Each device gets its own tokens. Refresh tokens are single-use and rotated; logging out revokes them. Sessions do not sync private data across devices beyond the shared account.
+Setiap perangkat mendapat token sendiri. Refresh token bersifat single-use dan dirotasi; logout mencabutnya. Sesi tidak menyinkronkan data pribadi antar perangkat selain akun yang sama.
 </details>
 
 <details>
-<summary><b>How do I unlock the demo accounts after too many failed logins?</b></summary>
+<summary><b>Bagaimana cara membuka kunci akun demo setelah terlalu banyak gagal login?</b></summary>
 
-Wait 5 minutes, or reset the local database (`docker compose down -v && docker compose up -d db`, then `./gradlew :backend:run`) to reseed the demo accounts.
+Tunggu 5 menit, atau reset database lokal (`docker compose down -v && docker compose up -d db`, lalu `./gradlew :backend:run`) untuk men-seed ulang akun demo.
 </details>
 
 <details>
-<summary><b>The app cannot reach the backend. What now?</b></summary>
+<summary><b>Aplikasi tidak bisa terhubung ke backend. Kenapa?</b></summary>
 
-Make sure the backend is running (`http://localhost:8080/health` answers `{"status":"ok"}`), the emulator uses `10.0.2.2` or a LAN IP via `-PbaseUrl=`, and the cleartext config in `app/src/main/res/xml/network_security_config.xml` covers it.
+Pastikan backend berjalan (`http://localhost:8080/health` menjawab `{"status":"ok"}`), emulator memakai `10.0.2.2` atau IP LAN lewat `-PbaseUrl=`, dan konfigurasi cleartext di `app/src/main/res/xml/network_security_config.xml` mencakupnya.
 </details>
 
 ---
 
-## Author
+## Penulis
 
 <div align="center">
 
@@ -348,10 +346,10 @@ Make sure the backend is running (`http://localhost:8080/health` answers `{"stat
 
 ## Disclaimer
 
-Tukang Kilat is a college final project. It is not affiliated with any property or service company. All prices, services, and demo accounts are illustrative.
+Tukang Kilat adalah tugas akhir kuliah. Tidak berafiliasi dengan perusahaan properti atau jasa mana pun. Semua harga, layanan, dan akun demo bersifat ilustratif.
 
 ---
 
-## License
+## Lisensi
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+Didistribusikan di bawah **Lisensi MIT**. Lihat [`LICENSE`](LICENSE) untuk informasi lebih lanjut.

@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.TukangKilat" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/ink</item>
-        <item name="android:statusBarColor">#1B2F4D</item>
-        <item name="android:navigationBarColor">#1B2F4D</item>
+        <item name="android:statusBarColor">#1B274D</item>
+        <item name="android:navigationBarColor">#1B274D</item>
     </style>
 </resources>
