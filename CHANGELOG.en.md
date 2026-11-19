@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-11-19
+
+### Changed
+
+- Launcher icon, adaptive icon (foreground and monochrome) and the in-app brand mark are re-rendered from a high-resolution master with sharper edges.
+- Payment screen: the selected payment method card now has an Oranye kilat border with an orange icon, per the design.
+- README: brand logo added to the header; screenshots (Beranda, Pesanan, Akun) refreshed to the new look; the `assets/` folder is listed in the project structure.
+
 ## [1.2.0] - 2026-11-19
 
 ### Added
@@ -38,6 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.0
 [1.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.1.0
 [1.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.0.0

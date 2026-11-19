@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="assets/tukangkilat-mark.png" alt="Tukang Kilat logo" width="120" />
   <h1>Tukang Kilat: Ahlinya rumah, siap membantu</h1>
   <p><b>A native Android app to book trusted home technicians:<br/>
   electricians, plumbers, and AC technicians, with transparent prices and live tracking.</b></p>
@@ -251,6 +252,7 @@ tukangkilat/
   shared/          Shared Kotlin module: DTOs, enums, OrderStateMachine
   docker-compose.yml   PostgreSQL service
   docs/            PRD, ERD, state machine, design audit, screenshots
+  assets/          Brand assets for documentation (README logo)
   scripts/         verify.sh (local CI gate)
   README.en.md     This file (English)
   README.md        Indonesian version
