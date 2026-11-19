@@ -241,6 +241,26 @@ object TechnicianService {
         return result
     }
 
+    // ---------- Reviews received ----------
+
+    fun reviews(userId: Long): List<ReviewDto> = transaction {
+        (RatingsTable innerJoin OrdersTable innerJoin ServicesTable)
+            .selectAll()
+            .where { OrdersTable.technicianId eq userId }
+            .orderBy(RatingsTable.createdAt to SortOrder.DESC)
+            .map { row ->
+                ReviewDto(
+                    orderId = row[RatingsTable.orderId],
+                    orderCode = row[OrdersTable.code],
+                    serviceName = row[ServicesTable.name],
+                    stars = row[RatingsTable.stars],
+                    tags = row[RatingsTable.tags].split(",").filter { it.isNotBlank() },
+                    comment = row[RatingsTable.comment],
+                    createdAt = row[RatingsTable.createdAt].toString()
+                )
+            }
+    }
+
     // ---------- Earnings ----------
 
     fun earnings(userId: Long): EarningsDto = transaction {

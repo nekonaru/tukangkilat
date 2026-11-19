@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
@@ -276,9 +277,45 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(20.dp))
+            ShareReceiptButton(order)
+            Spacer(Modifier.height(10.dp))
             TKPrimaryButton("Kembali ke Beranda", onClick = onBack)
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun ShareReceiptButton(order: OrderDto) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    OutlinedButton(
+        onClick = {
+            val text = buildString {
+                appendLine("Struk ${order.code}")
+                appendLine("${order.serviceName} · ${order.scheduledDate} · ${order.slotLabel}")
+                appendLine("${order.addressLabel}: ${order.addressFull}")
+                appendLine()
+                appendLine("Biaya jasa: ${Format.rupiah(order.serviceFee)}")
+                appendLine("Biaya kunjungan: ${Format.rupiah(order.visitFee)}")
+                if (order.discount > 0) appendLine("Diskon: -${Format.rupiah(order.discount)}")
+                appendLine("Total: ${Format.rupiah(order.total)}")
+                appendLine("Metode: ${methodLabel(order)}")
+            }
+            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "Struk ${order.code}")
+                putExtra(android.content.Intent.EXTRA_TEXT, text)
+            }
+            context.startActivity(android.content.Intent.createChooser(send, "Bagikan struk"))
+        },
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
+    ) {
+        Icon(Icons.Filled.Send, null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(10.dp))
+        Text("Bagikan struk", fontWeight = FontWeight.SemiBold)
     }
 }
 

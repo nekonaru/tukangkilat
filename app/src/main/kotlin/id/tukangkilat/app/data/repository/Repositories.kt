@@ -100,6 +100,7 @@ class TechnicianRepository @Inject constructor(
     suspend fun finish(id: Long, req: FinishWorkRequest) = api.finish(id, req)
     suspend fun myOrders() = api.technicianOrders()
     suspend fun earnings() = api.earnings()
+    suspend fun reviews() = api.technicianReviews()
 }
 
 @Singleton
@@ -119,4 +120,6 @@ class AdminRepository @Inject constructor(
     suspend fun setUserStatus(id: Long, status: String) = api.setUserStatus(id, UserStatusUpdateRequest(status))
     suspend fun simulatePaymentSuccess(orderId: Long) = api.simulatePaymentSuccess(orderId)
     suspend fun simulatePaymentFail(orderId: Long) = api.simulatePaymentFail(orderId)
+    suspend fun promoCodes() = api.adminPromoCodes()
+    suspend fun upsertPromoCode(req: PromoUpsertRequest) = api.upsertPromoCode(req)
 }

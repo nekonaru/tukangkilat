@@ -42,7 +42,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | T-09 | M | Tunai: `cashReceived` → `paymentStatus = LUNAS` | diverifikasi manual |
 | T-10 | S | Kunjungan ulang: `revisitReport` membersihkan tawaran lama lalu dispatch; kandidat pertama = tukang sebelumnya (`is_revisit = true`) | diverifikasi manual |
 | T-11 | M | `TechEarningsScreen`, `/technician/earnings` (komisi 15%) | diverifikasi manual |
-| T-12 | M | `TechAccountScreen`, rating dan ulasan | diverifikasi manual |
+| T-12 | M | `TechAccountScreen` (akun, rating, ulasan saya), `/technician/reviews` | `technician sees received reviews after rating` |
 | T-13 | S | `ChatScreen` mode teknisi (`/technician/orders/{id}/messages`) | diverifikasi manual |
 | T-14 | S | Tidak diimplementasikan; WS + polling | n/a |
 
@@ -54,7 +54,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | A-02 | M | `AdminVerifyScreen`, `approve`/`reject` tukang | `unverified technician cannot login`; approve diverifikasi manual |
 | A-03 | M | `AdminReportsScreen`, kunjungan ulang dan tutup laporan | diverifikasi manual |
 | A-04 | M | `AdminOrdersScreen`, tombol simulasi pembayaran | `order lifecycle end to end`, `payment failure then retry with tuai method succeeds` |
-| A-05 | S | `AdminServicesScreen`, `PUT /admin/services/{id}` | diverifikasi manual |
+| A-05 | S | `AdminServicesScreen` (layanan), `AdminPromoScreen` (kode promo), `/admin/services`, `/admin/promo-codes` | `admin can create and disable promo codes`, `non admin cannot manage promo codes` |
 | A-06 | S | `AdminServicesScreen` + `/admin/users/{id}/status` (ditangguhkan memutus offline) | diverifikasi manual |
 
 ## Kriteria selesai (PRD §10)

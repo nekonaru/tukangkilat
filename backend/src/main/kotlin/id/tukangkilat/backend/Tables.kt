@@ -72,6 +72,7 @@ object PromoCodesTable : Table("promo_codes") {
     val promoValue = long("promo_value")
     val validUntil = timestampWithTimeZone("valid_until")
     val quota = integer("quota")
+    val isActive = bool("is_active").default(true)
     override val primaryKey = PrimaryKey(code)
 }
 

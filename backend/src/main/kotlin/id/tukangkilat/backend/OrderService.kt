@@ -3,6 +3,7 @@ package id.tukangkilat.backend
 import id.tukangkilat.shared.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -159,7 +160,7 @@ object OrderService {
             .where { (ServicesTable.id eq req.serviceId) and (ServicesTable.isActive eq true) }
             .singleOrNull() ?: throw NotFoundException("Layanan tidak ditemukan atau tidak aktif")
 
-        val slot = TimeSlotsTable.selectAll().where { TimeSlotsTable.id eq req.slotId }.singleOrNull()
+        val slot = TimeSlotsTable.selectAll().where { TimeSlotsTable.id eq req.slotId }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
             ?: throw NotFoundException("Slot waktu tidak ditemukan")
 
         val address = AddressesTable.selectAll()
@@ -185,8 +186,9 @@ object OrderService {
         val promoCode = req.promoCode?.trim()?.uppercase()?.ifBlank { null }
         var promoQuotaRemaining: Int? = null
         if (promoCode != null) {
-            val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.singleOrNull()
+            val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
                 ?: throw BadRequestException("Kode promo tidak valid")
+            if (!promo[PromoCodesTable.isActive]) throw BadRequestException("Kode promo tidak aktif")
             if (promo[PromoCodesTable.validUntil].isBefore(OffsetDateTime.now())) {
                 throw BadRequestException("Kode promo sudah kedaluwarsa")
             }
@@ -293,8 +295,9 @@ object OrderService {
                 if (row[OrdersTable.discount] > 0L) {
                     throw ConflictException("Pesanan sudah memakai kode promo")
                 }
-                val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.singleOrNull()
+                val promo = PromoCodesTable.selectAll().where { PromoCodesTable.code eq promoCode }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
                     ?: throw BadRequestException("Kode promo tidak valid")
+                if (!promo[PromoCodesTable.isActive]) throw BadRequestException("Kode promo tidak aktif")
                 if (promo[PromoCodesTable.validUntil].isBefore(now)) {
                     throw BadRequestException("Kode promo sudah kedaluwarsa")
                 }
@@ -482,7 +485,7 @@ object OrderService {
             throw BadRequestException("Format tanggal tidak valid (YYYY-MM-DD)")
         }
         if (scheduledDate.isBefore(LocalDate.now())) throw BadRequestException("Tanggal tidak boleh di masa lalu")
-        val slot = TimeSlotsTable.selectAll().where { TimeSlotsTable.id eq req.slotId }.singleOrNull()
+        val slot = TimeSlotsTable.selectAll().where { TimeSlotsTable.id eq req.slotId }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
             ?: throw NotFoundException("Slot waktu tidak ditemukan")
         val used = OrdersTable.selectAll().where {
             (OrdersTable.scheduledDate eq scheduledDate) and

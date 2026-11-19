@@ -120,6 +120,9 @@ interface ApiService {
     @GET("/technician/earnings")
     suspend fun earnings(): EarningsDto
 
+    @GET("/technician/reviews")
+    suspend fun technicianReviews(): List<ReviewDto>
+
     @GET("/technician/orders/{id}/messages")
     suspend fun technicianMessages(@Path("id") id: Long): List<MessageDto>
 
@@ -165,4 +168,10 @@ interface ApiService {
 
     @POST("/admin/payments/{orderId}/simulate-fail")
     suspend fun simulatePaymentFail(@Path("orderId") orderId: Long): Map<String, String>
+
+    @GET("/admin/promo-codes")
+    suspend fun adminPromoCodes(): List<PromoCodeDto>
+
+    @PUT("/admin/promo-codes")
+    suspend fun upsertPromoCode(@Body req: PromoUpsertRequest): PromoCodeDto
 }

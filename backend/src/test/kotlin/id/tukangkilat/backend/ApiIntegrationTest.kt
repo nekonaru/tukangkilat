@@ -491,6 +491,139 @@ class ApiIntegrationTest {
     }
 
     @Test
+    fun `admin can create and disable promo codes`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+
+        val create = client.put("/admin/promo-codes") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("""{"code":"HEMAT55","type":"NOMINAL","value":55000,"validUntil":"2030-01-01T00:00:00Z","quota":10,"isActive":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, create.status, create.bodyAsText())
+        val list = client.get("/admin/promo-codes") { bearer(admin) }
+        assertTrue(list.bodyAsText().contains("HEMAT55"))
+
+        // disable it, then applying it at payment time must fail
+        val disable = client.put("/admin/promo-codes") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("""{"code":"HEMAT55","type":"NOMINAL","value":55000,"validUntil":"2030-01-01T00:00:00Z","quota":10,"isActive":false}""")
+        }
+        assertEquals(HttpStatusCode.OK, disable.status)
+
+        val rina = client.loginToken("rina", "rina12345")
+        val servicesRes = client.okGet("/consumer/services", rina)
+        val services = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(ServiceDto.serializer()), servicesRes.bodyAsText())
+        val service = services.first()
+        val tomorrow = java.time.LocalDate.now().plusDays(6).toString()
+        val slotsRes = client.okGet("/consumer/slots?date=$tomorrow", rina)
+        val slots = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()), slotsRes.bodyAsText())
+        val slot = slots.first { it.available }
+        val addressesRes = client.okGet("/consumer/addresses", rina)
+        val addresses = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()), addressesRes.bodyAsText())
+        val orderRes = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    CreateOrderRequest.serializer(),
+                    CreateOrderRequest(service.id, "AC bocor", addresses.first().id, tomorrow, slot.id)
+                )
+            )
+        }
+        val order = json.decodeFromString(OrderDto.serializer(), orderRes.bodyAsText())
+        val pay = client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"method":"TUNAI","promoCode":"HEMAT55"}""")
+        }
+        assertEquals(HttpStatusCode.BadRequest, pay.status)
+    }
+
+    @Test
+    fun `non admin cannot manage promo codes`() = testApplication {
+        setupApp()
+        val rina = client.loginToken("rina", "rina12345")
+        assertEquals(HttpStatusCode.Forbidden, client.get("/admin/promo-codes") { bearer(rina) }.status)
+        assertEquals(HttpStatusCode.Forbidden, client.put("/admin/promo-codes") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"code":"X2026","type":"NOMINAL","value":10000,"validUntil":"2030-01-01T00:00:00Z","quota":1,"isActive":true}""")
+        }.status)
+    }
+
+    @Test
+    fun `technician sees received reviews after rating`() = testApplication {
+        setupApp()
+        val rina = client.loginToken("rina", "rina12345")
+        val budi = client.loginToken("budi", "budi12345")
+        val admin = client.loginToken("admin", "admin12345")
+        client.put("/technician/online") {
+            bearer(budi); contentType(ContentType.Application.Json); setBody("""{"online":true}""")
+        }
+        client.post("/technician/location") {
+            bearer(budi); contentType(ContentType.Application.Json); setBody("""{"lat":-6.2297,"lng":106.8294}""")
+        }
+
+        val servicesRes = client.okGet("/consumer/services", rina)
+        val services = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(ServiceDto.serializer()), servicesRes.bodyAsText())
+        val service = services.first()
+        val tomorrow = java.time.LocalDate.now().plusDays(7).toString()
+        val slotsRes = client.okGet("/consumer/slots?date=$tomorrow", rina)
+        val slots = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()), slotsRes.bodyAsText())
+        val slot = slots.first { it.available }
+        val addressesRes = client.okGet("/consumer/addresses", rina)
+        val addresses = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()), addressesRes.bodyAsText())
+        val orderRes = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    CreateOrderRequest.serializer(),
+                    CreateOrderRequest(service.id, "Perbaikan total", addresses.first().id, tomorrow, slot.id)
+                )
+            )
+        }
+        val order = json.decodeFromString(OrderDto.serializer(), orderRes.bodyAsText())
+        client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json); setBody("""{"method":"TUNAI"}""")
+        }
+        val offersRes = client.okGet("/technician/offers", budi)
+        val offers = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(OfferDto.serializer()), offersRes.bodyAsText())
+        val offer = offers.firstOrNull { it.orderId == order.id } ?: fail("expected an offer for order ${order.id}")
+        client.post("/technician/offers/${offer.id}/accept") { bearer(budi) }
+        for (action in listOf("depart", "arrive", "start")) {
+            val res = client.post("/technician/orders/${order.id}/$action") { bearer(budi) }
+            assertEquals(HttpStatusCode.OK, res.status, "$action failed: ${res.bodyAsText()}")
+        }
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + ByteArray(64)
+        val boundary = "----tukangkilattest"
+        val bodyBytes = buildString {
+            append("--$boundary\r\n")
+            append("Content-Disposition: form-data; name=\"file\"; filename=\"bukti.png\"\r\n")
+            append("Content-Type: image/png\r\n\r\n")
+        }.encodeToByteArray() + png + "\r\n--$boundary--\r\n".encodeToByteArray()
+        val photoRes = client.post("/photos") {
+            bearer(budi)
+            header(HttpHeaders.ContentType, "multipart/form-data; boundary=$boundary")
+            setBody(bodyBytes)
+        }
+        assertEquals(HttpStatusCode.Created, photoRes.status, photoRes.bodyAsText())
+        val photoUrl = json.decodeFromString(PhotoUploadDto.serializer(), photoRes.bodyAsText()).url
+        val finishRes = client.post("/technician/orders/${order.id}/finish") {
+            bearer(budi)
+            contentType(ContentType.Application.Json)
+            setBody("""{"note":"Selesai diuji","photoUrls":["$photoUrl"],"cashReceived":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, finishRes.status, finishRes.bodyAsText())
+        client.post("/consumer/orders/${order.id}/confirm") { bearer(rina) }
+        client.post("/consumer/orders/${order.id}/rating") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"stars":5,"tags":["Rapi"],"comment":"Mantap sekali"}""")
+        }
+        val reviewsRes = client.okGet("/technician/reviews", budi)
+        assertTrue(reviewsRes.bodyAsText().contains("Mantap sekali"))
+        assertTrue(reviewsRes.bodyAsText().contains(order.code))
+    }
+
+    @Test
     fun `two orders created same day get sequential codes`() = testApplication {
         setupApp()
         val rina = client.loginToken("rina", "rina12345")

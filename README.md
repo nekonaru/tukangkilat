@@ -71,7 +71,7 @@
 | **Proof of work** | Photo evidence and the technician's note shown before you confirm |
 | **Ratings** | 1-5 stars, quick tags, and comment after the work is done |
 | **Problem reports** | Request a revisit with 3 reasons and photo evidence |
-| **Promo codes** | Save money with `HEMAT25` (simulator demo) |
+| **Promo codes** | Save money with `HEMAT25` (simulator demo) or promos created from the admin panel |
 | **Chat** | Two-way chat with the technician, per order |
 
 ### For technicians
@@ -83,7 +83,7 @@
 | **Skills and radius** | Set your skills (listrik, pipa, AC) and service radius |
 | **Ordered job actions** | Depart, arrive, start work, finish with photo proof |
 | **Earnings** | Per-job breakdown: fee, 15% platform commission, full visit fee |
-| **Ratings and reviews** | Profile shows rating average and jobs completed |
+| **Ratings and reviews** | Profile shows rating average and jobs completed, plus a list of reviews (stars, tags, comment, date) |
 
 ### For admins
 
@@ -93,6 +93,7 @@
 | **Problem reports** | View reports, schedule a revisit, or close them |
 | **Payment simulation** | "Simulasikan berhasil/gagal" buttons for transfer and e-wallet demos |
 | **Manage services** | Edit name, price, visit fee, and active status |
+| **Manage promo codes** | Create, activate and deactivate promo codes from the admin panel |
 | **Suspend accounts** | Suspend or re-activate technician and consumer accounts |
 
 ---
