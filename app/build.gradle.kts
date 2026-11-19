@@ -34,7 +34,7 @@ android {
                 this.storeFile = storeFile
                 storePassword = System.getenv("RELEASE_STORE_PASSWORD") ?: "changeit"
                 keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "tukangkilat"
-                keyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: "changeit"
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD") ?: "changeit"
             }
         }
     }

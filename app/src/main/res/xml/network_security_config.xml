@@ -3,7 +3,7 @@
     <!-- Local development backend endpoints only; production must use HTTPS. -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain>localhost</domain>
+        <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">.lan</domain>
     </domain-config>
     <base-config cleartextTrafficPermitted="false">
