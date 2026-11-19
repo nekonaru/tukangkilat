@@ -1,6 +1,5 @@
 package id.tukangkilat.app.ui.auth
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Person
@@ -30,10 +30,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import id.tukangkilat.app.R
 import id.tukangkilat.app.data.repository.AuthRepository
 import id.tukangkilat.app.ui.components.TKPrimaryButton
 import id.tukangkilat.app.ui.components.TKTextButton
+import id.tukangkilat.app.ui.components.TKWordmark
 import id.tukangkilat.app.ui.components.TextFieldDark
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
@@ -112,33 +112,41 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 28.dp, vertical = 32.dp),
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_brand),
-                contentDescription = "TukangKilat",
-                modifier = Modifier.size(84.dp)
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                "TukangKilat",
-                color = TKColor.White,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 34.sp
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                "Ahlinya rumah, siap membantu",
-                color = TKColor.Mist,
-                fontSize = 13.sp
-            )
-            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.Bolt,
+                    contentDescription = null,
+                    tint = TKColor.Orange,
+                    modifier = Modifier.size(30.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                TKWordmark(fontSize = 26.sp)
+            }
+            Spacer(Modifier.height(28.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.VerifiedUser,
+                    contentDescription = null,
+                    tint = TKColor.Mist,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Ahlinya rumah, siap membantu",
+                    color = TKColor.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
+                )
+            }
+            Spacer(Modifier.height(6.dp))
             Text(
                 "Masuk untuk panggil teknisi tepercaya ke rumah Anda.",
                 color = TKColor.Mist,
-                fontSize = 12.sp
+                fontSize = 13.sp
             )
             Spacer(Modifier.height(34.dp))
 

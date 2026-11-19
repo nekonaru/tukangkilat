@@ -33,6 +33,7 @@ import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.components.ErrorView
 import id.tukangkilat.app.ui.components.LoadingView
+import id.tukangkilat.app.ui.components.TKWordmark
 import id.tukangkilat.app.ui.components.SectionLabel
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.shared.Format
@@ -163,7 +164,7 @@ fun HomeScreen(
                             modifier = Modifier.size(30.dp)
                         )
                         Spacer(Modifier.width(10.dp))
-                        Text("TukangKilat", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                        TKWordmark(fontSize = 20.sp)
                     }
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -266,7 +267,6 @@ private fun ServiceCard(service: ServiceDto, onClick: () -> Unit) {
             Spacer(Modifier.height(2.dp))
             Text("Mulai ${Format.rupiah(service.basePrice)}", color = TKColor.Mist, fontSize = 13.sp)
         }
-        Icon(Icons.Filled.ElectricBolt, null, tint = TKColor.InkLine, modifier = Modifier.size(20.dp))
     }
 }
 

@@ -14,6 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -284,4 +287,22 @@ fun TextFieldDark(
             )
         )
     }
+}
+
+
+/** Two-tone brand wordmark: "Tukang" in the given base color, "Kilat" in orange. */
+@Composable
+fun TKWordmark(
+    baseColor: Color = TKColor.White,
+    modifier: Modifier = Modifier,
+    fontSize: androidx.compose.ui.unit.TextUnit = 20.sp
+) {
+    Text(
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(color = baseColor, fontWeight = FontWeight.ExtraBold)) { append("Tukang") }
+            withStyle(SpanStyle(color = TKColor.Orange, fontWeight = FontWeight.ExtraBold)) { append("Kilat") }
+        },
+        modifier = modifier,
+        fontSize = fontSize
+    )
 }

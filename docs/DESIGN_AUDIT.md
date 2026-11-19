@@ -31,4 +31,4 @@ Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/
 2. **Layar 09** (Masuk gagal) menampilkan teks "Username atau password salah" sebagai pengganti "Nomor belum terdaftar" sesuai keputusan PRD.
 3. **Tab Pesanan dan Akun** adalah implementasi baru (tidak didesain), mengikuti keputusan PRD bagian 2.
 4. **Layar 08** menggabungkan form penilaian dan struk (satu layar) karena desain menampilkan keduanya berurutan di layar yang sama.
-5. **Ikon aplikasi** diambil dari berkas `docs/design/identitas-visual.png` lalu dibuat ulang sebagai vector drawable (`ic_brand.xml`, `ic_launcher_foreground.xml`) dengan warna Identitas Visual: Biru malam dan Oranye kilat.
+5. **Ikon aplikasi** diambil persis dari berkas `docs/design/identitas-visual.png` dan `Logo utama Atap Kilat@2x.png` (kunci warna + isi siluet), diekspor menjadi `mipmap-*` (launcher), `mipmap-*-v26` (adaptive icon kotak dan lingkaran plus lapisan monokrom), dan `ic_brand.png` (tanda untuk layar login dan beranda). Warna: Biru malam `#1B274D` dan Oranye kilat `#E8681E` per Identitas Visual.
