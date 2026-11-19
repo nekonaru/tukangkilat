@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.21"
+kotlin = "2.3.21"
 agp = "8.13.2"
 gradle = "8.13"
 
@@ -10,34 +10,34 @@ flyway = "13.12.2"
 postgresql = "42.7.14"
 h2 = "2.5.252"
 hikari = "7.1.0"
-jjwt = "0.13.0"
 bcrypt = "0.10.2"
 logback = "1.6.7"
 
 # Common libraries
-kotlinxSerialization = "1.13.0"
+kotlinxSerialization = "1.11.0"
 kotlinxCoroutines = "1.11.0"
-
 # Android
-composeBom = "2026.09.00"
+composeBom = "2026.03.01"
 activityCompose = "1.10.1"
-navigationCompose = "2.10.2"
-hilt = "2.60.1"
+navigationCompose = "2.9.8"
+hilt = "2.58"
+ksp = "2.3.10"
 room = "2.8.5"
 retrofit = "3.0.0"
-okhttp = "5.5.1"
+okhttp = "5.3.0"
 coil = "2.7.0"
 osmdroid = "6.1.20"
 datastore = "1.3.0"
 playServicesLocation = "21.4.0"
-lifecycle = "2.11.0"
-hiltNavigationCompose = "1.4.0"
-coreKtx = "1.19.1"
+lifecycle = "2.9.4"
+hiltNavigationCompose = "1.3.0"
+coreKtx = "1.17.0"
 
 [libraries]
 # Shared / backend
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
@@ -51,14 +51,13 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
-jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
-jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
-jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+jwt-auth0 = { module = "com.auth0:java-jwt", version = "4.6.0" }
 bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
@@ -100,6 +99,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

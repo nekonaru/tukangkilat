@@ -113,7 +113,8 @@ data class CreateOrderRequest(
     val addressId: Long,
     val scheduledDate: String,
     val slotId: Long,
-    val promoCode: String? = null
+    val promoCode: String? = null,
+    val photoUrls: List<String> = emptyList()
 )
 
 @Serializable
@@ -168,6 +169,7 @@ data class OrderDto(
     val total: Long,
     val paymentMethod: PaymentMethod? = null,
     val paymentStatus: PaymentStatus,
+    val finishNote: String? = null,
     val technician: TechnicianPublicDto? = null,
     val technicianLat: Double? = null,
     val technicianLng: Double? = null,
@@ -216,6 +218,12 @@ data class RescheduleRequest(
 @Serializable
 data class CancelRequest(
     val reason: String
+)
+
+@Serializable
+data class ChangePasswordRequest(
+    val oldPassword: String,
+    val newPassword: String
 )
 
 @Serializable
