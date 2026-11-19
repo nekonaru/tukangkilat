@@ -1,0 +1,295 @@
+{
+  "info": {
+    "_postman_id": "tukangkilat-collection",
+    "name": "Tukang Kilat API",
+    "description": "REST API untuk backend Tukang Kilat (Ktor). Auth memakai Bearer token; login menyimpan token ke variabel koleksi `accessToken` dan `refreshToken`. Base URL default `http://localhost:8080` (override dengan variabel koleksi `baseUrl`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "orderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register konsumen",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Rina Putri\",\n  \"username\": \"rina\",\n  \"password\": \"rina12345\",\n  \"phone\": \"081234567890\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Register tukang",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register-technician", "host": ["{{baseUrl}}"], "path": ["auth", "register-technician"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"username\": \"budi\",\n  \"password\": \"budi12345\",\n  \"phone\": \"081298765432\",\n  \"skills\": [\"LISTRIK\", \"PIPA\"],\n  \"serviceRadiusKm\": 10,\n  \"ktpPhotoUrl\": \"/photos/<public_id>\",\n  \"selfiePhotoUrl\": \"/photos/<public_id>\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', res.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', res.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"rina\",\n  \"password\": \"rina12345\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Consumer",
+      "item": [
+        {
+          "name": "List services",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/consumer/services", "host": ["{{baseUrl}}"], "path": ["consumer", "services"] }
+          },
+          "response": []
+        },
+        {
+          "name": "List slots (tanggal besok)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/consumer/slots?date=2026-11-20", "host": ["{{baseUrl}}"], "path": ["consumer", "slots"], "query": [{ "key": "date", "value": "2026-11-20" }] }
+          },
+          "response": []
+        },
+        {
+          "name": "List addresses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/consumer/addresses", "host": ["{{baseUrl}}"], "path": ["consumer", "addresses"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders", "host": ["{{baseUrl}}"], "path": ["consumer", "orders"] },
+            "body": { "mode": "raw", "raw": "{\n  \"serviceId\": 1,\n  \"description\": \"Stopkontak di ruang tamu tidak menyala\",\n  \"addressId\": 1,\n  \"scheduledDate\": \"2026-11-20\",\n  \"slotId\": 2\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Pay order (transfer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders/{{orderId}}/pay", "host": ["{{baseUrl}}"], "path": ["consumer", "orders", "{{orderId}}", "pay"] },
+            "body": { "mode": "raw", "raw": "{\n  \"method\": \"TRANSFER\",\n  \"promoCode\": \"HEMAT25\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Order detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["consumer", "orders", "{{orderId}}"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders/{{orderId}}/cancel", "host": ["{{baseUrl}}"], "path": ["consumer", "orders", "{{orderId}}", "cancel"] },
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"berubah pikiran\"\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm order completed",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders/{{orderId}}/confirm", "host": ["{{baseUrl}}"], "path": ["consumer", "orders", "{{orderId}}", "confirm"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Rate order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/consumer/orders/{{orderId}}/rating", "host": ["{{baseUrl}}"], "path": ["consumer", "orders", "{{orderId}}", "rating"] },
+            "body": { "mode": "raw", "raw": "{\n  \"stars\": 5,\n  \"tags\": [\"Tepat waktu\", \"Rapi\"],\n  \"comment\": \"Pekerjaan rapi\"\n}" }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Technician",
+      "item": [
+        {
+          "name": "Toggle online",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technician/online", "host": ["{{baseUrl}}"], "path": ["technician", "online"] },
+            "body": { "mode": "raw", "raw": "{\n  \"online\": true\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Send location",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technician/location", "host": ["{{baseUrl}}"], "path": ["technician", "location"] },
+            "body": { "mode": "raw", "raw": "{\n  \"lat\": -6.2297,\n  \"lng\": 106.8294\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "List offers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/offers", "host": ["{{baseUrl}}"], "path": ["technician", "offers"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Accept offer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/offers/1/accept", "host": ["{{baseUrl}}"], "path": ["technician", "offers", "1", "accept"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Depart",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/orders/{{orderId}}/depart", "host": ["{{baseUrl}}"], "path": ["technician", "orders", "{{orderId}}", "depart"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Arrive",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/orders/{{orderId}}/arrive", "host": ["{{baseUrl}}"], "path": ["technician", "orders", "{{orderId}}", "arrive"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Start work",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/orders/{{orderId}}/start", "host": ["{{baseUrl}}"], "path": ["technician", "orders", "{{orderId}}", "start"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Finish work",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technician/orders/{{orderId}}/finish", "host": ["{{baseUrl}}"], "path": ["technician", "orders", "{{orderId}}", "finish"] },
+            "body": { "mode": "raw", "raw": "{\n  \"note\": \"Sudah diuji, berfungsi normal\",\n  \"photoUrls\": [\"/photos/<public_id>\"],\n  \"cashReceived\": false\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Earnings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/technician/earnings", "host": ["{{baseUrl}}"], "path": ["technician", "earnings"] }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/summary", "host": ["{{baseUrl}}"], "path": ["admin", "summary"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Simulate payment success",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/payments/{{orderId}}/simulate-success", "host": ["{{baseUrl}}"], "path": ["admin", "payments", "{{orderId}}", "simulate-success"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Simulate payment fail",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/payments/{{orderId}}/simulate-fail", "host": ["{{baseUrl}}"], "path": ["admin", "payments", "{{orderId}}", "simulate-fail"] }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
