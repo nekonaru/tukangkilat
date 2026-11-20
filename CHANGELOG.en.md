@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-11-20
+
+### Changed
+
+- **Design screen 08 (Rating)**: the star count label is now Oranye kilat, quick tags use an orange border with orange text, and the receipt card uses pale green with the check inside the card, per the draft.
+- **Design screen 12 (Report a problem)**: the selected reason now has an orange border; photo upload is now a full-width dashed box with "Maksimal 3 foto · JPG atau PNG", per the draft.
+- **Docs**: `docs/DESIGN_AUDIT.md` uses Biru malam `#1B274D` and records the 08, 12 and time slot chip adjustments.
+
 ## [1.2.2] - 2026-11-20
 
 ### Fixed
@@ -55,6 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.3
 [1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2
 [1.2.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.0

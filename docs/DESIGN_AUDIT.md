@@ -1,6 +1,6 @@
 # Audit Desain: Layar Konsumen vs Desain Acuan
 
-Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/`. Nilai warna diambil dari `docs/design/identitas-visual.png` (palet: Biru malam #1B2F4D, Oranye kilat #E8681E, Biru kabut #B9C4D6, Putih).
+Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/`. Nilai warna diambil dari `docs/design/identitas-visual.png` (palet: Biru malam #1B274D, Oranye kilat #E8681E, Biru kabut #B9CAD6, Putih).
 
 | No | Layar | Kesamat | Catatan perbaikan |
 |----|-------|---------|---------------------|
@@ -32,3 +32,4 @@ Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/
 3. **Tab Pesanan dan Akun** adalah implementasi baru (tidak didesain), mengikuti keputusan PRD bagian 2.
 4. **Layar 08** menggabungkan form penilaian dan struk (satu layar) karena desain menampilkan keduanya berurutan di layar yang sama.
 5. **Ikon aplikasi** diambil persis dari berkas `docs/design/identitas-visual.png` dan `Logo utama Atap Kilat@2x.png` (kunci warna + isi siluet), diekspor menjadi `mipmap-*` (launcher), `mipmap-*-v26` (adaptive icon kotak dan lingkaran plus lapisan monokrom), dan `ic_brand.png` (tanda untuk layar login dan beranda). Warna: Biru malam `#1B274D` dan Oranye kilat `#E8681E` per Identitas Visual.
+6. **Layar 08** memakai tag bingkai oranye dengan teks oranye dan kartu struk hijau pucat sesuai draf; **layar 12** memakai kotak unggah foto putus-putus selebar layar dan bingkai oranye pada alasan yang dipilih; **layar 03** memakai chip slot bertema kartu putih dengan teks Biru malam agar jam terbaca.

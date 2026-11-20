@@ -1,6 +1,7 @@
 package id.tukangkilat.app.ui.consumer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -172,7 +173,7 @@ private fun RatingForm(
                     2 -> "2 dari 5 · Kurang"
                     else -> "1 dari 5 · Sangat kecewa"
                 },
-                color = TKColor.Mist,
+                color = TKColor.Orange,
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(18.dp))
@@ -181,12 +182,13 @@ private fun RatingForm(
                     val selected = tag in state.tags
                     Text(
                         tag,
-                        color = if (selected) TKColor.Ink else TKColor.White,
+                        color = if (selected) TKColor.Ink else TKColor.Orange,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (selected) TKColor.Orange else TKColor.InkSoft)
+                            .background(if (selected) TKColor.Orange else TKColor.Card)
+                            .border(1.dp, TKColor.Orange, RoundedCornerShape(20.dp))
                             .clickable { onToggleTag(tag) }
                             .padding(horizontal = 18.dp, vertical = 9.dp)
                     )
@@ -227,17 +229,17 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit) {
             modifier = Modifier.padding(horizontal = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(56.dp))
-            Spacer(Modifier.height(10.dp))
-            Text("Pesanan selesai", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
-            Spacer(Modifier.height(14.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(TKColor.Card)
+                    .background(TKColor.GreenSoft)
                     .padding(16.dp)
             ) {
+                Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(36.dp))
+                Spacer(Modifier.height(8.dp))
+                Text("Pesanan selesai", color = TKColor.GreenDeep, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                Spacer(Modifier.height(10.dp))
                 Text(
                     "Struk ${order.code} · ${order.scheduledDate}",
                     color = TKColor.CreamText,
