@@ -424,10 +424,12 @@ object OrderService {
     /** Expire pending payments older than their expiry; order goes to PEMBAYARAN_GAGAL. */
     suspend fun expireStalePayments(): Int {
         val now = OffsetDateTime.now()
-        val stale = PaymentsTable.selectAll().where {
-            (PaymentsTable.status eq PaymentStatus.MENUNGGU.name) and
-                (PaymentsTable.expiresAt less now)
-        }.map { it[PaymentsTable.orderId] }
+        val stale = transaction {
+            PaymentsTable.selectAll().where {
+                (PaymentsTable.status eq PaymentStatus.MENUNGGU.name) and
+                    (PaymentsTable.expiresAt less now)
+            }.map { it[PaymentsTable.orderId] }
+        }
         var count = 0
         for (orderId in stale) {
             if (markPaymentFailed(orderId, null, OrderStateMachine.Actor.SYSTEM)) count++
@@ -595,9 +597,11 @@ object OrderService {
 
     fun autoCompleteStaleConfirmation(maxAgeHours: Long = 24): Int {
         val cutoff = OffsetDateTime.now().minusHours(maxAgeHours)
-        val stale = OrdersTable.selectAll().where {
-            (OrdersTable.status eq OrderStatus.MENUNGGU_KONFIRMASI.name) and (OrdersTable.updatedAt less cutoff)
-        }.map { it[OrdersTable.id] }
+        val stale = transaction {
+            OrdersTable.selectAll().where {
+                (OrdersTable.status eq OrderStatus.MENUNGGU_KONFIRMASI.name) and (OrdersTable.updatedAt less cutoff)
+            }.map { it[OrdersTable.id] }
+        }
         var count = 0
         for (orderId in stale) {
             try {

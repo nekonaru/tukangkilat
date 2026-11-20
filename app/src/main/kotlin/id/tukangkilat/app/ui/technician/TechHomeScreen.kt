@@ -3,6 +3,8 @@ package id.tukangkilat.app.ui.technician
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -155,6 +157,7 @@ fun TechHomeScreen(
     viewModel: TechHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 

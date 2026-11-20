@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.technician
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -155,6 +157,7 @@ fun TechJobsScreen(
     viewModel: TechJobsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.snackbar) {

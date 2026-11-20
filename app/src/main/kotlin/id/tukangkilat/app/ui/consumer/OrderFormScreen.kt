@@ -397,9 +397,9 @@ fun OrderFormScreen(
                         Text(
                             slot.label,
                             color = when {
-                                selected -> TKColor.White
+                                selected -> TKColor.Orange
                                 !enabled -> TKColor.Mist.copy(alpha = 0.5f)
-                                else -> TKColor.White
+                                else -> TKColor.Ink
                             },
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
@@ -407,10 +407,15 @@ fun OrderFormScreen(
                                 .clip(RoundedCornerShape(22.dp))
                                 .background(
                                     when {
-                                        selected -> TKColor.Orange
+                                        selected -> TKColor.Card
                                         !enabled -> TKColor.InkSoft.copy(alpha = 0.4f)
                                         else -> TKColor.Card
                                     }
+                                )
+                                .border(
+                                    if (selected) 2.dp else 1.dp,
+                                    if (selected) TKColor.Orange else TKColor.InkLine,
+                                    RoundedCornerShape(22.dp)
                                 )
                                 .clickable(enabled = enabled) { viewModel.selectSlot(slot.id) }
                                 .padding(horizontal = 18.dp, vertical = 10.dp)
