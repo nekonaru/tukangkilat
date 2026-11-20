@@ -5,7 +5,7 @@ Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/
 | No | Layar | Kesamat | Catatan perbaikan |
 |----|-------|---------|---------------------|
 | 01 | Masuk | Logo, tagline, kolom Username dan Password, tombol LOGIN penuh oranye | Sesuai desain |
-| 02 | Beranda | Header logo, kolom cari oranye, 3 layanan dengan harga, kartu pesanan aktif, bottom nav | Sesuai desain |
+| 02 | Beranda | Header logo, kolom cari oranye, 3 layanan dengan harga, kartu pesanan aktif, bottom nav | Baris lokasi menampilkan label alamat (mis. "Rumah") + alamat lengkap sesuai draf; peta memakai tile OpenStreetMap |
 | 03 | Pemesanan | Kartu layanan oranye, kolom cerita masalah, foto (0-3 via Photo Picker), tanggal, slot, alamat + peta, "Gunakan lokasi saya" | Foto memakai `AsyncImage`; peta memakai tile OpenStreetMap (osmdroid), tanpa API key |
 | 04 | Pembayaran | Ringkasan, biaya jasa, biaya kunjungan, total, 3 metode, kode promo, "Bayar sekarang" | Kolom promo diberi placeholder "Kode promo (opsional)" (PRD: validasi ke server saat menekan Bayar) |
 | 05 | Status pesanan | Peta, ETA, kartu tukang (Telepon, Pesan), linimasa 4 langkah berwaktu dari `order_events`, tombol batal sebelum TIBA | Sesuai desain; saat TIBA tombol batal disembunyikan |

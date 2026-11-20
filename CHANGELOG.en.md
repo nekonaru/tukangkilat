@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2026-11-20
+
+### Changed
+
+- **Design screen 02 (Beranda)**: the location row now shows the address label followed by the full address, for example "Rumah · Jl. Tebet Barat Dalam...", per the draft.
+- **Integration tests**: two new tests cover a failed payment retried with another method, plus address CRUD and rescheduling before a technician is assigned. Backend test count is now 20.
+
 ## [1.2.4] - 2026-11-20
 
 ### Changed
@@ -71,6 +78,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
 [1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4
 [1.2.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.3
 [1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2
