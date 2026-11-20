@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-11-20
+
+### Changed
+
+- **Backend**: migration `V3__dispatch_indexes.sql` adds composite indexes for maintenance queries (`payments(status, expires_at)`, `orders(status, updated_at)`), job offers (`job_offers(order_id, status, expires_at)`), and the search for verified online technicians. Verified on PostgreSQL and H2.
+- **Design screen 10 (Payment failed)**: red card icon on a pale red rounded square, per the draft.
+- **Audit**: report a problem through revisit (re-offer to the same technician) and order cancellation are now covered by 8 end-to-end checks.
+
 ## [1.2.3] - 2026-11-20
 
 ### Changed
@@ -63,6 +71,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4
 [1.2.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.3
 [1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2
 [1.2.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.1

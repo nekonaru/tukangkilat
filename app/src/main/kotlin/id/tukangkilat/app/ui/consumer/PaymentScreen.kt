@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.CreditCardOff
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.CheckCircle
@@ -502,11 +503,11 @@ private fun PaymentFailedContent(
             Box(
                 modifier = Modifier
                     .size(96.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(26.dp))
                     .background(TKColor.RedSoft),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Filled.ErrorOutline, null, tint = TKColor.Red, modifier = Modifier.size(52.dp))
+                Icon(Icons.Filled.CreditCardOff, null, tint = TKColor.Red, modifier = Modifier.size(52.dp))
             }
             Spacer(Modifier.height(18.dp))
             Text("Pembayaran belum berhasil", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
