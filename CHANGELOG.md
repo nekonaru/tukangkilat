@@ -4,6 +4,15 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-11-20
+
+### Diubah
+
+- **Backend**: perawatan otomatis (kedaluwarsa pembayaran dan konfirmasi otomatis setelah 24 jam) sekarang berjalan di dalam transaksi database. Sebelumnya kedua fungsi melempar `IllegalStateException: No transaction in context` pada setiap tick, sehingga pembayaran kedaluwarsa dan konfirmasi lama tidak pernah diproses. Log backend bersih.
+- **Aplikasi**: layar Beranda, Pesanan, beranda dan daftar pekerjaan tukang, serta ringkasan admin kini memuat ulang data saat aplikasi kembali ke latar depan. Status terbaru langsung tampil tanpa menutup aplikasi.
+- **Pemesanan**: chip slot waktu yang tersedia kini memakai teks Biru malam di atas kartu putih dengan garis tepi sesuai rancangan. Sebelumnya teks putih di atas kartu putih membuat jam tidak terbaca.
+- **Tes**: tes integrasi baru untuk kedua fungsi perawatan otomatis. `.gitignore` mengabaikan folder `backend/uploads/` yang dibuat saat unggah foto.
+
 ## [1.2.1] - 2026-11-19
 
 ### Diubah
@@ -46,6 +55,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2
 [1.2.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.0
 [1.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.1.0

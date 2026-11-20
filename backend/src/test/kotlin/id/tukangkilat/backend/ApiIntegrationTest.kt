@@ -9,7 +9,9 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.server.application.*
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.OffsetDateTime
 import kotlin.test.*
 
 @kotlinx.serialization.Serializable
@@ -655,5 +657,58 @@ class ApiIntegrationTest {
         assertNotEquals(code1, code2)
         assertTrue(code1.startsWith("TK-"))
         assertTrue(code2.startsWith("TK-"))
+    }
+
+    @Test
+    fun `maintenance expires stale payment and completes stale confirmation`() = testApplication {
+        setupApp()
+        val rina = client.loginToken("rina", "rina12345")
+        val date = java.time.LocalDate.now().plusDays(7).toString()
+        val slots = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()),
+            client.okGet("/consumer/slots?date=$date", rina).bodyAsText()
+        )
+        val addresses = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()),
+            client.okGet("/consumer/addresses", rina).bodyAsText()
+        )
+        val services = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(ServiceDto.serializer()),
+            client.okGet("/consumer/services", rina).bodyAsText()
+        )
+        val created = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateOrderRequest.serializer(),
+                CreateOrderRequest(services.first().id, "Uji perawatan otomatis", addresses.first().id, date, slots.first { it.available }.id)
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status, created.bodyAsText())
+        val order = json.decodeFromString(OrderDto.serializer(), created.bodyAsText())
+
+        val paid = client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"method":"TRANSFER"}""")
+        }
+        assertEquals(HttpStatusCode.OK, paid.status, paid.bodyAsText())
+
+        transaction {
+            PaymentsTable.update({ PaymentsTable.orderId eq order.id }) {
+                it[expiresAt] = OffsetDateTime.now().minusMinutes(1)
+            }
+        }
+        assertTrue(OrderService.expireStalePayments() >= 1)
+        val expired = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(OrderStatus.PEMBAYARAN_GAGAL, expired.status)
+
+        transaction {
+            OrdersTable.update({ OrdersTable.id eq order.id }) {
+                it[status] = OrderStatus.MENUNGGU_KONFIRMASI.name
+                it[updatedAt] = OffsetDateTime.now().minusHours(48)
+            }
+        }
+        assertTrue(OrderService.autoCompleteStaleConfirmation(24) >= 1)
+        val completed = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(OrderStatus.SELESAI, completed.status)
     }
 }

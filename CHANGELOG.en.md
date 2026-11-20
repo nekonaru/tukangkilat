@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-11-20
+
+### Fixed
+
+- **Backend**: automatic maintenance (payment expiry and auto-complete after 24 hours) now runs inside a database transaction. Previously both functions threw `IllegalStateException: No transaction in context` on every tick, so expired payments and stale confirmations were never processed. The backend log is clean.
+- **App**: Beranda, Pesanan, technician home and job list, and the admin summary now reload data when the app returns to the foreground. Fresh status appears without restarting the app.
+- **Order form**: available time slot chips now use Biru malam text on a white card with a border, per the design. Previously white text on a white card made the times unreadable.
+- **Tests**: new integration test for both maintenance functions. `.gitignore` now ignores the `backend/uploads/` folder created by photo uploads.
+
 ## [1.2.1] - 2026-11-19
 
 ### Changed
@@ -46,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2
 [1.2.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.0
 [1.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.1.0
