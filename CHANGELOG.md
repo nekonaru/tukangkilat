@@ -4,6 +4,13 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2026-11-20
+
+### Diubah
+
+- **Desain layar 02 (Beranda)**: baris lokasi kini menampilkan label alamat diikuti alamat lengkap, misalnya "Rumah · Jl. Tebet Barat Dalam...", sesuai draf.
+- **Tes integrasi**: dua tes baru mengunci alur gagal bayar lalu bayar ulang dengan metode lain, serta CRUD alamat dan jadwal ulang saat teknisi belum ditentukan. Total tes backend menjadi 20.
+
 ## [1.2.4] - 2026-11-20
 
 ### Diubah
@@ -71,6 +78,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
 [1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4
 [1.2.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.3
 [1.2.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.2

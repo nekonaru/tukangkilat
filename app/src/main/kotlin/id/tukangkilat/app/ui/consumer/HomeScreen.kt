@@ -174,8 +174,10 @@ fun HomeScreen(
                         Icon(Icons.Filled.Place, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            state.primaryAddress?.fullAddress?.ifBlank { "Alamat belum diatur" }
-                                ?: "Atur alamat di tab Akun",
+                            state.primaryAddress?.let { addr ->
+                                listOfNotNull(addr.label.takeIf { it.isNotBlank() }, addr.fullAddress.takeIf { it.isNotBlank() })
+                                    .joinToString(" · ")
+                            } ?: "Atur alamat di tab Akun",
                             color = TKColor.White,
                             fontSize = 13.sp,
                             maxLines = 1

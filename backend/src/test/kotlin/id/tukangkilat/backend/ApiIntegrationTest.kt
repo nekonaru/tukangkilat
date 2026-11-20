@@ -711,4 +711,104 @@ class ApiIntegrationTest {
         val completed = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
         assertEquals(OrderStatus.SELESAI, completed.status)
     }
+
+    @Test
+    fun `payment failure can be retried with another method`() = testApplication {
+        setupApp()
+        val rina = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+        val date = java.time.LocalDate.now().plusDays(15).toString()
+        val slots = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()),
+            client.okGet("/consumer/slots?date=$date", rina).bodyAsText()
+        )
+        val addresses = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()),
+            client.okGet("/consumer/addresses", rina).bodyAsText()
+        )
+        val created = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateOrderRequest.serializer(),
+                CreateOrderRequest(1, "Uji gagal bayar", addresses.first().id, date, slots.first { it.available }.id)
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status, created.bodyAsText())
+        val order = json.decodeFromString(OrderDto.serializer(), created.bodyAsText())
+
+        val paid = client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json); setBody("""{"method":"TRANSFER"}""")
+        }
+        assertEquals(HttpStatusCode.OK, paid.status, paid.bodyAsText())
+        val failed = client.post("/admin/payments/${order.id}/simulate-fail") { bearer(admin) }
+        assertEquals(HttpStatusCode.OK, failed.status, failed.bodyAsText())
+        val afterFail = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(OrderStatus.PEMBAYARAN_GAGAL, afterFail.status)
+
+        val retried = client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json); setBody("""{"method":"DOMPET_DIGITAL"}""")
+        }
+        assertEquals(HttpStatusCode.OK, retried.status, retried.bodyAsText())
+        val afterRetry = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(OrderStatus.MENUNGGU_PEMBAYARAN, afterRetry.status)
+        assertEquals(PaymentMethod.DOMPET_DIGITAL, afterRetry.paymentMethod)
+    }
+
+    @Test
+    fun `address CRUD and reschedule while searching work`() = testApplication {
+        setupApp()
+        val rina = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+        val createdAddress = client.post("/consumer/addresses") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"label":"Kantor","fullAddress":"Jl. Uji No. 1","lat":-6.23,"lng":106.83,"isPrimary":false}""")
+        }
+        assertEquals(HttpStatusCode.Created, createdAddress.status, createdAddress.bodyAsText())
+        val address = json.decodeFromString(AddressDto.serializer(), createdAddress.bodyAsText())
+        val updated = client.put("/consumer/addresses/${address.id}") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody("""{"label":"Kantor baru","fullAddress":"Jl. Uji No. 2","lat":-6.23,"lng":106.83,"isPrimary":false}""")
+        }
+        assertEquals(HttpStatusCode.OK, updated.status, updated.bodyAsText())
+        val deleted = client.delete("/consumer/addresses/${address.id}") { bearer(rina) }
+        assertEquals(HttpStatusCode.NoContent, deleted.status, deleted.bodyAsText())
+
+        val date = java.time.LocalDate.now().plusDays(16).toString()
+        val slots = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()),
+            client.okGet("/consumer/slots?date=$date", rina).bodyAsText()
+        )
+        val addresses = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()),
+            client.okGet("/consumer/addresses", rina).bodyAsText()
+        )
+        val created = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateOrderRequest.serializer(),
+                CreateOrderRequest(1, "Uji jadwal ulang", addresses.first().id, date, slots.first { it.available }.id)
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status, created.bodyAsText())
+        val order = json.decodeFromString(OrderDto.serializer(), created.bodyAsText())
+        client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json); setBody("""{"method":"TRANSFER"}""")
+        }
+        client.post("/admin/payments/${order.id}/simulate-success") { bearer(admin) }
+        val searching = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(OrderStatus.MENCARI_TEKNISI, searching.status)
+
+        val newDate = java.time.LocalDate.now().plusDays(18).toString()
+        val newSlots = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()),
+            client.okGet("/consumer/slots?date=$newDate", rina).bodyAsText()
+        )
+        val rescheduled = client.post("/consumer/orders/${order.id}/reschedule") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RescheduleRequest.serializer(), RescheduleRequest(newDate, newSlots.first { it.available }.id)))
+        }
+        assertEquals(HttpStatusCode.OK, rescheduled.status, rescheduled.bodyAsText())
+        val final = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
+        assertEquals(newDate, final.scheduledDate)
+    }
 }
