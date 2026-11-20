@@ -13,7 +13,7 @@ Perbandingan layar konsumen di aplikasi dengan 12 gambar desain di `docs/design/
 | 07 | Konfirmasi hasil | Ikon, pertanyaan, kartu pesanan, "Sudah beres" dan "Belum, lapor masalah" | Sesuai desain |
 | 08 | Penilaian | Bintang 1-5, tag cepat (Tepat waktu, Ramah, Rapi), komentar, kirim, struk | Menampilkan struk setelah submit (di dalam layar yang sama) |
 | 09 | Masuk gagal | "Username atau password salah" (teks diubah dari Nomor HP sesuai keputusan PRD §2) | Sama layout dengan desain |
-| 10 | Pembayaran gagal | Rincian pesanan, info dana kembali 1-3 hari kerja, "Coba lagi" dan "Ganti metode" | "Coba lagi" memakai metode yang sama; "Ganti metode" kembali ke layar 04 |
+| 10 | Pembayaran gagal | Rincian pesanan, info dana kembali 1-3 hari kerja, "Coba lagi" dan "Ganti metode" | Ikon kartu merah dalam kotak merah muda sesuai draf; "Coba lagi" memakai metode yang sama; "Ganti metode" kembali ke layar 04 |
 | 11 | Teknisi menolak | "Mencari teknisi lain", kartu pesanan, catatan, reschedule | Tombol Jadwal ulang memicu dialog dan `/reschedule` |
 | 12 | Lapor masalah | 3 alasan, keterangan wajib, foto maks 3, "Minta kunjungan ulang" | Sesuai desain |
 
