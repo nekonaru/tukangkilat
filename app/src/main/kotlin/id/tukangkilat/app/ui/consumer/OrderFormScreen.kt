@@ -45,6 +45,7 @@ import id.tukangkilat.shared.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
@@ -92,8 +93,10 @@ class OrderFormViewModel @Inject constructor(
     fun load(preselectedServiceId: Long?) {
         viewModelScope.launch {
             try {
-                val services = orderRepository.services()
-                val addresses = orderRepository.addresses()
+                val servicesDeferred = async { orderRepository.services() }
+                val addressesDeferred = async { orderRepository.addresses() }
+                val services = servicesDeferred.await()
+                val addresses = addressesDeferred.await()
                 _state.value = _state.value.copy(
                     isLoadingServices = false,
                     services = services,

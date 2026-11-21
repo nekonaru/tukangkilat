@@ -46,6 +46,7 @@ import id.tukangkilat.shared.AddressDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -99,9 +100,12 @@ class HomeViewModel @Inject constructor(
                 if (cachedActive != null) {
                     _state.value = _state.value.copy(activeOrder = cachedActive)
                 }
-                val services = orderRepository.services()
-                val addresses = orderRepository.addresses()
-                val orders = orderRepository.myOrders()
+                val servicesDeferred = async { orderRepository.services() }
+                val addressesDeferred = async { orderRepository.addresses() }
+                val ordersDeferred = async { orderRepository.myOrders() }
+                val services = servicesDeferred.await()
+                val addresses = addressesDeferred.await()
+                val orders = ordersDeferred.await()
                 _state.value = _state.value.copy(
                     isLoading = false,
                     services = services,
