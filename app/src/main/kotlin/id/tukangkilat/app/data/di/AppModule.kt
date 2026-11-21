@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import id.tukangkilat.app.BuildConfig
 import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.api.AuthInterceptor
+import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.api.TokenAuthenticator
 import id.tukangkilat.app.data.local.OrderDao
 import id.tukangkilat.app.data.local.TukangKilatDatabase
@@ -37,13 +38,15 @@ object AppModule {
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
-        authenticator: TokenAuthenticator
+        authenticator: TokenAuthenticator,
+        baseUrlInterceptor: BaseUrlInterceptor
     ): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             // no request/response logging in release builds
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
+            .addInterceptor(baseUrlInterceptor)
             .addInterceptor(authInterceptor)
             .authenticator(authenticator)
             .addInterceptor(logging)

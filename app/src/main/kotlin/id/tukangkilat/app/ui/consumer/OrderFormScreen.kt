@@ -106,7 +106,7 @@ class OrderFormViewModel @Inject constructor(
                 )
                 loadSlots()
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoadingServices = false, error = e.message ?: "Gagal memuat data")
+                _state.value = _state.value.copy(isLoadingServices = false, error = e.cleanApiError())
             }
         }
     }
@@ -119,7 +119,7 @@ class OrderFormViewModel @Inject constructor(
                 val slots = orderRepository.slots(date)
                 _state.value = _state.value.copy(isLoadingSlots = false, slots = slots)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoadingSlots = false, error = e.message)
+                _state.value = _state.value.copy(isLoadingSlots = false, error = e.cleanApiError())
             }
         }
     }
@@ -156,7 +156,7 @@ class OrderFormViewModel @Inject constructor(
                     val url = res["url"] ?: throw IllegalStateException("Respon unggahan tidak valid")
                     _state.value = _state.value.copy(photos = _state.value.photos + url, uploadingCount = _state.value.uploadingCount - 1)
                 } catch (e: Exception) {
-                    _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount - 1, error = e.message ?: "Gagal mengunggah foto")
+                    _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount - 1, error = e.cleanApiError())
                 }
             }
         }
@@ -197,7 +197,7 @@ class OrderFormViewModel @Inject constructor(
                     selectedAddressId = address.id
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLocating = false, error = e.message ?: "Gagal membaca lokasi")
+                _state.value = _state.value.copy(isLocating = false, error = e.cleanApiError())
             }
         }
     }

@@ -4,6 +4,18 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-21
+
+### Ditambahkan
+
+- **Alamat server**: tautan **Atur alamat server** di layar masuk memungkinkan satu APK dipakai di emulator maupun ponsel fisik. Alamat disimpan di perangkat dan dipakai setiap permintaan lewat interceptor OkHttp. Kosongkan kolom untuk kembali ke `http://10.0.2.2:8080`.
+
+### Perbaikan bug
+
+- **Pesan error**: teks teknis mentah (misalnya "failed to connect to /10.0.2.2 ... after 15000ms") tidak lagi tampil di UI. Semua layar kini memakai pesan Bahasa Indonesia yang pendek dan jelas.
+- **Layar masuk**: kolom username dan password tidak lagi berbingkai merah saat gagal karena masalah jaringan. Bingkai merah hanya muncul untuk username/password salah atau akun terkunci.
+- **Jaringan**: cleartext diizinkan untuk alamat backend lokal yang dikonfigurasi, sesuai kebutuhan demo.
+
 ## [1.2.6] - 2026-11-21
 
 ### Peningkatan
@@ -84,6 +96,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
 [1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6
 [1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
 [1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4

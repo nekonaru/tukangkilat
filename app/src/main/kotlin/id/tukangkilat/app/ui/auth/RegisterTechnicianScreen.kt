@@ -99,7 +99,7 @@ class RegisterTechnicianViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     uploadingKtp = if (which == "ktp") false else _state.value.uploadingKtp,
                     uploadingSelfie = if (which == "selfie") false else _state.value.uploadingSelfie,
-                    error = e.message ?: "Gagal mengunggah foto"
+                    error = e.cleanApiError()
                 )
             }
         }
