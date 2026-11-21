@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-21
+
+### Added
+
+- **Server address**: an **Atur alamat server** link on the login screen lets one APK work on both emulator and a physical phone. The address is stored on the device and applied to every request by an OkHttp interceptor. Leave the field empty to restore `http://10.0.2.2:8080`.
+
+### Fixed
+
+- **Error messages**: raw technical text (for example "failed to connect to /10.0.2.2 ... after 15000ms") no longer appears in the UI. Every screen now uses a short, clear Indonesian message.
+- **Login screen**: username and password fields no longer turn red on a network failure. Red borders only appear for wrong credentials or a locked account.
+- **Network**: cleartext is allowed for the configured local backend address, as required for the demo.
+
 ## [1.2.6] - 2026-11-21
 
 ### Improvements
@@ -84,6 +96,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
 [1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6
 [1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
 [1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4

@@ -3,6 +3,7 @@ package id.tukangkilat.app.ui.technician
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -121,7 +122,7 @@ class TechHomeViewModel @Inject constructor(
                     error = null
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message ?: "Gagal memuat data")
+                _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
         }
     }
@@ -135,7 +136,7 @@ class TechHomeViewModel @Inject constructor(
                     snackbar = if (online) "Anda online, siap menerima tawaran" else "Anda offline"
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(snackbar = e.message)
+                _state.value = _state.value.copy(snackbar = e.cleanApiError())
             }
         }
     }

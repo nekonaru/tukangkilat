@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Local development backend endpoints only; production must use HTTPS. -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">.lan</domain>
-    </domain-config>
-    <base-config cleartextTrafficPermitted="false">
+    <!-- Demo app: the backend runs on a local PC, so cleartext to a configurable address is allowed. -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

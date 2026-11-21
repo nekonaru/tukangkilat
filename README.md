@@ -130,7 +130,12 @@
 1. Buka halaman [Releases](https://github.com/nekonaru/tukangkilat/releases)
 2. Unduh APK yang terlampir pada rilis terbaru
 3. Buka di ponselmu, izinkan instalasi dari sumber tidak dikenal bila diminta
-4. Masuk dengan akun demo di bawah
+4. Buka aplikasi, ketuk **Atur alamat server** di layar masuk
+5. Isi alamat backend yang bisa dijangka perangkatmu, misalnya `http://192.168.1.5:8080`
+6. Masuk dengan akun demo di bawah
+
+> [!IMPORTANT]
+> APK bawaan memakai `http://10.0.2.2:8080`, alamat khusus emulator Android. Di ponsel fisik, alamat itu tidak bisa dijangka. Jalankan backend di komputer yang satu jaringan dengan ponsel, lalu isi alamat IP komputer itu lewat **Atur alamat server**. Kosongkan kolom untuk kembali ke alamat bawaan emulator.
 
 Akun demo (di-seed, password dari `.env`; default ditampilkan untuk pengembangan lokal):
 

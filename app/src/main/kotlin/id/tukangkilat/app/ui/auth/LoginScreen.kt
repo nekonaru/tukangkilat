@@ -30,7 +30,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.repository.AuthRepository
+import kotlinx.coroutines.flow.first
 import id.tukangkilat.app.ui.components.TKPrimaryButton
 import id.tukangkilat.app.ui.components.TKTextButton
 import id.tukangkilat.app.ui.components.TKWordmark
@@ -50,16 +52,24 @@ data class LoginUiState(
     val passwordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val locked: Boolean = false
+    val locked: Boolean = false,
+    val fieldError: Boolean = false
 )
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val serverConfig: ServerConfigManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
+
+    suspend fun serverUrl(): String = serverConfig.current()
+
+    fun saveServerUrl(url: String) {
+        viewModelScope.launch { serverConfig.save(url) }
+    }
 
     fun onUsername(value: String) { _state.value = _state.value.copy(username = value, error = null) }
     fun onPassword(value: String) { _state.value = _state.value.copy(password = value, error = null) }
@@ -80,14 +90,15 @@ class LoginViewModel @Inject constructor(
             }.onFailure { e ->
                 val message = e.message.orEmpty()
                 val locked = message.contains("dikunci", ignoreCase = true)
+                val wrongCredentials = message.contains("Username atau password salah")
                 _state.value = _state.value.copy(
                     isLoading = false,
                     error = when {
-                        message.contains("Username atau password salah") -> "Username atau password salah"
-                        message.isNotBlank() -> e.cleanApiError()
-                        else -> "Tidak bisa terhubung ke server. Periksa koneksi Anda"
+                        wrongCredentials -> "Username atau password salah"
+                        else -> e.cleanApiError()
                     },
-                    locked = locked
+                    locked = locked,
+                    fieldError = wrongCredentials || locked
                 )
             }
         }
@@ -102,6 +113,9 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var serverUrl by remember { mutableStateOf("") }
+    var showServerDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { serverUrl = viewModel.serverUrl() }
 
     Box(
         modifier = Modifier
@@ -154,7 +168,7 @@ fun LoginScreen(
                 value = state.username,
                 onValueChange = viewModel::onUsername,
                 placeholder = "Username",
-                isError = state.error != null
+                isError = state.fieldError
             )
             Spacer(Modifier.height(12.dp))
             Box {
@@ -162,7 +176,7 @@ fun LoginScreen(
                     value = state.password,
                     onValueChange = viewModel::onPassword,
                     placeholder = "Password",
-                    isError = state.error != null,
+                    isError = state.fieldError,
                     visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
@@ -206,6 +220,57 @@ fun LoginScreen(
             }
             Spacer(Modifier.height(6.dp))
             TKTextButton("Daftar sebagai tukang", onClick = onRegisterTechnician)
+            Spacer(Modifier.height(6.dp))
+            TKTextButton("Atur alamat server", onClick = { showServerDialog = true })
         }
     }
+
+    if (showServerDialog) {
+        ServerDialog(
+            initial = serverUrl,
+            onDismiss = { showServerDialog = false },
+            onSave = { url ->
+                viewModel.saveServerUrl(url)
+                serverUrl = url
+                showServerDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun ServerDialog(
+    initial: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var value by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = TKColor.InkSoft,
+        title = { Text("Alamat server", color = TKColor.White, fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Text(
+                    "Isi alamat backend yang bisa dijangka perangkat ini. Contoh: http://192.168.1.5:8080",
+                    color = TKColor.Mist,
+                    fontSize = 12.sp
+                )
+                Spacer(Modifier.height(10.dp))
+                TextFieldDark(value = value, onValueChange = { value = it }, placeholder = "http://alamat:8080")
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Kosongkan untuk kembali ke alamat bawaan emulator.",
+                    color = TKColor.Mist,
+                    fontSize = 11.sp
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(value.trim()) }) { Text("Simpan", color = TKColor.Orange) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Batal", color = TKColor.Mist) }
+        }
+    )
 }

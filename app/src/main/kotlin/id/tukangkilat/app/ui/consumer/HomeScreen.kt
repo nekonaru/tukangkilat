@@ -1,5 +1,6 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.Image
@@ -113,7 +114,7 @@ class HomeViewModel @Inject constructor(
                     activeOrder = orders.firstOrNull { it.status in ACTIVE_ORDER_STATUSES }
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message ?: "Gagal memuat data")
+                _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
         }
     }

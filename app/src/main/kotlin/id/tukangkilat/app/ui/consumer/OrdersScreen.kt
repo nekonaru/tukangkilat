@@ -1,5 +1,6 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.background
@@ -81,7 +82,7 @@ class OrdersViewModel @Inject constructor(
                 val orders = orderRepository.myOrders()
                 _state.value = OrdersUiState(isLoading = false, orders = orders, tab = _state.value.tab)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message ?: "Gagal memuat pesanan")
+                _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
         }
     }

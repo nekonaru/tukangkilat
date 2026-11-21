@@ -108,7 +108,7 @@ class ReportViewModel @Inject constructor(
                     val url = res["url"] ?: throw IllegalStateException("Respon unggahan tidak valid")
                     _state.value = _state.value.copy(photos = _state.value.photos + url, uploadingCount = _state.value.uploadingCount - 1)
                 } catch (e: Exception) {
-                    _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount - 1, error = e.message)
+                    _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount - 1, error = e.cleanApiError())
                 }
             }
         }
