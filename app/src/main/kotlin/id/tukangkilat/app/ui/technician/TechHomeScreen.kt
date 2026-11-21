@@ -49,6 +49,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.google.android.gms.location.LocationServices
@@ -90,11 +91,15 @@ class TechHomeViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             try {
-                val profile = technicianRepository.profile()
-                val orders = technicianRepository.myOrders()
+                val profileDeferred = async { technicianRepository.profile() }
+                val ordersDeferred = async { technicianRepository.myOrders() }
+                val earningsDeferred = async { runCatching { technicianRepository.earnings() }.getOrNull() }
+                val offersDeferred = async { runCatching { technicianRepository.offers().size }.getOrDefault(0) }
+                val profile = profileDeferred.await()
+                val orders = ordersDeferred.await()
                 val today = java.time.LocalDate.now().toString()
                 val todayOrders = orders.filter { it.scheduledDate == today }
-                val earnings = runCatching { technicianRepository.earnings() }.getOrNull()
+                val earnings = earningsDeferred.await()
                 val active = orders.firstOrNull {
                     it.status in setOf(
                         OrderStatus.TEKNISI_DITEMUKAN,
@@ -112,7 +117,7 @@ class TechHomeViewModel @Inject constructor(
                     upcoming = orders.filter {
                         it.status == OrderStatus.TEKNISI_DITEMUKAN && it.id != active?.id
                     }.sortedBy { it.scheduledDate + it.slotLabel }.take(5),
-                    offerCount = runCatching { technicianRepository.offers().size }.getOrDefault(0),
+                    offerCount = offersDeferred.await(),
                     error = null
                 )
             } catch (e: Exception) {

@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2026-11-21
+
+### Improvements
+
+- **Performance**: consumer Beranda now loads services, addresses and orders in parallel; the order form loads services and addresses in parallel; technician home loads profile, orders, earnings and offers in parallel. Dashboard load time is now bound by the slowest request instead of the sum of requests.
+
 ## [1.2.5] - 2026-11-20
 
 ### Changed
@@ -78,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6
 [1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
 [1.2.4]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.4
 [1.2.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.3
