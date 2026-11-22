@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-23
+
+### Added
+
+- **Embedded backend**: Ktor, Exposed and H2 in PostgreSQL mode now run inside the app process. Docker, PostgreSQL and a separate server are no longer needed to use the app.
+- **Database export and import**: the admin panel has **Ekspor database** and **Impor database**. A zip archive holds all table rows in `database.json` plus related photos. Import validates the snapshot, replaces all data inside a rollbackable transaction and clears the session so the user signs in again.
+
+### Changed
+
+- Default API address is now `http://127.0.0.1:8080`. Cleartext is allowed only for localhost, the emulator and `.lan`.
+- Backend initialization runs in the background behind a "Menyiapkan aplikasi..." gate to avoid ANRs.
+- An Android-specific timestamp column type uses `getString`, because `ResultSet.getObject(index, Class)` is unavailable in Android's `java.sql`.
+- The `backend` module still runs as a JVM server for development and tests.
+
 ## [1.3.0] - 2026-11-21
 
 ### Added
@@ -96,6 +110,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
 [1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
 [1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6
 [1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5

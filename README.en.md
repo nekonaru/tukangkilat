@@ -26,6 +26,7 @@
 - [About](#about)
 - [Screenshots](#screenshots)
 - [Features](#features)
+- [Architecture](#architecture)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -96,6 +97,13 @@
 | **Manage services** | Edit name, price, visit fee, and active status |
 | **Manage promo codes** | Create, activate and deactivate promo codes from the admin panel |
 | **Suspend accounts** | Suspend or re-activate technician and consumer accounts |
+| **Export and import database** | Save all data and photos to a zip file, then restore it on another device from the admin panel |
+
+---
+
+## Architecture
+
+Since v2.0.0 the whole backend (Ktor, Exposed, H2 in PostgreSQL mode) runs inside the app process. Data lives in device storage. The app calls a local API on `127.0.0.1:8080`, so the demo needs no server, Docker or internet connection. Each device has its own database, so moving data between devices uses exported zip files rather than live sync.
 
 ---
 
@@ -132,12 +140,10 @@
 1. Open the [Releases](https://github.com/nekonaru/tukangkilat/releases) page
 2. Download the APK attached to the latest release
 3. Open it on your phone, allow installs from unknown sources if asked
-4. Open the app and tap **Atur alamat server** on the login screen
-5. Enter a backend address your device can reach, for example `http://192.168.1.5:8080`
-6. Log in with a demo account below
+4. Wait for the "Menyiapkan aplikasi..." screen to finish, then log in with a demo account below
 
-> [!IMPORTANT]
-> The APK defaults to `http://10.0.2.2:8080`, the Android emulator host alias. A physical phone cannot reach that address. Run the backend on a computer on the same network, then set that computer's IP through **Atur alamat server**. Leave the field empty to restore the emulator default.
+> [!NOTE]
+> Since v2.0.0 the backend runs inside the APK. Docker, PostgreSQL and a separate server are no longer needed to use the app. Data is stored on the device. **Atur alamat server** remains available only for development against a remote backend.
 
 Demo accounts (seeded, passwords from `.env`; defaults shown for local development):
 

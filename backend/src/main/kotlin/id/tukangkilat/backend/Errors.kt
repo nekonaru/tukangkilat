@@ -22,6 +22,11 @@ class IllegalTransitionException(from: String, to: String) :
 
 private fun error(code: String, message: String) = ApiError(code, message)
 
+/** Optional hook so embedded Android builds can mirror server errors to logcat. */
+object ServerErrorHook {
+    var log: ((Throwable) -> Unit)? = null
+}
+
 fun Application.installErrorPages() {
     install(StatusPages) {
         exception<UnauthorizedException> { call, cause ->
@@ -49,6 +54,7 @@ fun Application.installErrorPages() {
             call.respond(HttpStatusCode.TooManyRequests, error("RATE_LIMITED", cause.message ?: "Terlalu banyak permintaan"))
         }
         exception<Throwable> { call, cause ->
+            ServerErrorHook.log?.invoke(cause)
             call.application.environment.log.error("Unhandled exception", cause)
             call.respond(HttpStatusCode.InternalServerError, error("INTERNAL", "Terjadi kesalahan pada server"))
         }

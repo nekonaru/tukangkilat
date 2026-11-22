@@ -15,10 +15,10 @@ android {
         applicationId = "id.tukangkilat.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.3.0"
+        versionCode = 11
+        versionName = "2.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://10.0.2.2:8080"
+        val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://127.0.0.1:8080"
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 
@@ -61,6 +61,8 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "/META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "META-INF/license/**"
         }
     }
 }
@@ -73,6 +75,13 @@ kotlin {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":backend")) {
+        // The embedded server uses CIO, not Netty. Flyway/PostgreSQL/Hikari are server-only.
+        exclude(group = "io.netty")
+        exclude(group = "org.flywaydb")
+        exclude(group = "org.postgresql")
+        exclude(group = "com.zaxxer")
+    }
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -108,6 +117,11 @@ dependencies {
     implementation(libs.osmdroid.android)
     implementation(libs.datastore.preferences)
     implementation(libs.play.services.location)
+    implementation(libs.h2)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.core)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
 
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)

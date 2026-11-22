@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.admin
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.background
@@ -15,9 +17,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.tukangkilat.app.data.local.DatabaseTransfer
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,10 +34,12 @@ import id.tukangkilat.app.ui.components.SectionLabel
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
 import id.tukangkilat.shared.AdminSummaryDto
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class AdminUiState(
@@ -82,7 +88,40 @@ fun AdminSummaryScreen(
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var transferMessage by remember { mutableStateOf<String?>(null) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch(Dispatchers.IO) {
+            transferMessage = try {
+                context.contentResolver.openOutputStream(uri)?.use { DatabaseTransfer.export(context, it) }
+                    ?: error("File tidak bisa dibuka")
+                "Ekspor database berhasil"
+            } catch (e: Exception) {
+                "Ekspor gagal: ${e.message}"
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch(Dispatchers.IO) {
+            transferMessage = try {
+                context.contentResolver.openInputStream(uri)?.use { DatabaseTransfer.import(context, it) }
+                    ?: error("File tidak bisa dibuka")
+                "Impor database berhasil. Silakan masuk ulang."
+            } catch (e: Exception) {
+                "Impor gagal: ${e.message}"
+            }
+        }
+    }
 
     when {
         state.isLoading -> LoadingView()
@@ -124,6 +163,26 @@ fun AdminSummaryScreen(
                     item { AdminMenuCard(Icons.Filled.ReceiptLong, "Semua pesanan", "Filter status dan simulasi pembayaran", onOrders) }
                     item { AdminMenuCard(Icons.Filled.Build, "Layanan", "Ubah harga, biaya kunjungan, dan status", onServices) }
                     item { AdminMenuCard(Icons.Filled.LocalActivity, "Kode promo", "Buat, aktifkan, dan nonaktifkan kode promo", onPromo) }
+                    item { SectionLabel("Data") }
+                    item {
+                        AdminMenuCard(
+                            Icons.Filled.Upload,
+                            "Ekspor database",
+                            "Simpan salinan pesanan, foto, dan akun ke file zip",
+                            { exportLauncher.launch("tukangkilat-backup.zip") }
+                        )
+                    }
+                    item {
+                        AdminMenuCard(
+                            Icons.Filled.Download,
+                            "Impor database",
+                            "Pulihkan seluruh data dari file zip ekspor",
+                            { importLauncher.launch(arrayOf("application/zip")) }
+                        )
+                    }
+                    transferMessage?.let { message ->
+                        item { Text(message, color = TKColor.Mist, fontSize = 12.sp) }
+                    }
                     item { Spacer(Modifier.height(24.dp)) }
                 }
             }

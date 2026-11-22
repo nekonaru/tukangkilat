@@ -26,6 +26,7 @@
 - [Tentang](#tentang)
 - [Tangkapan Layar](#tangkapan-layar)
 - [Fitur](#fitur)
+- [Arsitektur](#arsitektur)
 - [Persyaratan](#persyaratan)
 - [Instalasi](#instalasi)
 - [Cara Pakai](#cara-pakai)
@@ -94,6 +95,13 @@
 | **Kelola layanan** | Ubah nama, harga, biaya kunjungan, dan status aktif |
 | **Kelola kode promo** | Buat, aktifkan, dan nonaktifkan kode promo dari panel admin |
 | **Tangguhkan akun** | Tangguhkan atau aktifkan kembali akun tukang dan konsumen |
+| **Ekspor/impor database** | Simpan seluruh data dan foto ke file zip, lalu pulihkannya di perangkat lain lewat panel admin |
+
+---
+
+## Arsitektur
+
+Sejak v2.0.0 seluruh backend (Ktor, Exposed, H2 dalam mode PostgreSQL) berjalan di dalam proses aplikasi. Data disimpan di penyimpanan internal perangkat. Aplikasi memanggil API lokal di `127.0.0.1:8080`, jadi tidak memerlukan server, Docker, atau koneksi internet untuk alur demo. Karena tiap perangkat punya database sendiri, perpindahan data antarperangkat dilakukan lewat ekspor dan impor file zip, bukan sinkronisasi langsung.
 
 ---
 
@@ -130,12 +138,10 @@
 1. Buka halaman [Releases](https://github.com/nekonaru/tukangkilat/releases)
 2. Unduh APK yang terlampir pada rilis terbaru
 3. Buka di ponselmu, izinkan instalasi dari sumber tidak dikenal bila diminta
-4. Buka aplikasi, ketuk **Atur alamat server** di layar masuk
-5. Isi alamat backend yang bisa dijangka perangkatmu, misalnya `http://192.168.1.5:8080`
-6. Masuk dengan akun demo di bawah
+4. Tunggulayar "Menyiapkan aplikasi..." selesai, lalu masuk dengan akun demo di bawah
 
-> [!IMPORTANT]
-> APK bawaan memakai `http://10.0.2.2:8080`, alamat khusus emulator Android. Di ponsel fisik, alamat itu tidak bisa dijangka. Jalankan backend di komputer yang satu jaringan dengan ponsel, lalu isi alamat IP komputer itu lewat **Atur alamat server**. Kosongkan kolom untuk kembali ke alamat bawaan emulator.
+> [!NOTE]
+> Sejak v2.0.0 backend berjalan di dalam APK. Tidak perlu Docker, PostgreSQL, atau server terpisah untuk memakai aplikasi. Data disimpan di perangkat. Menu **Atur alamat server** tetap tersedia hanya untuk pengembangan dengan backend jarak jauh.
 
 Akun demo (di-seed, password dari `.env`; default ditampilkan untuk pengembangan lokal):
 

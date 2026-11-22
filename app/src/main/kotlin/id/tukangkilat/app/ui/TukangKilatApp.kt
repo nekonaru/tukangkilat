@@ -10,8 +10,11 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -20,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import id.tukangkilat.app.data.local.LocalBackend
 import id.tukangkilat.app.ui.admin.*
 import id.tukangkilat.app.ui.auth.*
 import id.tukangkilat.app.ui.consumer.*
@@ -86,7 +90,22 @@ fun TukangKilatApp(
     viewModel: AppViewModel = hiltViewModel()
 ) {
     val session by viewModel.session.collectAsState()
+    val backendReady by LocalBackend.ready.collectAsState()
     val navController = rememberNavController()
+
+    if (!backendReady) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(TKColor.Ink),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = TKColor.Orange)
+                Spacer(Modifier.height(12.dp))
+                Text("Menyiapkan aplikasi...", color = TKColor.Mist, fontSize = 13.sp)
+            }
+        }
+        return
+    }
 
     // websocket lifecycle tied to the session
     LaunchedEffect(session.isLoggedIn) {
