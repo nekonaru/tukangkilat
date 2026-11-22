@@ -2,7 +2,7 @@ package id.tukangkilat.backend
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
-import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
+
 
 object UsersTable : Table("users") {
     val id = long("id").autoIncrement()
@@ -13,9 +13,9 @@ object UsersTable : Table("users") {
     val phone = varchar("phone", 32)
     val status = varchar("status", 24)
     val failedLoginAttempts = integer("failed_login_attempts").default(0)
-    val lockedUntil = timestampWithTimeZone("locked_until").nullable()
-    val passwordChangedAt = timestampWithTimeZone("password_changed_at").nullable()
-    val createdAt = timestampWithTimeZone("created_at")
+    val lockedUntil = safeTimestampWithTimeZone("locked_until").nullable()
+    val passwordChangedAt = safeTimestampWithTimeZone("password_changed_at").nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -30,7 +30,7 @@ object TechnicianProfilesTable : Table("technician_profiles") {
     val isOnline = bool("is_online").default(false)
     val lastLat = double("last_lat").nullable()
     val lastLng = double("last_lng").nullable()
-    val lastLocationAt = timestampWithTimeZone("last_location_at").nullable()
+    val lastLocationAt = safeTimestampWithTimeZone("last_location_at").nullable()
     val ratingAvg = double("rating_avg").default(0.0)
     val jobsCount = integer("jobs_count").default(0)
     val serviceRadiusKm = integer("service_radius_km").default(10)
@@ -70,7 +70,7 @@ object PromoCodesTable : Table("promo_codes") {
     val code = varchar("code", 32)
     val promoType = varchar("promo_type", 16)
     val promoValue = long("promo_value")
-    val validUntil = timestampWithTimeZone("valid_until")
+    val validUntil = safeTimestampWithTimeZone("valid_until")
     val quota = integer("quota")
     val isActive = bool("is_active").default(true)
     override val primaryKey = PrimaryKey(code)
@@ -94,8 +94,8 @@ object OrdersTable : Table("orders") {
     val paymentMethod = varchar("payment_method", 24).nullable()
     val paymentStatus = varchar("payment_status", 24)
     val finishNote = text("finish_note").nullable()
-    val createdAt = timestampWithTimeZone("created_at")
-    val updatedAt = timestampWithTimeZone("updated_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -106,7 +106,7 @@ object PhotosTable : Table("photos") {
     val filename = varchar("filename", 255)
     val mime = varchar("mime", 64)
     val sizeBytes = integer("size_bytes")
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -123,7 +123,7 @@ object OrderEventsTable : Table("order_events") {
     val orderId = long("order_id").references(OrdersTable.id)
     val status = varchar("status", 32)
     val actorId = long("actor_id").references(UsersTable.id).nullable()
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -132,10 +132,10 @@ object JobOffersTable : Table("job_offers") {
     val orderId = long("order_id").references(OrdersTable.id)
     val technicianId = long("technician_id").references(UsersTable.id)
     val status = varchar("status", 16)
-    val expiresAt = timestampWithTimeZone("expires_at")
+    val expiresAt = safeTimestampWithTimeZone("expires_at")
     val rejectReason = varchar("reject_reason", 255).nullable()
     val isRevisit = bool("is_revisit").default(false)
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -146,9 +146,9 @@ object PaymentsTable : Table("payments") {
     val amount = long("amount")
     val referenceNo = varchar("reference_no", 64).nullable()
     val status = varchar("status", 24)
-    val paidAt = timestampWithTimeZone("paid_at").nullable()
-    val expiresAt = timestampWithTimeZone("expires_at").nullable()
-    val createdAt = timestampWithTimeZone("created_at")
+    val paidAt = safeTimestampWithTimeZone("paid_at").nullable()
+    val expiresAt = safeTimestampWithTimeZone("expires_at").nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -157,7 +157,7 @@ object RatingsTable : Table("ratings") {
     val stars = integer("stars")
     val tags = text("tags") // comma-separated
     val comment = text("comment")
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(orderId)
 }
 
@@ -167,7 +167,7 @@ object IssueReportsTable : Table("issue_reports") {
     val reason = varchar("reason", 32)
     val description = text("description")
     val status = varchar("status", 24)
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -176,7 +176,7 @@ object MessagesTable : Table("messages") {
     val orderId = long("order_id").references(OrdersTable.id)
     val senderId = long("sender_id").references(UsersTable.id)
     val body = text("body")
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -184,8 +184,8 @@ object RefreshTokensTable : Table("refresh_tokens") {
     val id = long("id").autoIncrement()
     val userId = long("user_id").references(UsersTable.id)
     val tokenHash = varchar("token_hash", 128)
-    val expiresAt = timestampWithTimeZone("expires_at")
+    val expiresAt = safeTimestampWithTimeZone("expires_at")
     val revoked = bool("revoked").default(false)
-    val createdAt = timestampWithTimeZone("created_at")
+    val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }

@@ -4,6 +4,20 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-23
+
+### Ditambahkan
+
+- **Backend tertanam**: Ktor, Exposed, dan H2 mode PostgreSQL kini berjalan di dalam proses aplikasi. Tidak perlu Docker, PostgreSQL, atau server terpisah untuk memakai aplikasi.
+- **Ekspor dan impor database**: panel admin memiliki menu **Ekspor database** dan **Impor database**. Arsip zip berisi semua baris tabel dalam `database.json` dan foto terkait. Impor menimpa seluruh data setelah validasi dan bisa digulung balik jika gagal, lalu sesi dihapus agar pengguna masuk ulang.
+
+### Diubah
+
+- Default alamat API menjadi `http://127.0.0.1:8080`. Network security config mengizinkan cleartext hanya untuk localhost, emulator, dan `.lan`.
+- Inisialisasi backend berjalan di background dengan layar "Menyiapkan aplikasi..." agar tidak memicu ANR.
+- Column type timestamp khusus di Android memakai `getString`, karena `ResultSet.getObject(index, Class)` tidak tersedia di `java.sql` Android.
+- Modul `backend` tetap bisa dijalankan sebagai server JVM untuk pengembangan dan tes.
+
 ## [1.3.0] - 2026-11-21
 
 ### Ditambahkan
@@ -96,6 +110,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
 [1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
 [1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6
 [1.2.5]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.5
