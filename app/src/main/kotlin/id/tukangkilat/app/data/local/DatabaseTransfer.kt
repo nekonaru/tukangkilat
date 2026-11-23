@@ -39,7 +39,7 @@ object DatabaseTransfer {
     )
 
     private fun jdbcUrl(context: Context): String =
-        "jdbc:h2:file:${LocalBackend.databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+        "jdbc:h2:file:${LocalBackend.databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=0"
 
     /** Write a zip snapshot to [out]. Never close [out], the caller owns the stream. */
     fun export(context: Context, out: OutputStream) {

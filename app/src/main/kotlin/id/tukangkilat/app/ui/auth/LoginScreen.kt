@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.first
@@ -68,7 +69,10 @@ class LoginViewModel @Inject constructor(
     suspend fun serverUrl(): String = serverConfig.current()
 
     fun saveServerUrl(url: String) {
-        viewModelScope.launch { serverConfig.save(url) }
+        viewModelScope.launch {
+            serverConfig.save(url)
+            BaseUrlInterceptor.invalidate()
+        }
     }
 
     fun onUsername(value: String) { _state.value = _state.value.copy(username = value, error = null) }

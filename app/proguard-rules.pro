@@ -1,0 +1,43 @@
+# Keep data contracts used by kotlinx.serialization and reflection-based libraries.
+-keep class id.tukangkilat.shared.** { *; }
+-keep class id.tukangkilat.backend.** { *; }
+-keep class kotlinx.serialization.** { *; }
+-keep class org.h2.** { *; }
+-keep class io.ktor.** { *; }
+-keep class at.favre.lib.** { *; }
+-keep class com.auth0.** { *; }
+-keep class com.fasterxml.jackson.** { *; }
+-keep class org.jetbrains.exposed.** { *; }
+
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+-keepattributes SourceFile,LineNumberTable
+
+# Server-only dependencies are excluded from the APK; the embedded server uses CIO and direct JDBC.
+-dontwarn io.netty.**
+-dontwarn com.zaxxer.**
+-dontwarn javax.servlet.**
+-dontwarn jakarta.servlet.**
+-dontwarn org.flywaydb.**
+-dontwarn org.postgresql.**
+-dontwarn org.slf4j.**
+-dontwarn ch.qos.logback.**
+-dontwarn org.locationtech.**
+-dontwarn org.osgi.**
+-dontwarn org.apache.lucene.**
+-dontwarn jdk.**
+-dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontwarn java.io.**
+-dontwarn java.sql.**
+-dontwarn javax.naming.**
+-dontwarn javax.script.**
+-dontwarn javax.security.auth.**
+-dontwarn javax.sql.**
+-dontwarn javax.tools.**
+-dontwarn javax.transaction.**
+-dontwarn javax.xml.**
+-dontwarn java.lang.management.**
+-dontwarn javax.management.**

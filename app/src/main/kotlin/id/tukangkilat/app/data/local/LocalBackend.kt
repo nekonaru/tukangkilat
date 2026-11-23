@@ -43,7 +43,7 @@ object LocalBackend {
     fun uploadDir(context: Context): File = File(context.filesDir, "uploads")
 
     private fun jdbcUrl(context: Context): String =
-        "jdbc:h2:file:${databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+        "jdbc:h2:file:${databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=0"
 
     private fun jwtSecret(context: Context): String {
         val prefs: SharedPreferences = context.getSharedPreferences("tukangkilat_local", Context.MODE_PRIVATE)
