@@ -11,9 +11,18 @@ import javax.inject.Inject
 class BaseUrlInterceptor @Inject constructor(
     private val serverConfig: ServerConfigManager
 ) : Interceptor {
+
+    companion object {
+        @Volatile
+        private var cachedUrl: String? = null
+
+        /** Call after saving a new address so the next request picks it up. */
+        fun invalidate() { cachedUrl = null }
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
-        val configured = runBlocking { serverConfig.current() }
+        val configured = cachedUrl ?: runBlocking { serverConfig.current() }.also { cachedUrl = it }
         val target = (configured + "/").toHttpUrlOrNull() ?: return chain.proceed(original)
         val current = original.url
         val rewritten = original.newBuilder()

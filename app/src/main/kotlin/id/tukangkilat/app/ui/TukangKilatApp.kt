@@ -1,5 +1,6 @@
 package id.tukangkilat.app.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import id.tukangkilat.app.R
 import id.tukangkilat.app.data.local.LocalBackend
 import id.tukangkilat.app.ui.admin.*
 import id.tukangkilat.app.ui.auth.*
@@ -99,6 +102,12 @@ fun TukangKilatApp(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(R.drawable.ic_brand),
+                    contentDescription = null,
+                    modifier = Modifier.size(96.dp)
+                )
+                Spacer(Modifier.height(24.dp))
                 CircularProgressIndicator(color = TKColor.Orange)
                 Spacer(Modifier.height(12.dp))
                 Text("Menyiapkan aplikasi...", color = TKColor.Mist, fontSize = 13.sp)

@@ -8,6 +8,8 @@ import org.jetbrains.exposed.sql.javatime.JavaOffsetDateTimeColumnType
 import java.sql.ResultSet
 import java.time.OffsetDateTime
 
+private val OFFSET_WITHOUT_COLON = Regex("([+-]\\d{2})$")
+
 /** Set by the embedded Android backend to avoid JDBC APIs missing from Android's java.sql. */
 object AndroidCompat {
     var useSafeTimestampRead: Boolean = false
@@ -26,7 +28,19 @@ class SafeOffsetDateTimeColumnType : ColumnType<OffsetDateTime>(), IDateColumnTy
 
     override fun nonNullValueToString(value: OffsetDateTime): String = delegate.nonNullValueToString(value)
 
-    override fun valueFromDB(value: Any): OffsetDateTime = delegate.valueFromDB(value)
+    override fun valueFromDB(value: Any): OffsetDateTime =
+        if (!AndroidCompat.useSafeTimestampRead) {
+            delegate.valueFromDB(value)
+        } else {
+            when (value) {
+                is OffsetDateTime -> value
+                is String -> {
+                    val iso = value.replaceFirst(' ', 'T')
+                    OFFSET_WITHOUT_COLON.replace(iso, "${'$'}1:00").let { OffsetDateTime.parse(it) }
+                }
+                else -> delegate.valueFromDB(value)
+            }
+        }
 
     override fun readObject(rs: ResultSet, index: Int): Any? =
         if (AndroidCompat.useSafeTimestampRead) rs.getString(index) else delegate.readObject(rs, index)

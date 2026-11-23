@@ -4,6 +4,15 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-11-23
+
+### Diubah
+
+- **Performa dan ukuran**: rilis kini memakai R8 dan resource shrinking. APK turun dari sekitar 23 MB menjadi 7,6 MB.
+- **Ringan**: permission yang tidak dipakai dihapus (kamera, notifikasi, foreground service, lokasi latar belakang). Jejak H2 dinonaktifkan agar tidak membuat file trace di perangkat.
+- **Lancar**: alamat server di-cache dalam memori, jadi tidak ada pembacaan DataStore pada setiap permintaan API. Layar "Menyiapkan aplikasi..." kini menampilkan logo merek.
+- **Stabil**: parser timestamp Android menerima format H2 dengan pemisah spasi dan offset tanpa titik dua. Penanganan 401 stale tidak lagi membuat aplikasi crash. Aturan R8 ditambahkan agar JWT dan bcrypt tetap bekerja setelah minifikasi.
+
 ## [2.0.0] - 2026-11-23
 
 ### Ditambahkan
@@ -110,6 +119,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.0.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.1
 [2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
 [1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
 [1.2.6]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.2.6

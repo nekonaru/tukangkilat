@@ -15,8 +15,8 @@ android {
         applicationId = "id.tukangkilat.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "2.0.0"
+        versionCode = 12
+        versionName = "2.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://127.0.0.1:8080"
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
@@ -44,8 +44,12 @@ android {
             isMinifyEnabled = false
         }
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             if (rootProject.file("release.keystore").exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
