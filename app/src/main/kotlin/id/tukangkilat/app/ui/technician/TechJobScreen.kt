@@ -35,12 +35,16 @@ import id.tukangkilat.app.ui.map.MapMarker
 import id.tukangkilat.app.ui.map.OsmMap
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.tasks.await
 import id.tukangkilat.shared.OrderDto
 import id.tukangkilat.shared.OrderStatus
 import id.tukangkilat.shared.PhotoKind
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -72,6 +76,19 @@ class TechJobViewModel @Inject constructor(
         }
     }
 
+
+    /** PRD T-07: report the technician's position while travelling to the consumer. */
+    fun sendLocationNow(context: android.content.Context) {
+        viewModelScope.launch {
+            try {
+                val client = LocationServices.getFusedLocationProviderClient(context)
+                val location = client.lastLocation.await()
+                if (location != null) {
+                    technicianRepository.sendLocation(location.latitude, location.longitude)
+                }
+            } catch (_: Exception) {}
+        }
+    }
     fun action(orderId: Long, action: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isActing = true, error = null)
@@ -105,6 +122,16 @@ fun TechJobScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(orderId) { viewModel.load(orderId) }
+    // PRD T-07: live tracking uses a 5 second update cadence during DALAM_PERJALANAN.
+    val inTransit = state.order?.status == OrderStatus.DALAM_PERJALANAN
+    LaunchedEffect(inTransit) {
+        if (inTransit) {
+            while (isActive) {
+                viewModel.sendLocationNow(context)
+                delay(5_000)
+            }
+        }
+    }
     LaunchedEffect(state.snackbar) {
         state.snackbar?.let { snackbarHostState.showSnackbar(it); viewModel.clearSnackbar() }
     }

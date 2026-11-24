@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.async
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.google.android.gms.location.LocationServices
@@ -174,10 +175,13 @@ fun TechHomeScreen(
     LaunchedEffect(state.snackbar) {
         state.snackbar?.let { snackbarHostState.showSnackbar(it); viewModel.clearSnackbar() }
     }
-    // keep sending location while online
+    // PRD T-03: while online, refresh the technician's location every 15 seconds.
     LaunchedEffect(state.profile?.isOnline) {
         if (state.profile?.isOnline == true) {
-            viewModel.sendLocationNow(context)
+            while (isActive) {
+                viewModel.sendLocationNow(context)
+                delay(15_000)
+            }
         }
     }
 
