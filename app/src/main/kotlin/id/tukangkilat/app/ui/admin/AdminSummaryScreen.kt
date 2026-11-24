@@ -87,6 +87,7 @@ fun AdminSummaryScreen(
     onOrders: () -> Unit,
     onServices: () -> Unit,
     onPromo: () -> Unit,
+    onNotifications: () -> Unit,
     onLoggedOut: () -> Unit,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
@@ -167,6 +168,7 @@ fun AdminSummaryScreen(
                     item { AdminMenuCard(Icons.Filled.ReceiptLong, "Semua pesanan", "Filter status dan simulasi pembayaran", onOrders) }
                     item { AdminMenuCard(Icons.Filled.Build, "Layanan", "Ubah harga, biaya kunjungan, dan status", onServices) }
                     item { AdminMenuCard(Icons.Filled.LocalActivity, "Kode promo", "Buat, aktifkan, dan nonaktifkan kode promo", onPromo) }
+                    item { AdminMenuCard(Icons.Filled.Notifications, "Notifikasi", "Riwayat perubahan pesanan dan tawaran", onNotifications) }
                     item { SectionLabel("Data") }
                     item {
                         AdminMenuCard(

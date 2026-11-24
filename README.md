@@ -74,6 +74,7 @@
 | **Struk PDF** | Bagikan struk pesanan selesai sebagai file PDF memakai fitur bawaan Android |
 | **Kode promo** | Hemat biaya dengan `HEMAT25` (demo simulator) atau promo yang dibuat dari panel admin |
 | **Chat** | Obrolan dua arah dengan teknisi, per pesanan |
+| **Notifikasi** | Riwayat perubahan pesanan, tawaran, dan pesan masuk di dalam aplikasi |
 
 ### Untuk tukang
 

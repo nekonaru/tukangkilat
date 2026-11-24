@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -134,6 +135,7 @@ class AccountViewModel @Inject constructor(
 
 @Composable
 fun AccountScreen(
+    onNotifications: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -173,6 +175,8 @@ fun AccountScreen(
                 item {
                     SectionRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }
+                    SectionRow(Icons.Filled.Notifications, "Notifikasi", onClick = onNotifications)
+                    Spacer(Modifier.height(8.dp))
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
                     Spacer(Modifier.height(8.dp))
                     SectionRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }

@@ -23,7 +23,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | K-15 | M | `RatingScreen` → `rating`, struk `ReceiptScreen` | `order lifecycle end to end` (rating + tolak rating ganda) |
 | K-16 | M | `OrdersScreen` (Aktif / Riwayat), Room cache | `OrderDao`, `OrderRepository.myOrders` |
 | K-17 | M | `AccountScreen` (profil, ubah password, alamat, keluar) | diverifikasi manual |
-| K-18 | S | Tidak diimplementasikan; penggantinya WebSocket + polling 5-10 detik | n/a (diganti pendekatan WS/polling, didokumentasikan di README) |
+| K-18 | S | `NotificationRepository`, `NotificationsScreen`, menu **Notifikasi** di Akun konsumen | diverifikasi manual; event WS `ORDER_STATUS`, `OFFER_NEW`, `CHAT_MESSAGE` |
 | K-19 | S | `ChatScreen`, `GET/POST /consumer/orders/{id}/messages` | diverifikasi manual; endpoint ada di `Main.kt` |
 | K-20 | C | `ui/util/ReceiptPdf.kt` (PdfDocument + FileProvider), tombol "Bagikan struk PDF" di `RatingScreen` | diverifikasi manual lewat alur pesanan selesai |
 
@@ -44,7 +44,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | T-11 | M | `TechEarningsScreen`, `/technician/earnings` (komisi 15%) | diverifikasi manual |
 | T-12 | M | `TechAccountScreen` (akun, rating, ulasan saya), `/technician/reviews` | `technician sees received reviews after rating` |
 | T-13 | S | `ChatScreen` mode teknisi (`/technician/orders/{id}/messages`) | diverifikasi manual |
-| T-14 | S | Tidak diimplementasikan; WS + polling | n/a |
+| T-14 | S | `NotificationRepository`, menu **Notifikasi** di Akun teknisi dan panel admin | diverifikasi manual; event WS diteruskan ke pusat notifikasi |
 
 ## Admin (A)
 

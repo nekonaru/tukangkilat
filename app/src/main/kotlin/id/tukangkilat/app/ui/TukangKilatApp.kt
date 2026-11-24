@@ -53,6 +53,7 @@ object Routes {
     const val C_HOME = "consumer/home"
     const val C_ORDERS = "consumer/orders"
     const val C_ACCOUNT = "consumer/account"
+    const val NOTIFICATIONS = "notifications"
     const val C_ORDER_NEW = "consumer/new"
     const val C_STATUS = "consumer/order/{orderId}/status"
     const val C_PAYMENT = "consumer/order/{orderId}/payment"
@@ -280,7 +281,8 @@ fun TukangKilatApp(
                     onOpen = { orderId, status -> navController.navigate(statusRouteFor(status, orderId)) }
                 )
             }
-            composable(Routes.C_ACCOUNT) { AccountScreen() }
+            composable(Routes.C_ACCOUNT) { AccountScreen(onNotifications = { navController.navigate(Routes.NOTIFICATIONS) }) }
+            composable(Routes.NOTIFICATIONS) { NotificationsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_STATUS, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
                 OrderStatusScreen(
@@ -359,7 +361,7 @@ fun TukangKilatApp(
                 TechJobsScreen(onOpenJob = { orderId -> navController.navigate(Routes.techJob(orderId)) })
             }
             composable(Routes.T_EARNINGS) { TechEarningsScreen() }
-            composable(Routes.T_ACCOUNT) { TechAccountScreen() }
+            composable(Routes.T_ACCOUNT) { TechAccountScreen(onNotifications = { navController.navigate(Routes.NOTIFICATIONS) }) }
             composable(Routes.T_JOB, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
                 TechJobScreen(
@@ -390,6 +392,7 @@ fun TukangKilatApp(
                     onOrders = { navController.navigate(Routes.A_ORDERS) },
                     onServices = { navController.navigate(Routes.A_SERVICES) },
                     onPromo = { navController.navigate(Routes.A_PROMO) },
+                    onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onLoggedOut = {}
                 )
             }

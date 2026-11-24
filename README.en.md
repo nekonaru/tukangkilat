@@ -76,6 +76,7 @@
 | **PDF receipt** | Share a completed order's receipt as a PDF file using built-in Android APIs |
 | **Promo codes** | Save money with `HEMAT25` (simulator demo) or promos created from the admin panel |
 | **Chat** | Two-way chat with the technician, per order |
+| **Notifications** | In-app history of order changes, offers and incoming messages |
 
 ### For technicians
 
