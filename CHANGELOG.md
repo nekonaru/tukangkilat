@@ -4,6 +4,18 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-11-24
+
+### Perbaikan bug
+
+- **Kompatibilitas instalasi**: APK kini ditandatangani dengan skema v1, v2, dan v3 sekaligus. Beberapa installer OEM menolak APK yang hanya bertanda tangan v2 dengan pesan "paket tampaknya tidak valid".
+- Jika aplikasi versi lama masih terpasang, terutama APK debug, hapus dulu aplikasi tersebut sebelum memasang rilis ini karena tanda tangan debug berbeda dengan rilis.
+
+### Diubah
+
+- **Native**: mengaktifkan callback tombol kembali prediktif di Android 13+.
+- Log error backend hanya ditulis di logcat pada build debug, sehingga rilis lebih bersih.
+
 ## [2.0.1] - 2026-11-23
 
 ### Diubah
@@ -119,6 +131,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2
 [2.0.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.1
 [2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
 [1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0

@@ -2,6 +2,7 @@ package id.tukangkilat.app.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import id.tukangkilat.app.BuildConfig
 import id.tukangkilat.backend.AppConfig
 import id.tukangkilat.backend.AndroidCompat
 import id.tukangkilat.backend.ServerErrorHook
@@ -64,7 +65,9 @@ object LocalBackend {
 
         Class.forName("org.h2.Driver")
         AndroidCompat.useSafeTimestampRead = true
-        ServerErrorHook.log = { android.util.Log.e("TukangKilatBackend", "Unhandled", it) }
+        ServerErrorHook.log = if (BuildConfig.DEBUG) {
+            { android.util.Log.e("TukangKilatBackend", "Unhandled", it) }
+        } else null
         val url = jdbcUrl(context)
         val isFresh = createSchemaIfNeeded(context, url)
 

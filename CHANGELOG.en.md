@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-11-24
+
+### Bug fixes
+
+- **Install compatibility**: the APK is now signed with v1, v2 and v3 schemes together. Some OEM installers reject v2-only APKs with "package appears invalid".
+- If an older build is still installed, especially a debug APK, uninstall it first because debug and release signatures differ.
+
+### Changed
+
+- **Native**: enabled predictive back callback on Android 13+.
+- Backend error logging is written to logcat only in debug builds.
+
 ## [2.0.1] - 2026-11-23
 
 ### Changed
@@ -119,6 +131,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2
 [2.0.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.1
 [2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
 [1.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v1.3.0
