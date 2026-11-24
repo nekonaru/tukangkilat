@@ -71,6 +71,7 @@
 | **Bukti kerja** | Foto bukti dan catatan teknisi tampil sebelum konfirmasi |
 | **Penilaian** | Bintang 1-5, tag cepat, dan komentar setelah pekerjaan selesai |
 | **Lapor masalah** | Minta kunjungan ulang dengan 3 alasan dan foto bukti |
+| **Struk PDF** | Bagikan struk pesanan selesai sebagai file PDF memakai fitur bawaan Android |
 | **Kode promo** | Hemat biaya dengan `HEMAT25` (demo simulator) atau promo yang dibuat dari panel admin |
 | **Chat** | Obrolan dua arah dengan teknisi, per pesanan |
 

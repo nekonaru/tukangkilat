@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-11-24
+
+### Added
+
+- **PDF receipt (K-20)**: **Bagikan struk PDF** on the receipt screen creates a PDF with Android's built-in `PdfDocument` and shares it through `FileProvider`. No new dependency.
+- **Periodic location (T-03, T-07)**: technicians report their location every 15 seconds while online and every 5 seconds while `DALAM_PERJALANAN`, as required by the PRD tracking flow.
+
 ## [2.0.3] - 2026-11-24
 
 ### Changed
@@ -139,6 +146,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.1.0
 [2.0.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.3
 [2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2
 [2.0.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.1

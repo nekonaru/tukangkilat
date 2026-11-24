@@ -73,6 +73,7 @@
 | **Proof of work** | Photo evidence and the technician's note shown before you confirm |
 | **Ratings** | 1-5 stars, quick tags, and comment after the work is done |
 | **Problem reports** | Request a revisit with 3 reasons and photo evidence |
+| **PDF receipt** | Share a completed order's receipt as a PDF file using built-in Android APIs |
 | **Promo codes** | Save money with `HEMAT25` (simulator demo) or promos created from the admin panel |
 | **Chat** | Two-way chat with the technician, per order |
 

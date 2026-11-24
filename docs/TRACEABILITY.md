@@ -25,7 +25,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | K-17 | M | `AccountScreen` (profil, ubah password, alamat, keluar) | diverifikasi manual |
 | K-18 | S | Tidak diimplementasikan; penggantinya WebSocket + polling 5-10 detik | n/a (diganti pendekatan WS/polling, didokumentasikan di README) |
 | K-19 | S | `ChatScreen`, `GET/POST /consumer/orders/{id}/messages` | diverifikasi manual; endpoint ada di `Main.kt` |
-| K-20 | C | Tidak diimplementasikan | n/a |
+| K-20 | C | `ui/util/ReceiptPdf.kt` (PdfDocument + FileProvider), tombol "Bagikan struk PDF" di `RatingScreen` | diverifikasi manual lewat alur pesanan selesai |
 
 ## Tukang (T)
 
@@ -37,7 +37,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | T-04 | M | Tawaran lewat WS `OFFER_NEW` + polling `GET /technician/offers`, hitung mundur 60 detik di `OfferCard` | `order lifecycle end to end` (offer diterima) |
 | T-05 | M | Tolak tawaran dengan alasan di `TechJobsScreen` | diverifikasi manual; `rejectOffer` backend |
 | T-06 | M | Aksi berurutan di `TechJobScreen` (Berangkat, Tiba, Mulai, Selesaikan) | `order lifecycle end to end`, `cancel is rejected after technician departs` |
-| T-07 | M | `POST /technician/location` (dipanggil dari layar tukang) | diverifikasi manual |
+| T-07 | M | `TechJobScreen` mengirim lokasi tiap 5 detik saat `DALAM_PERJALANAN` lewat `POST /technician/location` | diverifikasi manual |
 | T-08 | M | `TechFinishScreen` wajib foto bukti + catatan; tunai wajib `cashReceived` | `order lifecycle end to end` |
 | T-09 | M | Tunai: `cashReceived` → `paymentStatus = LUNAS` | diverifikasi manual |
 | T-10 | S | Kunjungan ulang: `revisitReport` membersihkan tawaran lama lalu dispatch; kandidat pertama = tukang sebelumnya (`is_revisit = true`) | diverifikasi manual |

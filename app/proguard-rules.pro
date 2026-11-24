@@ -6,6 +6,7 @@
 -keep class io.ktor.** { *; }
 -keep class at.favre.lib.** { *; }
 -keep class com.auth0.** { *; }
+-keep class androidx.core.content.FileProvider { *; }
 -keep class com.fasterxml.jackson.** { *; }
 -keep class org.jetbrains.exposed.** { *; }
 
