@@ -13,7 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import id.tukangkilat.app.R
 import id.tukangkilat.app.data.local.LocalBackend
+import id.tukangkilat.app.ui.components.rememberReduceMotion
 import id.tukangkilat.app.ui.admin.*
 import id.tukangkilat.app.ui.auth.*
 import id.tukangkilat.app.ui.consumer.*
@@ -97,6 +104,13 @@ fun TukangKilatApp(
     val navController = rememberNavController()
 
     if (!backendReady) {
+        val reduce = rememberReduceMotion()
+        val pulse = rememberInfiniteTransition(label = "loader").animateFloat(
+            initialValue = 0.96f,
+            targetValue = 1.04f,
+            animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Reverse),
+            label = "pulse"
+        )
         Box(
             modifier = Modifier.fillMaxSize().background(TKColor.Ink),
             contentAlignment = Alignment.Center
@@ -105,7 +119,13 @@ fun TukangKilatApp(
                 Image(
                     painter = painterResource(R.drawable.ic_brand),
                     contentDescription = null,
-                    modifier = Modifier.size(96.dp)
+                    modifier = Modifier
+                        .size(96.dp)
+                        .graphicsLayer {
+                            val s = if (reduce) 1f else pulse.value
+                            scaleX = s
+                            scaleY = s
+                        }
                 )
                 Spacer(Modifier.height(24.dp))
                 CircularProgressIndicator(color = TKColor.Orange)

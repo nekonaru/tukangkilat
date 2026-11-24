@@ -4,6 +4,14 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-11-24
+
+### Diubah
+
+- **Desain dan animasi**: tombol utama dan kartu kini memberi umpan balik tekan memakai spring tactile. Layar masuk, Beranda, Pesanan, dan panel admin memiliki entrance halus (fade dan geser 18 px, 300 ms). Logo pada layar "Menyiapkan aplikasi..." bernapas lembut.
+- Semua animasi memakai primitive Compose bawaan, tanpa dependensi baru, dan otomatis mati ketika pengguna mengaktifkan pengaturan "hapus animasi" di Android.
+- Animasi hanya mengubah `alpha` dan transform, sehingga tidak memicu ulang layout dan tetap ringan.
+
 ## [2.1.0] - 2026-11-24
 
 ### Ditambahkan
@@ -146,6 +154,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.2.0
 [2.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.1.0
 [2.0.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.3
 [2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2

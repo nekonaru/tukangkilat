@@ -9,11 +9,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
@@ -30,12 +35,15 @@ fun TKPrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .tkPressScale(interactionSource),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = TKColor.Orange,
@@ -55,12 +63,15 @@ fun TKSecondaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .tkPressScale(interactionSource),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = TKColor.White,

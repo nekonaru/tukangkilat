@@ -34,6 +34,7 @@ import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.first
+import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.components.TKPrimaryButton
 import id.tukangkilat.app.ui.components.TKTextButton
 import id.tukangkilat.app.ui.components.TKWordmark
@@ -125,6 +126,7 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(TKColor.Ink)
+            .tkScreenEnter()
     ) {
         Column(
             modifier = Modifier
