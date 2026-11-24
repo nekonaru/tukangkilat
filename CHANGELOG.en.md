@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-11-25
+
+### Added
+
+- **Notification center**: order status changes, job offers, expired offers and chat messages are now recorded as in-app notifications. Open **Notifikasi** from the consumer account, technician account or admin panel. Includes **Tandai dibaca** and **Hapus semua**.
+- This satisfies the PRD K-18 and T-14 fallback: without FCM, WebSocket events still produce notifications users can see.
+
 ## [2.2.0] - 2026-11-24
 
 ### Changed
@@ -154,6 +161,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.3.0
 [2.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.2.0
 [2.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.1.0
 [2.0.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.3

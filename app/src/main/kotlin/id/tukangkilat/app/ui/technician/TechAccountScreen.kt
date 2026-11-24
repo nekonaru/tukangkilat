@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -129,6 +130,7 @@ private val SKILLS = listOf("LISTRIK" to "Listrik", "PIPA" to "Pipa", "AC" to "S
 
 @Composable
 fun TechAccountScreen(
+    onNotifications: () -> Unit,
     viewModel: TechAccountViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -256,6 +258,8 @@ fun TechAccountScreen(
                     Spacer(Modifier.height(14.dp))
 
                     AccountRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
+                    AccountRow(Icons.Filled.Notifications, "Notifikasi") { onNotifications() }
+                    Spacer(Modifier.height(8.dp))
                     AccountRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
                     Spacer(Modifier.height(28.dp))
                 }
