@@ -15,8 +15,8 @@ android {
         applicationId = "id.tukangkilat.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "2.0.2"
+        versionCode = 14
+        versionName = "2.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://127.0.0.1:8080"
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")

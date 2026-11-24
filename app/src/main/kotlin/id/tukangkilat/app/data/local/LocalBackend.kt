@@ -44,7 +44,7 @@ object LocalBackend {
     fun uploadDir(context: Context): File = File(context.filesDir, "uploads")
 
     private fun jdbcUrl(context: Context): String =
-        "jdbc:h2:file:${databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=0"
+        "jdbc:h2:file:${databasePath(context).absolutePath};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=0;CACHE_SIZE=8192;WRITE_DELAY=500"
 
     private fun jwtSecret(context: Context): String {
         val prefs: SharedPreferences = context.getSharedPreferences("tukangkilat_local", Context.MODE_PRIVATE)
@@ -59,6 +59,7 @@ object LocalBackend {
     /** Initialize schema, seed demo data and start the loopback server. Safe to call once per process. */
     suspend fun start(context: Context) = withContext(Dispatchers.IO) {
         if (server != null) return@withContext
+        val startedAt = System.currentTimeMillis()
         databasePath(context).parentFile?.mkdirs()
         val uploads = uploadDir(context)
         ensureUploadDir(uploads.absolutePath)
@@ -100,6 +101,9 @@ object LocalBackend {
         server = embeddedServer(CIO, port = PORT, host = "127.0.0.1") {
             module(localConfig)
         }.start(wait = false)
+        if (BuildConfig.DEBUG) {
+            android.util.Log.d("TukangKilatBackend", "Ready in ${System.currentTimeMillis() - startedAt} ms")
+        }
         _ready.value = true
     }
 

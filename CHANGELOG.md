@@ -4,6 +4,14 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-11-24
+
+### Diubah
+
+- **Native**: Android 12+ kini memakai splash screen sistem dengan tanda merek di atas Biru malam. Tidak ada dependensi tambahan.
+- **Lancar**: H2 disetel dengan cache 8 MB dan write delay 500 ms agar operasi lokal lebih ringan. Waktu inisialisasi backend dicatat di logcat pada build debug untuk pemantauan.
+- File `themes.xml` dipisah per versi Android agar atribut splash hanya dipakai di API 31+.
+
 ## [2.0.2] - 2026-11-24
 
 ### Perbaikan bug
@@ -131,6 +139,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.0.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.3
 [2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2
 [2.0.1]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.1
 [2.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.0
