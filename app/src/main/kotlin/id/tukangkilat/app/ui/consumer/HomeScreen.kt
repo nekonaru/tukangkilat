@@ -3,6 +3,7 @@ package id.tukangkilat.app.ui.consumer
 import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +34,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.R
 import id.tukangkilat.app.data.repository.OrderRepository
+import id.tukangkilat.app.ui.components.tkPressScale
+import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.components.ErrorView
 import id.tukangkilat.app.ui.components.LoadingView
@@ -160,6 +163,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .background(TKColor.Ink)
                     .padding(horizontal = 18.dp)
+                    .tkScreenEnter()
             ) {
                 item {
                     Row(
@@ -252,13 +256,15 @@ fun HomeScreen(
 
 @Composable
 private fun ServiceCard(service: ServiceDto, onClick: () -> Unit) {
+    val pressSource = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .border(1.dp, TKColor.InkLine, RoundedCornerShape(16.dp))
             .background(TKColor.InkSoft)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, interactionSource = pressSource)
+            .tkPressScale(pressSource)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -282,12 +288,13 @@ private fun ServiceCard(service: ServiceDto, onClick: () -> Unit) {
 
 @Composable
 private fun ActiveOrderCard(order: OrderSummaryDto, onClick: () -> Unit) {
+    val pressSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(TKColor.Cream)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, interactionSource = remember { MutableInteractionSource() })
             .padding(16.dp)
     ) {
         Row {

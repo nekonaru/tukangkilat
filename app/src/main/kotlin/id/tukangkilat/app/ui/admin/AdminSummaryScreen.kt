@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.AdminRepository
 import id.tukangkilat.app.data.repository.AuthRepository
+import id.tukangkilat.app.ui.components.tkPressScale
+import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.components.ErrorView
 import id.tukangkilat.app.ui.components.LoadingView
 import id.tukangkilat.app.ui.components.SectionLabel
@@ -132,6 +135,7 @@ fun AdminSummaryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(TKColor.Ink)
+                    .tkScreenEnter()
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
@@ -211,12 +215,14 @@ private fun AdminMenuCard(
     subtitle: String,
     onClick: () -> Unit
 ) {
+    val pressSource = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(TKColor.InkSoft)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, interactionSource = pressSource)
+            .tkPressScale(pressSource)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

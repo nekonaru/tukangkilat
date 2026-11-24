@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.OrderRepository
+import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.components.ErrorView
 import id.tukangkilat.app.ui.components.LoadingView
@@ -103,6 +104,7 @@ fun OrdersScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(TKColor.Ink)
+            .tkScreenEnter()
     ) {
         ScreenHeader("Pesanan")
         TabRow(

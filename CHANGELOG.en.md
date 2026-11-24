@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-11-24
+
+### Changed
+
+- **Design and motion**: buttons and cards now give tactile spring press feedback. Login, Beranda, Pesanan and admin panel have a subtle entrance (fade plus 18 px slide, 300 ms). The brand mark pulses gently on the "Menyiapkan aplikasi..." screen.
+- All animation uses built-in Compose primitives with no new dependency, and stops automatically when the user enables Android's "remove animations" setting.
+- Only alpha and transform properties animate, so no layout pass is triggered and the app stays light.
+
 ## [2.1.0] - 2026-11-24
 
 ### Added
@@ -146,6 +154,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.2.0
 [2.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.1.0
 [2.0.3]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.3
 [2.0.2]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.0.2
