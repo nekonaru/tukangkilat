@@ -23,7 +23,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.local.FavoriteTechnician
 import id.tukangkilat.app.data.repository.AuthRepository
+import id.tukangkilat.app.data.repository.FavoriteRepository
 import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.ui.components.ScreenHeader
@@ -37,6 +39,7 @@ import id.tukangkilat.shared.ChangePasswordRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,6 +50,7 @@ data class AccountUiState(
     val username: String = "",
     val phone: String = "",
     val addresses: List<AddressDto> = emptyList(),
+    val favorites: List<FavoriteTechnician> = emptyList(),
     val snackbar: String? = null
 )
 
@@ -54,6 +58,7 @@ data class AccountUiState(
 class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository,
+    private val favoriteRepository: FavoriteRepository,
     private val api: ApiService
 ) : ViewModel() {
 
@@ -69,10 +74,12 @@ class AccountViewModel @Inject constructor(
             try {
                 val session = authRepository.currentSession()
                 // wait for the first emission
-                val addresses = orderRepository.addresses()
+                val addressesDeferred = async { orderRepository.addresses() }
+                favoriteRepository.refresh()
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    addresses = addresses
+                    addresses = addressesDeferred.await(),
+                    favorites = favoriteRepository.items.value
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
@@ -130,6 +137,13 @@ class AccountViewModel @Inject constructor(
         }
     }
 
+    fun removeFavorite(userId: Long) {
+        viewModelScope.launch {
+            favoriteRepository.remove(userId)
+            _state.value = _state.value.copy(favorites = favoriteRepository.items.value)
+        }
+    }
+
     fun clearSnackbar() { _state.value = _state.value.copy(snackbar = null) }
 }
 
@@ -141,6 +155,7 @@ fun AccountScreen(
     val state by viewModel.state.collectAsState()
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showAddressDialog by remember { mutableStateOf(false) }
+    var showFavorites by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.snackbar) {
@@ -176,6 +191,7 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }
                     SectionRow(Icons.Filled.Notifications, "Notifikasi", onClick = onNotifications)
+                    SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
                     Spacer(Modifier.height(8.dp))
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
                     Spacer(Modifier.height(8.dp))
@@ -184,6 +200,37 @@ fun AccountScreen(
                 }
             }
         }
+    }
+
+    if (showFavorites) {
+        AlertDialog(
+            onDismissRequest = { showFavorites = false },
+            containerColor = TKColor.InkSoft,
+            title = { Text("Teknisi favorit", color = TKColor.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    if (state.favorites.isEmpty()) {
+                        Text("Belum ada teknisi favorit. Simpan teknisi dari struk pesanan selesai.", color = TKColor.Mist, fontSize = 13.sp)
+                    } else {
+                        state.favorites.forEach { fav ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(fav.fullName, color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("Rating ${fav.ratingAvg} · ${fav.jobsCount} pekerjaan", color = TKColor.Mist, fontSize = 11.sp)
+                                }
+                                TextButton(onClick = { viewModel.removeFavorite(fav.userId) }) {
+                                    Text("Hapus", color = TKColor.Red, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showFavorites = false }) { Text("Tutup", color = TKColor.Orange) } }
+        )
     }
 
     if (showPasswordDialog) {

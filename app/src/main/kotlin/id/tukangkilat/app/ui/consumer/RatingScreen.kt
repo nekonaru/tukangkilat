@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.repository.FavoriteRepository
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.ui.components.*
 import id.tukangkilat.app.ui.theme.TKColor
@@ -50,12 +51,14 @@ data class RatingUiState(
     val tags: Set<String> = emptySet(),
     val comment: String = "",
     val isSubmitting: Boolean = false,
-    val submitted: Boolean = false
+    val submitted: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 @HiltViewModel
 class RatingViewModel @Inject constructor(
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RatingUiState())
@@ -65,10 +68,19 @@ class RatingViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val order = orderRepository.detail(orderId)
-                _state.value = _state.value.copy(isLoading = false, order = order)
+                val favorite = order.technician?.let { favoriteRepository.isFavorite(it.id) } ?: false
+                _state.value = _state.value.copy(isLoading = false, order = order, isFavorite = favorite)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
+        }
+    }
+
+    fun toggleFavorite() {
+        val technician = _state.value.order?.technician ?: return
+        viewModelScope.launch {
+            favoriteRepository.toggle(technician)
+            _state.value = _state.value.copy(isFavorite = favoriteRepository.isFavorite(technician.id))
         }
     }
 
@@ -108,7 +120,7 @@ fun RatingScreen(
     when {
         state.isLoading -> LoadingView()
         state.error != null && state.order == null -> ErrorView(message = state.error!!, onRetry = { viewModel.load(orderId) })
-        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone)
+        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone, isFavorite = state.isFavorite, onToggleFavorite = { viewModel.toggleFavorite() })
         else -> RatingForm(
             state = state,
             onStars = viewModel::onStars,
@@ -217,7 +229,7 @@ private fun RatingForm(
 
 /** Struk ringkas (layar 08 bagian bawah). Juga dipakai untuk pesanan SELESAI. */
 @Composable
-internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit) {
+internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boolean = false, onToggleFavorite: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -280,6 +292,23 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit) {
             }
             Spacer(Modifier.height(20.dp))
             ShareReceiptButton(order)
+            Spacer(Modifier.height(10.dp))
+            OutlinedButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
+            ) {
+                Icon(
+                    if (isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
+                    null,
+                    tint = TKColor.Orange,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(if (isFavorite) "Teknisi favorit" else "Simpan teknisi favorit", fontWeight = FontWeight.SemiBold)
+            }
             Spacer(Modifier.height(10.dp))
             TKPrimaryButton("Kembali ke Beranda", onClick = onBack)
             Spacer(Modifier.height(24.dp))

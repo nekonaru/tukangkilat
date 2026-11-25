@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-11-26
+
+### Added
+
+- **Favorite technicians**: from a completed order's receipt, consumers can tap **Simpan teknisi favorit**. The favorites list is available in the Akun tab and individual entries can be removed. Data is stored locally in Room, with no new endpoint.
+- Cache database upgraded to version 3 with a `favorite_technicians` table.
+
 ## [2.9.0] - 2026-11-26
 
 ### Added
@@ -204,6 +211,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
 [2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0
 [2.8.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.8.0
 [2.7.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.7.0
