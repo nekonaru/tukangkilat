@@ -4,6 +4,13 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-11-25
+
+### Ditambahkan
+
+- **Tarik saldo teknisi (T-11)**: tombol **Tarik saldo** kini membuat catatan penarikan sungguhan di backend, bukan hanya notifikasi lokal. Saldo berkurang dan riwayat penarikan tampil di layar Pendapatan. Minimal penarikan Rp1 dan tidak boleh melebihi saldo.
+- Migrasi `V4__withdrawals.sql` menambah tabel `withdrawals`, termasuk indeks teknisi dan waktu. Tabel ini juga ikut diekspor dan diimpor bersama data lain.
+
 ## [2.3.0] - 2026-11-25
 
 ### Ditambahkan
@@ -161,6 +168,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.4.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.4.0
 [2.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.3.0
 [2.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.2.0
 [2.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.1.0

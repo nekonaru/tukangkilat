@@ -28,9 +28,11 @@ import id.tukangkilat.app.ui.util.cleanApiError
 import id.tukangkilat.shared.EarningEntryDto
 import id.tukangkilat.shared.EarningsDto
 import id.tukangkilat.shared.Format
+import id.tukangkilat.shared.WithdrawalDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,6 +40,7 @@ data class TechEarningsUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val earnings: EarningsDto? = null,
+    val withdrawals: List<WithdrawalDto> = emptyList(),
     val snackbar: String? = null
 )
 
@@ -56,8 +59,13 @@ class TechEarningsViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             try {
-                val earnings = technicianRepository.earnings()
-                _state.value = TechEarningsUiState(isLoading = false, earnings = earnings)
+                val earningsDeferred = async { technicianRepository.earnings() }
+                val withdrawalsDeferred = async { runCatching { technicianRepository.withdrawals() }.getOrDefault(emptyList()) }
+                _state.value = TechEarningsUiState(
+                    isLoading = false,
+                    earnings = earningsDeferred.await(),
+                    withdrawals = withdrawalsDeferred.await()
+                )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
@@ -65,7 +73,20 @@ class TechEarningsViewModel @Inject constructor(
     }
 
     fun requestPayout() {
-        _state.value = _state.value.copy(snackbar = "Permintaan tarik saldo tercatat. Saldo akan dicairkan (simulasi).")
+        val amount = _state.value.earnings?.balance ?: 0
+        if (amount <= 0) {
+            _state.value = _state.value.copy(snackbar = "Saldo tidak cukup untuk ditarik")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                technicianRepository.withdraw(amount)
+                refresh()
+                _state.value = _state.value.copy(snackbar = "Penarikan ${Format.rupiah(amount)} berhasil (simulasi)")
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(snackbar = e.cleanApiError())
+            }
+        }
     }
 
     fun clearSnackbar() { _state.value = _state.value.copy(snackbar = null) }
@@ -145,6 +166,25 @@ fun TechEarningsScreen(
                     ) {
                         items(earnings.entries, key = { it.orderId }) { entry ->
                             EarningRow(entry)
+                        }
+                        if (state.withdrawals.isNotEmpty()) {
+                            item { SectionLabel("Riwayat penarikan", modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) }
+                            items(state.withdrawals, key = { it.id }) { w ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(TKColor.InkSoft)
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Penarikan saldo", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                        Text(w.createdAt.take(16), color = TKColor.Mist, fontSize = 11.sp)
+                                    }
+                                    Text("-${Format.rupiah(w.amount)}", color = TKColor.Orange, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                }
+                            }
                         }
                         if (earnings.entries.isEmpty()) {
                             item {

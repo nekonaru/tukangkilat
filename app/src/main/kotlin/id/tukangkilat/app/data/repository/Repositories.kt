@@ -101,6 +101,8 @@ class TechnicianRepository @Inject constructor(
     suspend fun myOrders() = api.technicianOrders()
     suspend fun earnings() = api.earnings()
     suspend fun reviews() = api.technicianReviews()
+    suspend fun withdrawals() = api.withdrawals()
+    suspend fun withdraw(amount: Long) = api.withdraw(WithdrawRequest(amount))
 }
 
 @Singleton

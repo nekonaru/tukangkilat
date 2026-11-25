@@ -258,6 +258,11 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 post("/orders/{id}/finish") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.jobAction(call.authUser().id, call.parameters["id"]!!.toLong(), "finish", call.receive())) }
                 get("/orders") { call.requireRole(Role.TUKANG); call.respond(OrderService.listOrdersForTechnician(call.authUser().id)) }
                 get("/earnings") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.earnings(call.authUser().id)) }
+                get("/withdrawals") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.withdrawals(call.authUser().id)) }
+                post("/withdrawals") {
+                    call.requireRole(Role.TUKANG)
+                    call.respond(TechnicianService.withdraw(call.authUser().id, call.receive()))
+                }
                 get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
                 get("/orders/{id}/messages") {
                     call.requireRole(Role.TUKANG)

@@ -123,6 +123,12 @@ interface ApiService {
     @GET("/technician/reviews")
     suspend fun technicianReviews(): List<ReviewDto>
 
+    @GET("/technician/withdrawals")
+    suspend fun withdrawals(): List<WithdrawalDto>
+
+    @POST("/technician/withdrawals")
+    suspend fun withdraw(@Body req: WithdrawRequest): WithdrawalDto
+
     @GET("/technician/orders/{id}/messages")
     suspend fun technicianMessages(@Path("id") id: Long): List<MessageDto>
 

@@ -811,4 +811,76 @@ class ApiIntegrationTest {
         val final = json.decodeFromString(OrderDto.serializer(), client.okGet("/consumer/orders/${order.id}", rina).bodyAsText())
         assertEquals(newDate, final.scheduledDate)
     }
+
+
+    @Test
+    fun `technician can withdraw simulated balance and see history`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val budi = client.loginToken("budi", "budi12345")
+        val rina = client.loginToken("rina", "rina12345")
+        val tomorrow = java.time.LocalDate.now().plusDays(20).toString()
+        val slots = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(SlotDto.serializer()),
+            client.okGet("/consumer/slots?date=$tomorrow", rina).bodyAsText()
+        )
+        val addresses = json.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(AddressDto.serializer()),
+            client.okGet("/consumer/addresses", rina).bodyAsText()
+        )
+        val created = client.post("/consumer/orders") {
+            bearer(rina); contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateOrderRequest.serializer(),
+                CreateOrderRequest(1, "Tarik saldo", addresses.first().id, tomorrow, slots.first { it.available }.id)
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status, created.bodyAsText())
+        val order = json.decodeFromString(OrderDto.serializer(), created.bodyAsText())
+        client.post("/consumer/orders/${order.id}/pay") {
+            bearer(rina); contentType(ContentType.Application.Json); setBody("""{"method":"TRANSFER"}""")
+        }
+        client.post("/admin/payments/${order.id}/simulate-success") { bearer(admin) }
+        val offer = json.decodeFromString<List<OfferDto>>(
+            client.okGet("/technician/offers", budi).bodyAsText()
+        ).first { it.orderId == order.id }
+        client.post("/technician/offers/${offer.id}/accept") { bearer(budi) }
+        client.post("/technician/orders/${order.id}/depart") { bearer(budi) }
+        client.post("/technician/orders/${order.id}/arrive") { bearer(budi) }
+        client.post("/technician/orders/${order.id}/start") { bearer(budi) }
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + ByteArray(64)
+        val boundary = "----tukangkilattest"
+        val bodyBytes = buildString {
+            append("--$boundary\r\n")
+            append("Content-Disposition: form-data; name=\"file\"; filename=\"bukti.png\"\r\n")
+            append("Content-Type: image/png\r\n\r\n")
+        }.encodeToByteArray() + png + "\r\n--$boundary--\r\n".encodeToByteArray()
+        val photoRes = client.post("/photos") {
+            bearer(budi)
+            header(HttpHeaders.ContentType, "multipart/form-data; boundary=$boundary")
+            setBody(bodyBytes)
+        }
+        assertEquals(HttpStatusCode.Created, photoRes.status, photoRes.bodyAsText())
+        val photoUrl = json.decodeFromString(PhotoUploadDto.serializer(), photoRes.bodyAsText()).url
+        val finished = client.post("/technician/orders/${order.id}/finish") {
+            bearer(budi); contentType(ContentType.Application.Json)
+            setBody("""{"note":"Selesai","photoUrls":["$photoUrl"]}""")
+        }
+        assertEquals(HttpStatusCode.OK, finished.status, finished.bodyAsText())
+        val confirmed = client.post("/consumer/orders/${order.id}/confirm") { bearer(rina) }
+        assertEquals(HttpStatusCode.OK, confirmed.status, confirmed.bodyAsText())
+
+        val before = json.decodeFromString<EarningsDto>(client.okGet("/technician/earnings", budi).bodyAsText())
+        assertTrue(before.balance > 0)
+        val withdraw = client.post("/technician/withdrawals") {
+            bearer(budi); contentType(ContentType.Application.Json)
+            setBody("""{"amount":${before.balance}}""")
+        }
+        assertEquals(HttpStatusCode.OK, withdraw.status, withdraw.bodyAsText())
+        val after = json.decodeFromString<EarningsDto>(client.okGet("/technician/earnings", budi).bodyAsText())
+        assertEquals(0, after.balance)
+        val history = json.decodeFromString<List<WithdrawalDto>>(client.okGet("/technician/withdrawals", budi).bodyAsText())
+        assertEquals(1, history.size)
+        assertEquals(before.balance, history.first().amount)
+    }
 }

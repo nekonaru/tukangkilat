@@ -307,6 +307,17 @@ data class EarningsDto(
 )
 
 @Serializable
+data class WithdrawalDto(
+    val id: Long,
+    val amount: Long,
+    val status: String,
+    val createdAt: String
+)
+
+@Serializable
+data class WithdrawRequest(val amount: Long)
+
+@Serializable
 data class TechnicianProfileDto(
     val id: Long,
     val fullName: String,
