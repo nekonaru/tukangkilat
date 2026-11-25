@@ -127,6 +127,21 @@ object AdminService {
 
     fun listServices(): List<ServiceDto> = OrderService.listServices()
 
+    fun createService(req: ServiceCreateRequest): ServiceDto = transaction {
+        val name = req.name.trim().take(120)
+        if (name.isBlank()) throw BadRequestException("Nama layanan wajib diisi")
+        if (req.basePrice < 0 || req.visitFee < 0) throw BadRequestException("Biaya tidak boleh negatif")
+        val id = ServicesTable.insert {
+            it[ServicesTable.name] = name
+            it[icon] = req.icon.trim().ifBlank { "bolt" }.take(64)
+            it[skill] = req.skill.trim().uppercase().ifBlank { "LISTRIK" }.take(32)
+            it[basePrice] = req.basePrice
+            it[visitFee] = req.visitFee
+            it[isActive] = true
+        } get ServicesTable.id
+        ServiceDto(id, name, req.icon, req.basePrice, req.visitFee, true)
+    }
+
     fun updateService(serviceId: Long, req: ServiceUpdateRequest): ServiceDto = transaction {
         val row = ServicesTable.selectAll().where { ServicesTable.id eq serviceId }.singleOrNull()
             ?: throw NotFoundException("Layanan tidak ditemukan")

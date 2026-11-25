@@ -28,6 +28,7 @@ import id.tukangkilat.app.ui.components.TextFieldDark
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
 import id.tukangkilat.shared.Format
+import id.tukangkilat.shared.ServiceCreateRequest
 import id.tukangkilat.shared.ServiceDto
 import id.tukangkilat.shared.ServiceUpdateRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +79,18 @@ class AdminServicesViewModel @Inject constructor(
         }
     }
 
+    fun create(req: ServiceCreateRequest) {
+        viewModelScope.launch {
+            try {
+                adminRepository.createService(req)
+                _state.value = _state.value.copy(snackbar = "Layanan dibuat")
+                refresh()
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(snackbar = e.cleanApiError())
+            }
+        }
+    }
+
     fun toggleActive(service: ServiceDto) {
         update(service.id, ServiceUpdateRequest(isActive = !service.isActive))
     }
@@ -93,6 +106,7 @@ fun AdminServicesScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var editTarget by remember { mutableStateOf<ServiceDto?>(null) }
+    var showCreate by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.snackbar) {
         state.snackbar?.let { snackbarHostState.showSnackbar(it); viewModel.clearSnackbar() }
@@ -112,6 +126,15 @@ fun AdminServicesScreen(
                     .background(TKColor.Ink)
             ) {
                 ScreenHeader("Layanan", onBack = onBack)
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Button(
+                        onClick = { showCreate = true },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Layanan baru", color = TKColor.White, fontWeight = FontWeight.Bold) }
+                }
+                Spacer(Modifier.height(8.dp))
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     contentPadding = PaddingValues(vertical = 12.dp),
@@ -127,6 +150,13 @@ fun AdminServicesScreen(
                 }
             }
         }
+    }
+
+    if (showCreate) {
+        CreateServiceDialog(
+            onDismiss = { showCreate = false },
+            onSave = { req -> viewModel.create(req); showCreate = false }
+        )
     }
 
     editTarget?.let { service ->
@@ -196,6 +226,44 @@ private fun ServiceRow(
             )
         }
     }
+}
+
+@Composable
+private fun CreateServiceDialog(
+    onDismiss: () -> Unit,
+    onSave: (ServiceCreateRequest) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var basePrice by remember { mutableStateOf("100000") }
+    var visitFee by remember { mutableStateOf("25000") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = TKColor.InkSoft,
+        title = { Text("Layanan baru", color = TKColor.White, fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                TextFieldDark(name, { name = it }, placeholder = "Nama layanan")
+                Spacer(Modifier.height(8.dp))
+                TextFieldDark(basePrice, { basePrice = it }, placeholder = "Harga mulai (Rp)")
+                Spacer(Modifier.height(8.dp))
+                TextFieldDark(visitFee, { visitFee = it }, placeholder = "Biaya kunjungan (Rp)")
+                error?.let { Text(it, color = TKColor.Red, fontSize = 12.sp) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val price = basePrice.toLongOrNull()
+                val fee = visitFee.toLongOrNull()
+                if (name.isBlank() || price == null || price < 0 || fee == null || fee < 0) {
+                    error = "Nama dan biaya harus valid"
+                } else {
+                    onSave(ServiceCreateRequest(name.trim(), "bolt", "LISTRIK", price, fee))
+                }
+            }) { Text("Simpan", color = TKColor.Orange) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Batal", color = TKColor.Mist) } }
+    )
 }
 
 @Composable

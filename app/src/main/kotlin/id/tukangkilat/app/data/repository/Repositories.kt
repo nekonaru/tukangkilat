@@ -152,6 +152,7 @@ class AdminRepository @Inject constructor(
     suspend fun closeReport(id: Long) = api.closeReport(id)
     suspend fun orders(status: String?) = api.adminOrders(status)
     suspend fun services() = api.adminServices()
+    suspend fun createService(req: ServiceCreateRequest) = api.createService(req)
     suspend fun updateService(id: Long, req: ServiceUpdateRequest) = api.updateService(id, req)
     suspend fun setUserStatus(id: Long, status: String) = api.setUserStatus(id, UserStatusUpdateRequest(status))
     suspend fun simulatePaymentSuccess(orderId: Long) = api.simulatePaymentSuccess(orderId)
