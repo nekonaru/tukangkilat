@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-11-25
+
+### Added
+
+- **Admin analytics**: the summary now shows a bar chart of orders over the last 7 days and the three most common order statuses. The data is computed from the existing admin order list, with no new endpoint or chart dependency.
+
 ## [2.7.0] - 2026-11-25
 
 ### Changed
@@ -191,6 +197,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.8.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.8.0
 [2.7.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.7.0
 [2.6.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.6.0
 [2.5.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.5.0

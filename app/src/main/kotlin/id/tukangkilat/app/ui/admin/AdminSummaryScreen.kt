@@ -41,6 +41,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -48,7 +49,9 @@ import javax.inject.Inject
 data class AdminUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
-    val summary: AdminSummaryDto? = null
+    val summary: AdminSummaryDto? = null,
+    val statusCounts: Map<String, Int> = emptyMap(),
+    val dailyCounts: List<Pair<String, Int>> = emptyList()
 )
 
 @HiltViewModel
@@ -67,8 +70,21 @@ class AdminViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             try {
-                val summary = adminRepository.summary()
-                _state.value = AdminUiState(isLoading = false, summary = summary)
+                val summaryDeferred = async { adminRepository.summary() }
+                val ordersDeferred = async { runCatching { adminRepository.orders(null) }.getOrDefault(emptyList()) }
+                val summary = summaryDeferred.await()
+                val orders = ordersDeferred.await()
+                val today = java.time.LocalDate.now()
+                val daily = (6 downTo 0).map { offset ->
+                    val date = today.minusDays(offset.toLong())
+                    date.dayOfMonth.toString() to orders.count { it.createdAt.take(10) == date.toString() }
+                }
+                _state.value = AdminUiState(
+                    isLoading = false,
+                    summary = summary,
+                    statusCounts = orders.groupingBy { it.status.name }.eachCount(),
+                    dailyCounts = daily
+                )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
@@ -160,6 +176,59 @@ fun AdminSummaryScreen(
                             StatCard("Pesanan hari ini", "${summary.ordersToday}", Modifier.weight(1f))
                             StatCard("Tukang online", "${summary.techniciansOnline}", Modifier.weight(1f))
                             StatCard("Laporan terbuka", "${summary.openReports}", Modifier.weight(1f))
+                        }
+                    }
+                    item { SectionLabel("Aktivitas 7 hari terakhir") }
+                    item {
+                        val max = (state.dailyCounts.maxOfOrNull { it.second } ?: 0).coerceAtLeast(1)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            state.dailyCounts.forEach { (label, count) ->
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(64.dp),
+                                        contentAlignment = Alignment.BottomCenter
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height((64f * count / max).dp.coerceAtLeast(2.dp))
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(if (count > 0) TKColor.Orange else TKColor.InkLine)
+                                        )
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(label, color = TKColor.Mist, fontSize = 10.sp)
+                                }
+                            }
+                        }
+                    }
+                    if (state.statusCounts.isNotEmpty()) {
+                        item { SectionLabel("Status pesanan") }
+                        item {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                state.statusCounts.entries.take(3).forEach { (status, count) ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(TKColor.InkSoft)
+                                            .padding(10.dp)
+                                    ) {
+                                        Column {
+                                            Text("$count", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                            Text(status, color = TKColor.Mist, fontSize = 9.sp, maxLines = 1)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                     item { SectionLabel("Kelola") }
