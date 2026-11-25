@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-11-26
+
+### Added
+
+- **Create services**: the admin panel can now add a new service (name, starting price, visit fee) with a **Layanan baru** button, in addition to editing existing ones. Adds `POST /admin/services` and an integration test.
+- **Camera for problem reports**: the Lapor masalah screen now also has an **Ambil foto** button, completing K-14 alongside the order form and finish screen.
+
 ## [2.8.0] - 2026-11-25
 
 ### Added
@@ -197,6 +204,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0
 [2.8.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.8.0
 [2.7.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.7.0
 [2.6.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.6.0

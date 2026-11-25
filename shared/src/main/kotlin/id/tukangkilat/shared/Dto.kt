@@ -396,6 +396,15 @@ data class AdminSummaryDto(
 )
 
 @Serializable
+data class ServiceCreateRequest(
+    val name: String,
+    val icon: String = "bolt",
+    val skill: String = "LISTRIK",
+    val basePrice: Long,
+    val visitFee: Long = 25_000
+)
+
+@Serializable
 data class ServiceUpdateRequest(
     val name: String? = null,
     val basePrice: Long? = null,

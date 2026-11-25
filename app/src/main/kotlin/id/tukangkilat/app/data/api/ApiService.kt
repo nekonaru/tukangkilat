@@ -163,6 +163,9 @@ interface ApiService {
     @GET("/admin/services")
     suspend fun adminServices(): List<ServiceDto>
 
+    @POST("/admin/services")
+    suspend fun createService(@Body req: ServiceCreateRequest): ServiceDto
+
     @PUT("/admin/services/{id}")
     suspend fun updateService(@Path("id") id: Long, @Body req: ServiceUpdateRequest): ServiceDto
 

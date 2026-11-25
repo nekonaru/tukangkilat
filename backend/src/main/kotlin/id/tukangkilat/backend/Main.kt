@@ -314,6 +314,10 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(AdminService.listOrders(call.request.queryParameters["status"], limit))
                 }
                 get("/services") { call.requireRole(Role.ADMIN); call.respond(AdminService.listServices()) }
+                post("/services") {
+                    call.requireRole(Role.ADMIN)
+                    call.respond(HttpStatusCode.Created, AdminService.createService(call.receive()))
+                }
                 get("/promo-codes") { call.requireRole(Role.ADMIN); call.respond(PromoService.list()) }
                 put("/promo-codes") {
                     call.requireRole(Role.ADMIN)

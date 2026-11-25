@@ -883,4 +883,20 @@ class ApiIntegrationTest {
         assertEquals(1, history.size)
         assertEquals(before.balance, history.first().amount)
     }
+
+
+    @Test
+    fun `admin can create a service visible to consumers`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val rina = client.loginToken("rina", "rina12345")
+        val res = client.post("/admin/services") {
+            bearer(admin); contentType(ContentType.Application.Json)
+            setBody("""{"name":"Servis Kursi","icon":"bolt","skill":"LISTRIK","basePrice":75000,"visitFee":20000}""")
+        }
+        assertEquals(HttpStatusCode.Created, res.status, res.bodyAsText())
+        val created = json.decodeFromString(ServiceDto.serializer(), res.bodyAsText())
+        val services = json.decodeFromString<List<ServiceDto>>(client.okGet("/consumer/services", rina).bodyAsText())
+        assertTrue(services.any { it.id == created.id && it.name == "Servis Kursi" })
+    }
 }
