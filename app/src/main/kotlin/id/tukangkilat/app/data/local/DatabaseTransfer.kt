@@ -23,12 +23,12 @@ object DatabaseTransfer {
     private val TABLES = listOf(
         "users", "technician_profiles", "addresses", "services", "time_slots",
         "promo_codes", "photos", "orders", "order_photos", "order_events",
-        "job_offers", "payments", "ratings", "issue_reports", "messages"
+        "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals"
     )
 
     private val AUTO_ID_TABLES = setOf(
         "users", "addresses", "services", "time_slots", "photos", "orders",
-        "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages"
+        "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals"
     )
 
     @Serializable

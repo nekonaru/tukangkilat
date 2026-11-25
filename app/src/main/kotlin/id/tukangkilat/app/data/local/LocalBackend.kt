@@ -32,7 +32,7 @@ object LocalBackend {
 
     private const val PORT = 8080
     private const val DB_NAME = "tukangkilat"
-    private const val MIGRATIONS = "V1__init.sql,V2__add_promo_active.sql,V3__dispatch_indexes.sql"
+    private const val MIGRATIONS = "V1__init.sql,V2__add_promo_active.sql,V3__dispatch_indexes.sql,V4__withdrawals.sql"
     const val BASE_URL = "http://127.0.0.1:8080"
 
     private var server: EmbeddedServer<*, *>? = null

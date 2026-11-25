@@ -180,6 +180,15 @@ object MessagesTable : Table("messages") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object WithdrawalsTable : Table("withdrawals") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val amount = long("amount")
+    val status = varchar("status", 24)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object RefreshTokensTable : Table("refresh_tokens") {
     val id = long("id").autoIncrement()
     val userId = long("user_id").references(UsersTable.id)

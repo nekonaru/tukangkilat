@@ -288,12 +288,43 @@ object TechnicianService {
                 finishedAt = row[OrdersTable.updatedAt].toString()
             )
         }
+        val withdrawn = WithdrawalsTable.selectAll()
+            .where { WithdrawalsTable.technicianId eq userId }
+            .sumOf { it[WithdrawalsTable.amount] }
         EarningsDto(
-            balance = balance,
+            balance = balance - withdrawn,
             totalEarned = totalEarned,
             commissionRate = Pricing.COMMISSION_RATE,
             entries = entries
         )
+    }
+
+    // ---------- Withdrawals (simulation, PRD T-11) ----------
+
+    fun withdraw(userId: Long, req: WithdrawRequest): WithdrawalDto = transaction {
+        assertVerified(userId)
+        if (req.amount <= 0) throw BadRequestException("Jumlah penarikan harus lebih dari 0")
+        val earned = OrdersTable.selectAll().where {
+            (OrdersTable.technicianId eq userId) and (OrdersTable.status eq OrderStatus.SELESAI.name)
+        }.sumOf { Pricing.technicianPayout(it[OrdersTable.serviceFee], it[OrdersTable.visitFee]) }
+        val withdrawn = WithdrawalsTable.selectAll()
+            .where { WithdrawalsTable.technicianId eq userId }
+            .sumOf { it[WithdrawalsTable.amount] }
+        if (req.amount > earned - withdrawn) throw ConflictException("Saldo tidak cukup")
+        val id = WithdrawalsTable.insert {
+            it[technicianId] = userId
+            it[amount] = req.amount
+            it[status] = "SELESAI"
+            it[createdAt] = OffsetDateTime.now()
+        } get WithdrawalsTable.id
+        WithdrawalDto(id, req.amount, "SELESAI", OffsetDateTime.now().toString())
+    }
+
+    fun withdrawals(userId: Long): List<WithdrawalDto> = transaction {
+        WithdrawalsTable.selectAll()
+            .where { WithdrawalsTable.technicianId eq userId }
+            .orderBy(WithdrawalsTable.createdAt to SortOrder.DESC)
+            .map { WithdrawalDto(it[WithdrawalsTable.id], it[WithdrawalsTable.amount], it[WithdrawalsTable.status], it[WithdrawalsTable.createdAt].toString()) }
     }
 
     // ---------- Internal helpers ----------

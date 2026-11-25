@@ -41,7 +41,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | T-08 | M | `TechFinishScreen` wajib foto bukti + catatan; tunai wajib `cashReceived` | `order lifecycle end to end` |
 | T-09 | M | Tunai: `cashReceived` → `paymentStatus = LUNAS` | diverifikasi manual |
 | T-10 | S | Kunjungan ulang: `revisitReport` membersihkan tawaran lama lalu dispatch; kandidat pertama = tukang sebelumnya (`is_revisit = true`) | diverifikasi manual |
-| T-11 | M | `TechEarningsScreen`, `/technician/earnings` (komisi 15%) | diverifikasi manual |
+| T-11 | M | `TechEarningsScreen`, `GET /technician/earnings`, `GET/POST /technician/withdrawals`, tabel `withdrawals` | `technician can withdraw simulated balance and see history` |
 | T-12 | M | `TechAccountScreen` (akun, rating, ulasan saya), `/technician/reviews` | `technician sees received reviews after rating` |
 | T-13 | S | `ChatScreen` mode teknisi (`/technician/orders/{id}/messages`) | diverifikasi manual |
 | T-14 | S | `NotificationRepository`, menu **Notifikasi** di Akun teknisi dan panel admin | diverifikasi manual; event WS diteruskan ke pusat notifikasi |
