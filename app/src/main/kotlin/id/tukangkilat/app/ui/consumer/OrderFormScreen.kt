@@ -3,6 +3,8 @@ package id.tukangkilat.app.ui.consumer
 import android.Manifest
 import android.location.Geocoder
 import android.net.Uri
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -249,6 +251,11 @@ fun OrderFormScreen(
         ActivityResultContracts.PickMultipleVisualMedia(3)
     ) { uris -> if (uris.isNotEmpty()) viewModel.uploadPhotos(uris, context) }
 
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        if (ok) cameraUri?.let { viewModel.uploadPhotos(listOf(it), context) }
+    }
+
     val locationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) viewModel.useCurrentLocation(context) }
@@ -334,8 +341,16 @@ fun OrderFormScreen(
             )
             Spacer(Modifier.height(18.dp))
 
-            Text("Foto masalah (opsional)", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Foto masalah (opsional)", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                TextButton(onClick = {
+                    val file = File(context.cacheDir, "camera-${System.currentTimeMillis()}.jpg")
+                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    cameraUri = uri
+                    cameraLauncher.launch(uri)
+                }) { Text("Ambil foto", color = TKColor.Orange, fontSize = 12.sp) }
+            }
+            Spacer(Modifier.height(4.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(state.photos) { url ->
                     Box {

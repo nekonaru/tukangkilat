@@ -10,7 +10,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | K-02 | M | `POST /auth/register` → `AuthService.registerConsumer`, `ui/auth/RegisterScreen.kt` | `register` dipakai semua tes; validasi password di `ApiIntegrationTest` |
 | K-03 | M | `HomeScreen.kt`, `HomeViewModel`, `GET /consumer/services` | `GET /consumer/services` dipanggil di `consumer cannot call technician or admin routes` |
 | K-04 | M | `HomeScreen` kartu pesanan aktif dari `GET /consumer/orders` | diverifikasi manual di emulator; data dari `OrderDto` |
-| K-05 | M | `OrderFormViewModel` (deskripsi wajib, 0-3 foto, tanggal tidak lampau, slot) | `order lifecycle end to end` (validasi slot dan tanggal) |
+| K-05 | M | `OrderFormViewModel`, `OrderFormScreen` (deskripsi wajib, 0-3 foto dari galeri atau kamera, tanggal tidak lampau, slot) | `order lifecycle end to end` (validasi slot dan tanggal) |
 | K-06 | M | `OrderFormViewModel.useCurrentLocation` (FusedLocation, Geocoder balik), `OrderRepository.addAddress` | diverifikasi manual di emulator |
 | K-07 | M | `PaymentScreen`, `OrderService.pay`, `payments` table | `payment failure then retry with tuai method succeeds`, `order lifecycle end to end` |
 | K-08 | M | `PaymentScreen`, `PEMBAYARAN_GAGAL` → `pay()` kembali ke `MENUNGGU_PEMBAYARAN` | `payment failure then retry with tuai method succeeds` |
@@ -38,7 +38,7 @@ Setiap kebutuhan PRD (K-xx konsumen, T-xx tukang, A-xx admin) dipetakan ke berka
 | T-05 | M | Tolak tawaran dengan alasan di `TechJobsScreen` | diverifikasi manual; `rejectOffer` backend |
 | T-06 | M | Aksi berurutan di `TechJobScreen` (Berangkat, Tiba, Mulai, Selesaikan) | `order lifecycle end to end`, `cancel is rejected after technician departs` |
 | T-07 | M | `TechJobScreen` mengirim lokasi tiap 5 detik saat `DALAM_PERJALANAN` lewat `POST /technician/location` | diverifikasi manual |
-| T-08 | M | `TechFinishScreen` wajib foto bukti + catatan; tunai wajib `cashReceived` | `order lifecycle end to end` |
+| T-08 | M | `TechFinishScreen` wajib foto bukti + catatan; tombol **Ambil foto** memakai kamera; tunai wajib `cashReceived` | `order lifecycle end to end` |
 | T-09 | M | Tunai: `cashReceived` → `paymentStatus = LUNAS` | diverifikasi manual |
 | T-10 | S | Kunjungan ulang: `revisitReport` membersihkan tawaran lama lalu dispatch; kandidat pertama = tukang sebelumnya (`is_revisit = true`) | diverifikasi manual |
 | T-11 | M | `TechEarningsScreen`, `GET /technician/earnings`, `GET/POST /technician/withdrawals`, tabel `withdrawals` | `technician can withdraw simulated balance and see history` |
