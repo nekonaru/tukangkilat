@@ -43,7 +43,8 @@ data class OrdersUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val orders: List<OrderSummaryDto> = emptyList(),
-    val tab: Int = 0
+    val tab: Int = 0,
+    val query: String = ""
 ) {
     private val activeStatuses = setOf(
         OrderStatus.MENUNGGU_PEMBAYARAN,
@@ -89,6 +90,7 @@ class OrdersViewModel @Inject constructor(
     }
 
     fun onTab(tab: Int) { _state.value = _state.value.copy(tab = tab) }
+    fun onQuery(value: String) { _state.value = _state.value.copy(query = value) }
 }
 
 @Composable
@@ -98,7 +100,10 @@ fun OrdersScreen(
 ) {
     val state by viewModel.state.collectAsState()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
-    val shown = if (state.tab == 0) state.active else state.history
+    val base = if (state.tab == 0) state.active else state.history
+    val shown = if (state.query.isBlank()) base else base.filter {
+        it.code.contains(state.query, ignoreCase = true) || it.serviceName.contains(state.query, ignoreCase = true)
+    }
 
     Column(
         modifier = Modifier
@@ -107,6 +112,15 @@ fun OrdersScreen(
             .tkScreenEnter()
     ) {
         ScreenHeader("Pesanan")
+        OutlinedTextField(
+            value = state.query,
+            onValueChange = { viewModel.onQuery(it) },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
+            placeholder = { Text("Cari kode atau layanan", color = TKColor.Mist, fontSize = 13.sp) },
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp)
+        )
+        Spacer(Modifier.height(8.dp))
         TabRow(
             selectedTabIndex = state.tab,
             containerColor = TKColor.Ink,
