@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-11-25
+
+### Changed
+
+- **Offline-first Beranda (PRD non-functional)**: services and addresses are now stored in the Room cache alongside orders. Beranda renders cached data immediately, then refreshes from the backend. If the backend cannot be reached, the last data stays visible.
+- Cache database upgraded to version 2 with `cached_services` and `cached_addresses`. `fallbackToDestructiveMigration` clears only the cache on upgrade; embedded backend data is unaffected.
+
 ## [2.6.0] - 2026-11-25
 
 ### Added
@@ -184,6 +191,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.7.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.7.0
 [2.6.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.6.0
 [2.5.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.5.0
 [2.4.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.4.0

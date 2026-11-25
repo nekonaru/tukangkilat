@@ -4,6 +4,13 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-11-25
+
+### Diubah
+
+- **Beranda offline-first (kriteria non-fungsional PRD)**: layanan dan alamat kini disimpan di cache Room bersama pesanan. Beranda langsung menampilkan data tersimpan saat dibuka, lalu menyegarkannya dari backend. Jika backend tidak bisa dijangka, data terakhir tetap tampil.
+- Basis data cache dinaikkan ke versi 2 dengan tabel `cached_services` dan `cached_addresses`. Karena memakai `fallbackToDestructiveMigration`, hanya cache yang dikosongkan saat pembaruan; data backend tertanam tidak terpengaruh.
+
 ## [2.6.0] - 2026-11-25
 
 ### Ditambahkan
@@ -184,6 +191,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.7.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.7.0
 [2.6.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.6.0
 [2.5.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.5.0
 [2.4.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.4.0

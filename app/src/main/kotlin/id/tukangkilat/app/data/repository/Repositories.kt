@@ -1,6 +1,9 @@
 package id.tukangkilat.app.data.repository
 
 import id.tukangkilat.app.data.api.ApiService
+import id.tukangkilat.app.data.local.CatalogDao
+import id.tukangkilat.app.data.local.toCached
+import id.tukangkilat.app.data.local.toDto
 import id.tukangkilat.app.data.local.SessionManager
 import id.tukangkilat.app.data.local.OrderDao
 import id.tukangkilat.app.data.local.toCached
@@ -43,11 +46,42 @@ class AuthRepository @Inject constructor(
 @Singleton
 class OrderRepository @Inject constructor(
     private val api: ApiService,
-    private val dao: OrderDao
+    private val dao: OrderDao,
+    private val catalog: CatalogDao
 ) {
-    suspend fun services() = api.services()
+    suspend fun services(): List<ServiceDto> = withContext(Dispatchers.IO) {
+        try {
+            val fresh = api.services()
+            catalog.clearServices()
+            catalog.upsertServices(fresh.map { it.toCached() })
+            fresh
+        } catch (e: Exception) {
+            val cached = catalog.services().map { it.toDto() }
+            if (cached.isNotEmpty()) cached else throw e
+        }
+    }
+
+    suspend fun cachedServices(): List<ServiceDto> = withContext(Dispatchers.IO) {
+        catalog.services().map { it.toDto() }
+    }
+
     suspend fun slots(date: String) = api.slots(date)
-    suspend fun addresses() = api.addresses()
+
+    suspend fun addresses(): List<AddressDto> = withContext(Dispatchers.IO) {
+        try {
+            val fresh = api.addresses()
+            catalog.clearAddresses()
+            catalog.upsertAddresses(fresh.map { it.toCached() })
+            fresh
+        } catch (e: Exception) {
+            val cached = catalog.addresses().map { it.toDto() }
+            if (cached.isNotEmpty()) cached else throw e
+        }
+    }
+
+    suspend fun cachedAddresses(): List<AddressDto> = withContext(Dispatchers.IO) {
+        catalog.addresses().map { it.toDto() }
+    }
     suspend fun addAddress(req: AddressUpsertRequest) = api.addAddress(req)
     suspend fun updateAddress(id: Long, req: AddressUpsertRequest) = api.updateAddress(id, req)
     suspend fun deleteAddress(id: Long) = api.deleteAddress(id)

@@ -12,6 +12,7 @@ import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.api.AuthInterceptor
 import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.api.TokenAuthenticator
+import id.tukangkilat.app.data.local.CatalogDao
 import id.tukangkilat.app.data.local.OrderDao
 import id.tukangkilat.app.data.local.TukangKilatDatabase
 import kotlinx.serialization.json.Json
@@ -75,6 +76,9 @@ object AppModule {
         Room.databaseBuilder(context, TukangKilatDatabase::class.java, "tukangkilat.db")
             .fallbackToDestructiveMigration()
             .build()
+
+    @Provides
+    fun provideCatalogDao(db: TukangKilatDatabase): CatalogDao = db.catalogDao()
 
     @Provides
     fun provideOrderDao(db: TukangKilatDatabase): OrderDao = db.orderDao()

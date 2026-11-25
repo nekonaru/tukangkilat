@@ -104,6 +104,14 @@ class HomeViewModel @Inject constructor(
                 if (cachedActive != null) {
                     _state.value = _state.value.copy(activeOrder = cachedActive)
                 }
+                val cachedServices = orderRepository.cachedServices()
+                val cachedAddresses = orderRepository.cachedAddresses()
+                if (cachedServices.isNotEmpty() || cachedAddresses.isNotEmpty()) {
+                    _state.value = _state.value.copy(
+                        services = cachedServices,
+                        primaryAddress = cachedAddresses.firstOrNull { it.isPrimary } ?: cachedAddresses.firstOrNull()
+                    )
+                }
                 val servicesDeferred = async { orderRepository.services() }
                 val addressesDeferred = async { orderRepository.addresses() }
                 val ordersDeferred = async { orderRepository.myOrders() }
