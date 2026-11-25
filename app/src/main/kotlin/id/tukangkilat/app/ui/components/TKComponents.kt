@@ -89,8 +89,10 @@ fun TKTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
         color = TKColor.Orange,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier
+            .height(48.dp)
             .clickable(onClick = onClick)
-            .padding(8.dp)
+            .padding(horizontal = 12.dp),
+        textAlign = TextAlign.Center
     )
 }
 
