@@ -219,7 +219,7 @@ fun TextFieldDark(
     TKOutlinedField(
         value = value,
         onValueChange = onValueChange,
-        label = label.orEmpty(),
+        label = label,
         modifier = modifier,
         placeholder = placeholder,
         error = isError,

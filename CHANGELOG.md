@@ -4,6 +4,16 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0] - 2026-11-26
+
+### Diperbaiki
+
+- **Navigasi tab**: berpindah tab dari layar mana pun sekarang selalu memicu navigasi. Opsi `popUpTo(target)` sebelumnya membuat aksi itu jadi no-op bila tab tersebut sudah ada di back stack, sehingga pengguna terpaksa menekan tombol kembali.
+- **Bidang teks**: label kosong tidak lagi menyembunyikan placeholder. Petunjuk Username dan Password tampil sebelum mengetik, dengan warna placeholder yang jelas.
+- **Layar Akun**: header profil lebih ringkas, baris dikelompokkan di bawah bagian Akun dan Teknisi, serta jarak memakai token desain.
+- **Tombol LOGIN**: kini memenuhi lebar formulir dan memakai state loading yang sama, bukan spinner terpisah.
+- **Kelancaran startup**: animasi berkelanjutan saat backend tertanam disiapkan dihapus untuk mengurangi frame drop pada perangkat lambat.
+
 ## [2.18.0] - 2026-11-26
 
 ### Diperbaiki
@@ -312,6 +322,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
 [2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0
 [2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0
 [2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0

@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0] - 2026-11-26
+
+### Fixed
+
+- **Tab navigation**: switching tabs from any screen now always emits a navigation event. The previous `popUpTo(target)` option made the call a no-op once that tab was already in the back stack, which left the user stuck and forced a back press.
+- **Text fields**: an empty label no longer hides the placeholder. Username and Password hints are visible before typing, with an explicit placeholder color.
+- **Account screen**: the profile header is compact, rows are grouped under Akun and Teknisi sections, and spacing follows the spacing tokens.
+- **Login button**: it now spans the form width and uses the shared loading state instead of a separate spinner.
+- **Startup smoothness**: the continuous loading animation was removed while the embedded backend boots, reducing frame drops on slower devices.
+
 ## [2.18.0] - 2026-11-26
 
 ### Fixed
@@ -312,6 +322,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
 [2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0
 [2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0
 [2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0

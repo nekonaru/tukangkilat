@@ -115,7 +115,7 @@ fun TKButton(
 fun TKOutlinedField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String? = null,
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     error: Boolean = false,
@@ -133,8 +133,10 @@ fun TKOutlinedField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it) } },
+        label = if (label.isNullOrBlank()) null else { { Text(label) } },
+        placeholder = placeholder?.let {
+            { Text(it, color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium) }
+        },
         isError = error,
         singleLine = singleLine,
         maxLines = maxLines,
