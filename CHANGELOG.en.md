@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.0] - 2026-11-26
+
+### Fixed
+
+- **Startup crash**: Room rejected a migration whose start version was also registered in `fallbackToDestructiveMigrationFrom`. Version 3 now uses the explicit `3 -> 4 -> 5` path and only older caches are rebuilt.
+- **Embedded backend startup**: legacy schema detection no longer asks H2 for index metadata with a null table name. It queries the `payments` table, with a regression test.
+- **Light theme brand mark**: the white brand icon was invisible on the light home screen. It is now tinted with the primary color.
+
 ## [2.17.0] - 2026-11-26
 
 ### Added
@@ -304,6 +312,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0
 [2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0
 [2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0
 [2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0

@@ -40,6 +40,9 @@ class EmbeddedSchemaTest {
                     assertTrue(rs.getInt(1) == 0, "markers must be cleared")
                 }
             }
+            val versions = EmbeddedSchema.detectedVersions(conn)
+            assertTrue(1 in versions, "users table means V1 is present")
+            assertTrue(2 !in versions, "no is_active column means V2 is absent")
         }
     }
 }

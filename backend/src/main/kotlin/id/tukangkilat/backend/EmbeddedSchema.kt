@@ -37,7 +37,8 @@ object EmbeddedSchema {
         connection.metaData.getColumns(null, "public", table, column).use { it.next() }
 
     private fun indexExists(connection: Connection, name: String): Boolean =
-        connection.metaData.getIndexInfo(null, "public", null, false, false).use { rs ->
+        // H2 rejects a null table name, so query the table that owns the V3 indexes.
+        connection.metaData.getIndexInfo(null, "public", "payments", false, false).use { rs ->
             while (rs.next()) {
                 if (name.equals(rs.getString("INDEX_NAME"), ignoreCase = true)) return true
             }

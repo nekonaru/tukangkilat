@@ -131,9 +131,10 @@ fun TukangKilatApp(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(TKSpacing.Md)) {
-                Image(
+                Icon(
                     painter = painterResource(R.drawable.ic_brand),
-                    contentDescription = null,
+                    contentDescription = "Tukang Kilat",
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(96.dp)
                         .graphicsLayer {

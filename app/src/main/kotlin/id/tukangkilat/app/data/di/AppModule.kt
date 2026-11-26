@@ -112,7 +112,8 @@ object AppModule {
     fun provideDatabase(@ApplicationContext context: Context): TukangKilatDatabase =
         Room.databaseBuilder(context, TukangKilatDatabase::class.java, "tukangkilat.db")
             .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
-            .fallbackToDestructiveMigrationFrom(1, 2, 3)
+            // Version 3 has an explicit path (3 -> 4 -> 5); only older caches are rebuilt.
+            .fallbackToDestructiveMigrationFrom(1, 2)
             .build()
 
     @Provides

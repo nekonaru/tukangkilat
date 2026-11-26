@@ -686,9 +686,10 @@ fun TKTopAppBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (homeVariant) {
-                androidx.compose.foundation.Image(
+                Icon(
                     painter = painterResource(R.drawable.ic_brand),
                     contentDescription = "Tukang Kilat",
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp)
                 )
                 Spacer(Modifier.width(TKSpacing.Xs))
