@@ -116,6 +116,8 @@ object DispatchService {
     }
 
     private suspend fun notifyNoTechnician(orderId: Long) {
+        // No technician after the search window ends: cancel and refund, then notify once.
+        OrderService.autoCancelNoTechnician(orderId)
         // Cooldown, not a permanent flag: the order may re-enter the search state later.
         // A process-local map also avoids writing an unknown status into order_events,
         // which would break OrderQueries.loadEvents when the detail screen opens.

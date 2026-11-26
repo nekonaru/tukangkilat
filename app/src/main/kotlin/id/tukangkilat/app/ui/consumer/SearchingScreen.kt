@@ -41,6 +41,7 @@ import id.tukangkilat.shared.SlotDto
 import id.tukangkilat.app.ui.components.ScreenHeader
 import id.tukangkilat.app.ui.components.TKPrimaryButton
 import id.tukangkilat.app.ui.theme.TKColor
+import id.tukangkilat.app.ui.components.rememberReduceMotion
 import id.tukangkilat.app.ui.util.cleanApiError
 import id.tukangkilat.shared.Format
 import id.tukangkilat.shared.OrderDto
@@ -156,12 +157,15 @@ fun SearchingScreen(
     LaunchedEffect(orderId) { viewModel.load(orderId, onFound) }
 
     val order = state.order
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.snackbar) {
-        if (state.snackbar != null) {
+        state.snackbar?.let {
+            snackbarHostState.showSnackbar(it)
             viewModel.clearSnackbar()
         }
     }
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -264,14 +268,17 @@ fun SearchingScreen(
             )
         }
     }
+        SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    }
 }
 
 @Composable
 private fun PulsingBolt() {
+    val reduceMotion = rememberReduceMotion()
     val transition = rememberInfiniteTransition(label = "pulse")
     val rotation by transition.animateFloat(
         initialValue = 0f,
-        targetValue = 360f,
+        targetValue = if (reduceMotion) 0f else 360f,
         animationSpec = infiniteRepeatable(
             animation = tween(1400, easing = LinearEasing),
             repeatMode = RepeatMode.Restart

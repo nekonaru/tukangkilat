@@ -160,7 +160,10 @@ fun TechJobsScreen(
     viewModel: TechJobsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+    var firstResume by remember { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (firstResume) firstResume = false else viewModel.refresh()
+    }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.snackbar) {
@@ -318,7 +321,7 @@ private fun OfferCard(
 @Composable
 private fun OfferRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-        Icon(icon, null, tint = TKColor.CreamText, modifier = Modifier.size(16.dp))
+        Icon(icon, "Detail", tint = TKColor.CreamText, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(TKSpacing.Xs))
         Text(text, color = TKColor.Ink, fontSize = 13.sp)
     }

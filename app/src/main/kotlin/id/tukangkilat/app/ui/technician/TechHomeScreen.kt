@@ -43,6 +43,7 @@ import id.tukangkilat.app.ui.components.ErrorView
 import id.tukangkilat.app.ui.components.LoadingView
 import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.theme.TKColor
+import id.tukangkilat.app.ui.theme.tukangKilatColors
 import id.tukangkilat.shared.Format
 import id.tukangkilat.shared.OfferDto
 import id.tukangkilat.shared.OrderSummaryDto
@@ -169,7 +170,10 @@ fun TechHomeScreen(
     viewModel: TechHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+    var firstResume by remember { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (firstResume) firstResume = false else viewModel.refresh()
+    }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -228,7 +232,7 @@ fun TechHomeScreen(
                             modifier = Modifier
                                 .size(12.dp)
                                 .clip(androidx.compose.foundation.shape.CircleShape)
-                                .background(if (state.profile?.isOnline == true) androidx.compose.ui.graphics.Color(0xFF22C55E) else TKColor.Mist)
+                                .background(if (state.profile?.isOnline == true) tukangKilatColors().success else TKColor.Mist)
                         )
                         Spacer(Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {

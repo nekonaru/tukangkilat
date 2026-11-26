@@ -96,7 +96,20 @@ val LightColors: ColorScheme = lightColorScheme().copy(
     error = TKPalette.Error,
     onError = Color(0xFFFFFFFF),
     errorContainer = TKPalette.ErrorContainer,
-    onErrorContainer = TKPalette.Error
+    onErrorContainer = TKPalette.Error,
+    secondaryContainer = TKPalette.SurfaceVariant,
+    onSecondaryContainer = TKPalette.OnSurface,
+    tertiary = TKPalette.Primary,
+    onTertiary = TKPalette.OnPrimary,
+    tertiaryContainer = TKPalette.PrimaryContainer,
+    onTertiaryContainer = TKPalette.OnPrimaryContainer,
+    surfaceContainerLow = TKPalette.Surface,
+    surfaceContainerHigh = TKPalette.SurfaceContainer,
+    surfaceContainerHighest = TKPalette.SurfaceVariant,
+    surfaceDim = TKPalette.SurfaceVariant,
+    surfaceBright = TKPalette.Surface,
+    inverseSurface = TKPalette.Secondary,
+    inverseOnSurface = TKPalette.OnSecondary
 )
 
 val DarkColors: ColorScheme = darkColorScheme().copy(
@@ -118,7 +131,20 @@ val DarkColors: ColorScheme = darkColorScheme().copy(
     error = TKPalette.DarkError,
     onError = Color(0xFF601410),
     errorContainer = TKPalette.DarkErrorContainer,
-    onErrorContainer = TKPalette.DarkError
+    onErrorContainer = TKPalette.DarkError,
+    secondaryContainer = TKPalette.DarkSurfaceVariant,
+    onSecondaryContainer = TKPalette.DarkOnSurface,
+    tertiary = TKPalette.DarkPrimary,
+    onTertiary = TKPalette.DarkOnPrimary,
+    tertiaryContainer = TKPalette.DarkPrimaryContainer,
+    onTertiaryContainer = TKPalette.DarkOnPrimaryContainer,
+    surfaceContainerLow = TKPalette.DarkSurface,
+    surfaceContainerHigh = TKPalette.DarkSurfaceContainer,
+    surfaceContainerHighest = TKPalette.DarkSurfaceVariant,
+    surfaceDim = TKPalette.DarkSurfaceVariant,
+    surfaceBright = TKPalette.DarkSurface,
+    inverseSurface = TKPalette.DarkSecondary,
+    inverseOnSurface = TKPalette.DarkOnSecondary
 )
 
 /**

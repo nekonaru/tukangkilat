@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-11-26
+
+### Added
+
+- **Theme switcher and Settings**: choose System, Light or Dark appearance from a new Settings screen. The same screen manages the server address and explains local mode.
+- **Server-side admin analytics**: `GET /admin/analytics` aggregates all orders instead of the newest 50, with an integration test. The admin summary uses it and falls back to the old client calculation on older servers.
+- **Automatic no-technician resolution**: after the search window ends, the order is cancelled by the system and a paid order is refunded.
+
+### Fixed
+
+- Password fields again apply the masking transformation and keyboard options, so the show/hide toggle works.
+- The role-based bottom navigation is now actually wired, with a reachable Chat tab and chat list screen.
+- Text on light containers uses on-container roles so it stays readable in both themes.
+- Snackbar messages on the searching and status screens are displayed and then cleared, so repeated messages re-trigger.
+- Five screens no longer fetch twice on first composition. Chat cancels its previous collector and poll before starting new ones, and scrolls only when the last message changes.
+- Identity resets during database import now run after the data commit, and the import screen stays mounted so the restart and session clear actually execute.
+- Legacy databases adopt only the migrations they really contain.
+- A second pending payment is rejected, the expiry sweep skips conflicting rows, ratings no longer reset the seeded job count, and ETA is based on the last known technician location.
+- Embedded readiness no longer blocks the UI when a remote LAN server is configured.
+
 ## [2.15.0] - 2026-11-26
 
 ### Changed
@@ -264,6 +284,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0
 [2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0
 [2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0

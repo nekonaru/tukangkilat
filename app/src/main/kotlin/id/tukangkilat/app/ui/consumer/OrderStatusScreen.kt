@@ -104,6 +104,8 @@ class OrderStatusViewModel @Inject constructor(
         } catch (_: Exception) {}
     }
 
+    fun clearSnackbar() { _state.value = _state.value.copy(snackbar = null) }
+
     fun cancel(orderId: Long, reason: String) {
         if (reason.isBlank()) return
         viewModelScope.launch {
@@ -141,7 +143,10 @@ fun OrderStatusScreen(
 
     LaunchedEffect(orderId) { viewModel.load(orderId) }
     LaunchedEffect(state.snackbar) {
-        state.snackbar?.let { snackbarHostState.showSnackbar(it) }
+        state.snackbar?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearSnackbar()
+        }
     }
 
     when {

@@ -88,7 +88,8 @@ object OrderQueries {
         val address = loadAddress(row[OrdersTable.addressId]) ?: return null
         val distance = Geo.haversineKm(tLat, tLng, address[AddressesTable.lat], address[AddressesTable.lng])
         val minutes = Geo.estimateMinutes(distance)
-        val arriveAt = OffsetDateTime.now().plusMinutes(minutes.toLong())
+        val base = profile[TechnicianProfilesTable.lastLocationAt] ?: OffsetDateTime.now()
+        val arriveAt = base.plusMinutes(minutes.toLong())
         return EtaDto(distanceKm = Math.round(distance * 10) / 10.0, minutes = minutes, arriveAt = arriveAt.toLocalTime().format(DateTimeFormatter.ofPattern("HH.mm")))
     }
 

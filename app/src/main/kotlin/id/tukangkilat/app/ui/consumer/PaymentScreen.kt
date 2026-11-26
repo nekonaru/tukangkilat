@@ -384,7 +384,7 @@ private fun MethodCard(
         ) { icon() }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(title, color = TKColor.CreamText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Text(subtitle, color = TKColor.CreamText, fontSize = 12.sp)
         }
         Box(
@@ -452,7 +452,7 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
                 Spacer(Modifier.height(6.dp))
                 Text(
                     payment.referenceNo.orEmpty(),
-                    color = TKColor.Ink,
+                    color = TKColor.CreamText,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 26.sp,
                     letterSpacing = 2.sp
@@ -577,7 +577,7 @@ private fun InfoRow(label: String, value: String, bold: Boolean = false) {
         Text(label, color = TKColor.CreamText, fontSize = 13.sp, modifier = Modifier.weight(1f))
         Text(
             value,
-            color = TKColor.Ink,
+            color = TKColor.CreamText,
             fontSize = 13.sp,
             fontWeight = if (bold) FontWeight.ExtraBold else FontWeight.Medium
         )

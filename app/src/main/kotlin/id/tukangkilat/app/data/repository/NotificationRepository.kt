@@ -63,7 +63,7 @@ class NotificationRepository @Inject constructor(
             WsEventType.ORDER_STATUS -> "Pesanan diperbarui" to "Status pesanan berubah. Buka detail untuk melihat yang terbaru."
             WsEventType.OFFER_NEW -> "Tawaran pekerjaan baru" to "Ada pesanan baru menunggu di beranda teknisi."
             WsEventType.OFFER_EXPIRED -> "Tawaran kedaluarsa" to "Penawaran sebelumnya sudah berakhir."
-            WsEventType.CHAT_MESSAGE -> "Pesan baru" to "Ada pesan baru untuk pesanan Anda."
+            WsEventType.CHAT_MESSAGE -> "Pesan baru" to "Ada pesan baru untuk pesanan kamu."
             WsEventType.TECHNICIAN_LOCATION -> return
         }
         val item = AppNotification(

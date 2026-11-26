@@ -185,6 +185,7 @@ class AccountViewModel @Inject constructor(
 @Composable
 fun AccountScreen(
     onNotifications: () -> Unit,
+    onSettings: () -> Unit = {},
     onBrowseTechnicians: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
@@ -232,6 +233,7 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
                     SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
                     Spacer(Modifier.height(TKSpacing.Xs))
+                    SectionRow(Icons.Filled.Settings, "Pengaturan", onClick = onSettings)
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
                     Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
@@ -417,7 +419,7 @@ private fun SectionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, la
             .padding(horizontal = 22.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, tint = if (danger) TKColor.Red else TKColor.Orange)
+        Icon(icon, label, tint = if (danger) TKColor.Red else TKColor.Orange)
         Spacer(Modifier.width(TKSpacing.Sm))
         Text(
             label,

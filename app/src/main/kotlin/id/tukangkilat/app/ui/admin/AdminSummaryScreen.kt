@@ -77,18 +77,28 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val summaryDeferred = async { adminRepository.summary() }
-                val ordersDeferred = async { runCatching { adminRepository.orders(null) }.getOrDefault(emptyList()) }
+                val analyticsDeferred = async { runCatching { adminRepository.analytics() }.getOrNull() }
                 val summary = summaryDeferred.await()
-                val orders = ordersDeferred.await()
+                val analytics = analyticsDeferred.await()
+                val fallbackOrders = if (analytics == null) {
+                    runCatching { adminRepository.orders(null) }.getOrDefault(emptyList())
+                } else emptyList()
                 val today = java.time.LocalDate.now()
-                val daily = (6 downTo 0).map { offset ->
-                    val date = today.minusDays(offset.toLong())
-                    date.dayOfMonth.toString() to orders.count { it.createdAt.take(10) == date.toString() }
+                val daily = if (analytics != null) {
+                    analytics.dates.mapIndexed { index, date ->
+                        date.takeLast(2) to analytics.dailyCounts.getOrElse(index) { 0 }
+                    }
+                } else {
+                    (6 downTo 0).map { offset ->
+                        val date = today.minusDays(offset.toLong())
+                        date.dayOfMonth.toString() to fallbackOrders.count { it.createdAt.take(10) == date.toString() }
+                    }
                 }
                 _state.value = AdminUiState(
                     isLoading = false,
                     summary = summary,
-                    statusCounts = orders.groupingBy { it.status.name }.eachCount(),
+                    statusCounts = analytics?.statusCounts
+                        ?: fallbackOrders.groupingBy { it.status.name }.eachCount(),
                     dailyCounts = daily
                 )
             } catch (e: Exception) {
@@ -123,7 +133,10 @@ fun AdminSummaryScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var transferMessage by remember { mutableStateOf<String?>(null) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+    var firstResume by remember { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (firstResume) firstResume = false else viewModel.refresh()
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -323,7 +336,7 @@ private fun AdminMenuCard(
                 .background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, null, tint = TKColor.Orange)
+            Icon(icon, "Masuk", tint = TKColor.Orange)
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {

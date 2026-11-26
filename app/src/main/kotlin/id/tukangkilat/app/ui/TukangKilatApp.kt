@@ -37,6 +37,7 @@ import androidx.navigation.navArgument
 import id.tukangkilat.app.R
 import id.tukangkilat.app.data.local.LocalBackend
 import id.tukangkilat.app.ui.components.rememberReduceMotion
+import id.tukangkilat.app.ui.components.TKNavigationBar
 import id.tukangkilat.app.ui.admin.*
 import id.tukangkilat.app.ui.auth.*
 import id.tukangkilat.app.ui.consumer.*
@@ -58,7 +59,9 @@ object Routes {
     const val C_TECHNICIANS = "consumer/technicians"
     const val C_ORDERS = "consumer/orders"
     const val C_ACCOUNT = "consumer/account"
+    const val C_CHATS = "consumer/chats"
     const val NOTIFICATIONS = "notifications"
+    const val SETTINGS = "settings"
     const val C_ORDER_NEW = "consumer/new"
     const val C_STATUS = "consumer/order/{orderId}/status"
     const val C_PAYMENT = "consumer/order/{orderId}/payment"
@@ -108,9 +111,12 @@ fun TukangKilatApp(
     val session by viewModel.session.collectAsState()
     val backendReady by LocalBackend.ready.collectAsState()
     val startupError by LocalBackend.startupError.collectAsState()
+    val serverUrl by viewModel.serverUrl.collectAsState()
+    val usesEmbeddedBackend = listOf("127.0.0.1", "localhost", "10.0.2.2")
+        .any { serverUrl.contains(it, ignoreCase = true) }
     val navController = rememberNavController()
 
-    if (!backendReady) {
+    if (!backendReady && usesEmbeddedBackend) {
         val reduce = rememberReduceMotion()
         val pulse = rememberInfiniteTransition(label = "loader").animateFloat(
             initialValue = 0.96f,
@@ -190,51 +196,28 @@ fun TukangKilatApp(
         }
     }
 
-    val tabs: List<BottomTab> = when (session.role) {
-        Role.KONSUMEN -> listOf(
-            BottomTab(Routes.C_HOME, "Beranda", Icons.Filled.Home),
-            BottomTab(Routes.C_ORDERS, "Pesanan", Icons.Filled.ReceiptLong),
-            BottomTab(Routes.C_ACCOUNT, "Akun", Icons.Filled.AccountCircle)
-        )
-        Role.TUKANG -> listOf(
-            BottomTab(Routes.T_HOME, "Beranda", Icons.Filled.Home),
-            BottomTab(Routes.T_JOBS, "Pekerjaan", Icons.Filled.Assignment),
-            BottomTab(Routes.T_EARNINGS, "Pendapatan", Icons.Filled.Payments),
-            BottomTab(Routes.T_ACCOUNT, "Akun", Icons.Filled.AccountCircle)
-        )
-        else -> emptyList()
-    }
+    val roleName = session.role?.name ?: "KONSUMEN"
 
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
-    val showBottomBar = currentRoute in tabs.map { it.route }
+    val showBottomBar = when (session.role) {
+        Role.KONSUMEN -> currentRoute in listOf(Routes.C_HOME, Routes.C_ORDERS, Routes.C_CHATS, Routes.C_ACCOUNT)
+        Role.TUKANG -> currentRoute in listOf(Routes.T_HOME, Routes.T_JOBS, Routes.T_EARNINGS, Routes.T_ACCOUNT)
+        Role.ADMIN -> currentRoute in listOf(
+            Routes.A_VERIFY, Routes.A_REPORTS, Routes.A_SERVICES, Routes.A_PROMO, Routes.A_SUMMARY
+        )
+        else -> false
+    }
 
     Scaffold(
-        containerColor = TKColor.Ink,
+        containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
-            if (showBottomBar && tabs.isNotEmpty()) {
-                NavigationBar(containerColor = TKColor.InkSoft) {
-                    tabs.forEach { tab ->
-                        val selected = currentRoute == tab.route
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(tab.route) {
-                                    popUpTo(tabs.first().route) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(tab.icon, tab.label) },
-                            label = { Text(tab.label) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = TKColor.Orange,
-                                selectedTextColor = TKColor.Orange,
-                                unselectedIconColor = TKColor.Mist,
-                                unselectedTextColor = TKColor.Mist,
-                                indicatorColor = TKColor.Ink
-                            )
-                        )
+            if (showBottomBar) {
+                TKNavigationBar(roleName, currentRoute ?: "") { route ->
+                    navController.navigate(route) {
+                        popUpTo(route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 }
             }
@@ -303,11 +286,19 @@ fun TukangKilatApp(
             composable(Routes.C_ACCOUNT) {
                 AccountScreen(
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
-                    onBrowseTechnicians = { navController.navigate(Routes.C_TECHNICIANS) }
+                    onBrowseTechnicians = { navController.navigate(Routes.C_TECHNICIANS) },
+                    onSettings = { navController.navigate(Routes.SETTINGS) }
                 )
             }
             composable(Routes.C_TECHNICIANS) { TechniciansScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.NOTIFICATIONS) { NotificationsScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.C_CHATS) {
+                ChatListScreen(
+                    onOpenChat = { orderId -> navController.navigate(Routes.chat(orderId)) },
+                    onBack = { navController.navigateUp() }
+                )
+            }
             composable(Routes.C_STATUS, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
                 OrderStatusScreen(

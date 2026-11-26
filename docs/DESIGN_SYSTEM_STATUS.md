@@ -23,3 +23,9 @@
 ```text
 ./gradlew :shared:test :backend:test :app:assembleDebug
 ```
+
+## Pembaruan v2.16.0
+
+- Pengalih tema (Sistem/Terang/Gelap) tersedia di layar Pengaturan dan dipersistenkan dengan DataStore.
+- Beberapa temuan audit pasca-redesain sudah diperbaiki: password field, snackbar, duplikat fetch, Chat polling, warna teks pada kontainer terang, navigasi bawah, dan state analitik admin.
+- Belum terselesaikan: variasi bobot font variable masih bergantung pada dukungan sistem, sebagian bilah atas layar memakai `ScreenHeader` lama, dan uji interaktif terang/gelap penuh belum tersedia.
