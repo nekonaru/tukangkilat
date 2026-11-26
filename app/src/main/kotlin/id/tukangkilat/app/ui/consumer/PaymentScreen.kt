@@ -6,6 +6,13 @@ import id.tukangkilat.app.ui.theme.TKSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -44,10 +51,13 @@ import id.tukangkilat.app.data.ws.WsManager
 import id.tukangkilat.app.ui.components.*
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
+import id.tukangkilat.app.ui.util.PaymentQr
+import id.tukangkilat.app.ui.util.QrisPayload
 import id.tukangkilat.shared.Format
 import id.tukangkilat.shared.OrderDto
 import id.tukangkilat.shared.OrderStatus
 import id.tukangkilat.shared.PaymentMethod
+import id.tukangkilat.shared.PaymentProviders
 import id.tukangkilat.shared.PaymentStatus
 import id.tukangkilat.shared.PayResponse
 import id.tukangkilat.shared.WsEventType
@@ -64,6 +74,7 @@ data class PaymentUiState(
     val error: String? = null,
     val order: OrderDto? = null,
     val selectedMethod: PaymentMethod = PaymentMethod.TRANSFER,
+    val selectedProvider: String = "BCA",
     val promoCode: String = "",
     val isSubmitting: Boolean = false,
     val payment: PayResponse? = null,
@@ -126,7 +137,12 @@ class PaymentViewModel @Inject constructor(
         }
     }
 
-    fun selectMethod(method: PaymentMethod) { _state.value = _state.value.copy(selectedMethod = method) }
+    fun selectMethod(method: PaymentMethod) {
+        val provider = if (method == PaymentMethod.DOMPET_DIGITAL) "GOPAY" else "BCA"
+        _state.value = _state.value.copy(selectedMethod = method, selectedProvider = provider)
+    }
+
+    fun selectProvider(code: String) { _state.value = _state.value.copy(selectedProvider = code) }
     fun onPromo(value: String) { _state.value = _state.value.copy(promoCode = value) }
 
     fun pay(orderId: Long, onPaid: () -> Unit) {
@@ -135,7 +151,13 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = s.copy(isSubmitting = true, error = null)
             try {
-                val response = orderRepository.pay(orderId, method, s.promoCode.trim().uppercase().ifBlank { null })
+                val provider = if (method == PaymentMethod.TUNAI) null else s.selectedProvider
+                val response = orderRepository.pay(
+                    orderId,
+                    method,
+                    s.promoCode.trim().uppercase().ifBlank { null },
+                    provider
+                )
                 if (method == PaymentMethod.TUNAI) {
                     onPaid()
                     return@launch
@@ -238,6 +260,7 @@ fun PaymentScreen(
         else -> PaymentSelectContent(
             state = state,
             onSelectMethod = viewModel::selectMethod,
+            onSelectProvider = { viewModel.selectProvider(it) },
             onPromo = viewModel::onPromo,
             onPay = { viewModel.pay(orderId, onPaid) },
             onBack = onBack,
@@ -250,6 +273,7 @@ fun PaymentScreen(
 private fun PaymentSelectContent(
     state: PaymentUiState,
     onSelectMethod: (PaymentMethod) -> Unit,
+    onSelectProvider: (String) -> Unit,
     onPromo: (String) -> Unit,
     onPay: () -> Unit,
     onBack: () -> Unit,
@@ -316,7 +340,7 @@ private fun PaymentSelectContent(
                 MethodCard(
                     selected = state.selectedMethod == PaymentMethod.DOMPET_DIGITAL,
                     title = "Dompet digital",
-                    subtitle = "GoPay, OVO, atau DANA",
+                    subtitle = "Pilih dompet, QR dibuat otomatis",
                     icon = { Icon(Icons.Filled.Wallet, "Dompet digital", tint = if (state.selectedMethod == PaymentMethod.DOMPET_DIGITAL) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.DOMPET_DIGITAL) }
                 )
@@ -328,6 +352,25 @@ private fun PaymentSelectContent(
                     icon = { Icon(Icons.Filled.LocalAtm, "Pembayaran tunai", tint = if (state.selectedMethod == PaymentMethod.TUNAI) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.TUNAI) }
                 )
+                Spacer(Modifier.height(10.dp))
+                val providers = if (state.selectedMethod == PaymentMethod.DOMPET_DIGITAL) {
+                    PaymentProviders.wallets
+                } else PaymentProviders.banks
+                if (state.selectedMethod != PaymentMethod.TUNAI) {
+                    Text("Penyedia", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(TKSpacing.Xs),
+                        contentPadding = PaddingValues(vertical = TKSpacing.Xs)
+                    ) {
+                        items(providers) { provider ->
+                            ChoiceFilterChip(
+                                label = provider.name,
+                                selected = provider.code == state.selectedProvider,
+                                onClick = { onSelectProvider(provider.code) }
+                            )
+                        }
+                    }
+                }
                 Spacer(Modifier.height(14.dp))
                 TextFieldDark(
                     value = state.promoCode,
@@ -456,6 +499,36 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
                     .padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val reference = payment.referenceNo.orEmpty()
+                val payload = if (payment.method == PaymentMethod.TRANSFER ||
+                    payment.method == PaymentMethod.DOMPET_DIGITAL
+                ) {
+                    QrisPayload.build(payment.amount, reference)
+                } else {
+                    QrisPayload.buildSimple(payment.method.name, reference, payment.amount)
+                }
+                val qr = remember(reference, payment.amount) { PaymentQr.image(payload) }
+                val qrAlpha by animateFloatAsState(
+                    targetValue = 1f,
+                    animationSpec = tween(320),
+                    label = "qr-enter"
+                )
+                Image(
+                    bitmap = qr,
+                    alpha = qrAlpha,
+                    contentDescription = "QRIS pembayaran ${PaymentProviders.nameOf(reference.substringBefore('-'))}",
+                    modifier = Modifier
+                        .size(220.dp)
+                        .clip(TKShape.Media)
+                        .background(androidx.compose.ui.graphics.Color.White)
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "QR pembayaran (simulasi)",
+                    color = TKColor.CreamText,
+                    fontSize = 11.sp
+                )
+                Spacer(Modifier.height(12.dp))
                 Text("Nomor pembayaran", color = TKColor.CreamText, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(6.dp))
                 Text(

@@ -40,7 +40,8 @@ object LocalBackend {
         1 to "V1__init.sql",
         2 to "V2__add_promo_active.sql",
         3 to "V3__dispatch_indexes.sql",
-        4 to "V4__withdrawals.sql"
+        4 to "V4__withdrawals.sql",
+        5 to "V5__direct_chat_proposals.sql"
     )
 
     private var server: EmbeddedServer<*, *>? = null

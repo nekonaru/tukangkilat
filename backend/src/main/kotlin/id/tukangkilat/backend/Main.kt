@@ -169,12 +169,41 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 get("/services") {
                     call.requireRole(Role.KONSUMEN); call.respond(OrderService.listServices())
                 }
+                get("/technicians/{technicianId}/messages") {
+                    call.requireRole(Role.KONSUMEN)
+                    val peer = call.parameters["technicianId"]!!.toLong()
+                    call.respond(NegotiationService.listMessages(call.authUser().id, peer))
+                }
+                post("/technicians/{technicianId}/messages") {
+                    call.requireRole(Role.KONSUMEN)
+                    val peer = call.parameters["technicianId"]!!.toLong()
+                    val req = call.receive<SendDirectMessageRequest>()
+                    call.respond(NegotiationService.sendMessage(call.authUser().id, peer, req.body, true))
+                }
+                get("/proposals") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(NegotiationService.proposalsFor(call.authUser().id, true))
+                }
+                post("/proposals/{id}/accept") {
+                    call.requireRole(Role.KONSUMEN)
+                    val id = call.parameters["id"]!!.toLong()
+                    NegotiationService.respond(call.authUser().id, id, true)
+                    val orderId = NegotiationService.createOrderFromProposal(id)
+                    call.respond(mapOf("orderId" to orderId))
+                }
+                post("/proposals/{id}/reject") {
+                    call.requireRole(Role.KONSUMEN)
+                    val id = call.parameters["id"]!!.toLong()
+                    call.respond(NegotiationService.respond(call.authUser().id, id, false))
+                }
                 get("/technicians") {
                     call.requireRole(Role.KONSUMEN)
                     call.respond(
                         ConsumerBrowseService.technicians(
                             call.request.queryParameters["skill"],
-                            call.request.queryParameters["q"]
+                            call.request.queryParameters["q"],
+                            call.request.queryParameters["lat"]?.toDoubleOrNull(),
+                            call.request.queryParameters["lng"]?.toDoubleOrNull()
                         )
                     )
                 }
@@ -266,7 +295,30 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.requireRole(Role.TUKANG)
                     call.respond(TechnicianService.updateProfile(call.authUser().id, call.receive()))
                 }
-                get("/offers") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.listOffers(call.authUser().id)) }
+                get("/direct-peers") {
+                call.requireRole(Role.TUKANG)
+                call.respond(NegotiationService.recentPeers(call.authUser().id, false))
+            }
+            get("/direct-messages/{consumerId}") {
+                call.requireRole(Role.TUKANG)
+                val peer = call.parameters["consumerId"]!!.toLong()
+                call.respond(NegotiationService.listMessages(call.authUser().id, peer))
+            }
+            post("/direct-messages/{consumerId}") {
+                call.requireRole(Role.TUKANG)
+                val peer = call.parameters["consumerId"]!!.toLong()
+                val req = call.receive<SendDirectMessageRequest>()
+                call.respond(NegotiationService.sendMessage(call.authUser().id, peer, req.body, false))
+            }
+            get("/proposals") {
+                call.requireRole(Role.TUKANG)
+                call.respond(NegotiationService.proposalsFor(call.authUser().id, false))
+            }
+            post("/proposals") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, NegotiationService.createProposal(call.authUser().id, call.receive()))
+            }
+            get("/offers") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.listOffers(call.authUser().id)) }
                 post("/offers/{id}/accept") {
                     call.requireRole(Role.TUKANG)
                     call.respond(TechnicianService.acceptOffer(call.authUser().id, call.parameters["id"]!!.toLong()))

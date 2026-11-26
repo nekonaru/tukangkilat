@@ -15,8 +15,8 @@ android {
         applicationId = "id.tukangkilat.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 34
-        versionName = "2.20.0"
+        versionCode = 35
+        versionName = "2.21.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://127.0.0.1:8080"
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
@@ -121,6 +121,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.coil.compose)
+    implementation(libs.zxing.core)
     implementation(libs.osmdroid.android)
     implementation(libs.datastore.preferences)
     implementation(libs.play.services.location)

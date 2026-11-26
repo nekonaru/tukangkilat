@@ -68,10 +68,12 @@ data class OrderFormUiState(
     val selectedServiceId: Long? = null,
     val description: String = "",
     val photos: List<String> = emptyList(),
+    val pendingUris: List<android.net.Uri> = emptyList(),
     val uploadingCount: Int = 0,
     val date: String = "",
     val slots: List<SlotDto> = emptyList(),
     val selectedSlotId: Long? = null,
+    val customTime: String? = null,
     val isLoadingSlots: Boolean = false,
     val addresses: List<AddressDto> = emptyList(),
     val selectedAddressId: Long? = null,
@@ -83,7 +85,8 @@ data class OrderFormUiState(
     val selectedAddress: AddressDto? get() = addresses.firstOrNull { it.id == selectedAddressId }
     val canSubmit: Boolean
         get() = selectedServiceId != null && description.isNotBlank() && date.isNotBlank() &&
-            selectedSlotId != null && selectedAddressId != null && uploadingCount == 0 && !isSubmitting
+            (selectedSlotId != null || customTime != null) && selectedAddressId != null &&
+            uploadingCount == 0 && !isSubmitting
 }
 
 @HiltViewModel
@@ -132,6 +135,8 @@ class OrderFormViewModel @Inject constructor(
     fun selectService(id: Long) { _state.value = _state.value.copy(selectedServiceId = id) }
     fun onDescription(value: String) { _state.value = _state.value.copy(description = value) }
     fun onDate(value: String) { _state.value = _state.value.copy(date = value, selectedSlotId = null); loadSlots() }
+    fun onCustomTime(value: String) { _state.value = _state.value.copy(customTime = value, selectedSlotId = null, showSlotError = false) }
+
     fun selectSlot(id: Long) { _state.value = _state.value.copy(selectedSlotId = id, showSlotError = false) }
     fun selectAddress(id: Long) { _state.value = _state.value.copy(selectedAddressId = id) }
 
@@ -144,7 +149,11 @@ class OrderFormViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount + toUpload.size, error = null)
+            _state.value = _state.value.copy(
+                uploadingCount = _state.value.uploadingCount + toUpload.size,
+                pendingUris = _state.value.pendingUris + toUpload,
+                error = null
+            )
             for (uri in toUpload) {
                 try {
                     val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -216,7 +225,10 @@ class OrderFormViewModel @Inject constructor(
         val s = _state.value
         if (s.isSubmitting) return
         if (s.description.isBlank()) { _state.value = s.copy(error = "Ceritakan masalahnya"); return }
-        if (s.selectedSlotId == null) { _state.value = s.copy(showSlotError = true); return }
+        if (s.selectedSlotId == null && s.customTime == null) {
+            _state.value = s.copy(showSlotError = true)
+            return
+        }
         val serviceId = s.selectedServiceId ?: return
         val addressId = s.selectedAddressId ?: return
         _state.value = s.copy(isSubmitting = true, error = null)
@@ -228,7 +240,8 @@ class OrderFormViewModel @Inject constructor(
                         description = s.description.trim(),
                         addressId = addressId,
                         scheduledDate = s.date,
-                        slotId = s.selectedSlotId,
+                        slotId = s.selectedSlotId ?: -1,
+                        customTime = s.customTime,
                         photoUrls = s.photos
                     )
                 )
@@ -243,6 +256,7 @@ class OrderFormViewModel @Inject constructor(
 private fun tomorrowString(): String =
     java.time.LocalDate.now().plusDays(1).toString()
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun OrderFormScreen(
     preselectedServiceId: Long?,
@@ -359,7 +373,30 @@ fun OrderFormScreen(
                 }) { Text("Ambil foto", color = TKColor.Orange, fontSize = 12.sp) }
             }
             Spacer(Modifier.height(4.dp))
+            var zoomModel by remember { mutableStateOf<Any?>(null) }
+            zoomModel?.let { model ->
+                AlertDialog(
+                    onDismissRequest = { zoomModel = null },
+                    confirmButton = { TextButton(onClick = { zoomModel = null }) { Text("Tutup") } },
+                    text = {
+                        AsyncImage(
+                            model = model,
+                            contentDescription = "Pratinjau foto",
+                            modifier = Modifier.fillMaxWidth().height(320.dp).clip(TKShape.Media)
+                        )
+                    }
+                )
+            }
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(state.pendingUris) { uri ->
+                    Box(modifier = Modifier.clickable { zoomModel = uri }) {
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = "Pratinjau foto yang dipilih",
+                            modifier = Modifier.size(96.dp).clip(TKShape.Media).background(TKColor.InkSoft)
+                        )
+                    }
+                }
                 items(state.photos) { url ->
                     Box {
                         AsyncImage(
@@ -369,6 +406,9 @@ fun OrderFormScreen(
                                 .size(96.dp)
                                 .clip(TKShape.Media)
                                 .background(TKColor.InkSoft)
+                                .clickable {
+                                    zoomModel = "${id.tukangkilat.app.BuildConfig.BASE_URL}$url"
+                                }
                         )
                         IconButton(
                             onClick = { viewModel.removePhoto(url) },
@@ -448,9 +488,29 @@ fun OrderFormScreen(
                         )
                     }
                     if (state.showSlotError) {
-                        Text("Pilih slot waktu", color = TKColor.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterVertically))
+                        Text("Pilih atau tentukan waktu", color = TKColor.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterVertically))
                     }
                 }
+            }
+            Spacer(Modifier.height(10.dp))
+            var showTimePicker by remember { mutableStateOf(false) }
+            if (showTimePicker) {
+                val timeState = rememberTimePickerState()
+                TimePickerDialog(
+                    title = { Text("Pilih jam kunjungan") },
+                    onDismissRequest = { showTimePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.onCustomTime(
+                                "%02d:%02d".format(timeState.hour, timeState.minute)
+                            )
+                            showTimePicker = false
+                        }) { Text("Pakai jam ini") }
+                    }
+                ) { TimePicker(state = timeState) }
+            }
+            TextButton(onClick = { showTimePicker = true }) {
+                Text(if (state.customTime != null) "Ubah jam: ${state.customTime}" else "Tentukan jam sendiri")
             }
             Spacer(Modifier.height(18.dp))
 

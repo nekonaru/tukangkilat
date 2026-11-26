@@ -194,6 +194,7 @@ class TechHomeViewModel @Inject constructor(
 fun TechHomeScreen(
     onOpenJob: (Long) -> Unit,
     onGoEarnings: () -> Unit,
+    onOpenChats: () -> Unit = {},
     viewModel: TechHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -310,6 +311,7 @@ fun TechHomeScreen(
                                 SummaryCard("Tawaran", "${state.offerCount}", Modifier.weight(1f))
                             }
                             TKTextButton("Lihat pendapatan", onGoEarnings)
+                            TKTextButton("Percakapan konsumen", onOpenChats)
                             Spacer(Modifier.height(TKSpacing.Sm))
                         }
 

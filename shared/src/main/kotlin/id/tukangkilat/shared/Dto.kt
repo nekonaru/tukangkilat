@@ -113,6 +113,7 @@ data class CreateOrderRequest(
     val addressId: Long,
     val scheduledDate: String,
     val slotId: Long,
+    val customTime: String? = null,
     val promoCode: String? = null,
     val photoUrls: List<String> = emptyList()
 )
@@ -136,6 +137,46 @@ data class TechnicianPublicDto(
 
 /** Public card shown in the consumer technician directory. No contact data is exposed. */
 @Serializable
+data class DirectMessageDto(
+    val id: Long,
+    val consumerId: Long,
+    val technicianId: Long,
+    val senderId: Long,
+    val senderName: String,
+    val body: String,
+    val createdAt: String
+)
+
+@Serializable
+data class SendDirectMessageRequest(val body: String)
+
+@Serializable
+data class ProposalDto(
+    val id: Long,
+    val consumerId: Long,
+    val technicianId: Long,
+    val technicianName: String,
+    val serviceId: Long,
+    val serviceName: String,
+    val description: String,
+    val price: Long,
+    val scheduledDate: String,
+    val customTime: String?,
+    val status: String,
+    val createdAt: String
+)
+
+@Serializable
+data class CreateProposalRequest(
+    val consumerId: Long,
+    val serviceId: Long,
+    val description: String,
+    val price: Long,
+    val scheduledDate: String,
+    val customTime: String? = null
+)
+
+@Serializable
 data class TechnicianBrowseDto(
     val id: Long,
     val fullName: String,
@@ -144,7 +185,8 @@ data class TechnicianBrowseDto(
     val jobsCount: Int,
     val serviceRadiusKm: Int,
     val isOnline: Boolean,
-    val photoUrl: String? = null
+    val photoUrl: String? = null,
+    val distanceKm: Double? = null
 )
 
 @Serializable
@@ -208,7 +250,8 @@ data class OrderSummaryDto(
 @Serializable
 data class PayRequest(
     val method: PaymentMethod,
-    val promoCode: String? = null
+    val promoCode: String? = null,
+    val provider: String? = null
 )
 
 @Serializable

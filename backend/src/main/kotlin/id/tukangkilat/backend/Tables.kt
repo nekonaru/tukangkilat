@@ -4,6 +4,30 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 
 
+object DirectMessagesTable : Table("direct_messages") {
+    val id = long("id").autoIncrement()
+    val consumerId = long("consumer_id")
+    val technicianId = long("technician_id")
+    val senderId = long("sender_id")
+    val body = text("body")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ProposalsTable : Table("proposals") {
+    val id = long("id").autoIncrement()
+    val consumerId = long("consumer_id")
+    val technicianId = long("technician_id")
+    val serviceId = long("service_id")
+    val description = text("description")
+    val price = long("price")
+    val scheduledDate = date("scheduled_date")
+    val customTime = varchar("custom_time", 32).nullable()
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object UsersTable : Table("users") {
     val id = long("id").autoIncrement()
     val username = varchar("username", 64).uniqueIndex()

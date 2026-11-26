@@ -42,8 +42,28 @@ interface ApiService {
     @GET("/consumer/technicians")
     suspend fun technicians(
         @Query("skill") skill: String? = null,
-        @Query("q") query: String? = null
+        @Query("q") query: String? = null,
+        @Query("lat") lat: Double? = null,
+        @Query("lng") lng: Double? = null
     ): List<TechnicianBrowseDto>
+
+    @GET("/consumer/technicians/{technicianId}/messages")
+    suspend fun consumerMessages(@Path("technicianId") technicianId: Long): List<DirectMessageDto>
+
+    @POST("/consumer/technicians/{technicianId}/messages")
+    suspend fun sendConsumerMessage(
+        @Path("technicianId") technicianId: Long,
+        @Body req: SendDirectMessageRequest
+    ): DirectMessageDto
+
+    @GET("/consumer/proposals")
+    suspend fun consumerProposals(): List<ProposalDto>
+
+    @POST("/consumer/proposals/{id}/accept")
+    suspend fun acceptProposal(@Path("id") id: Long): Map<String, Long>
+
+    @POST("/consumer/proposals/{id}/reject")
+    suspend fun rejectProposal(@Path("id") id: Long): ProposalDto
 
     @GET("/consumer/slots")
     suspend fun slots(@Query("date") date: String): List<SlotDto>
@@ -105,6 +125,24 @@ interface ApiService {
 
     @PUT("/technician/profile")
     suspend fun updateTechnicianProfile(@Body req: TechnicianUpdateRequest): TechnicianProfileDto
+
+    @GET("/technician/direct-peers")
+    suspend fun directPeers(): List<Long>
+
+    @GET("/technician/direct-messages/{consumerId}")
+    suspend fun technicianDirectMessages(@Path("consumerId") consumerId: Long): List<DirectMessageDto>
+
+    @POST("/technician/direct-messages/{consumerId}")
+    suspend fun sendTechnicianMessage(
+        @Path("consumerId") consumerId: Long,
+        @Body req: SendDirectMessageRequest
+    ): DirectMessageDto
+
+    @GET("/technician/proposals")
+    suspend fun technicianProposals(): List<ProposalDto>
+
+    @POST("/technician/proposals")
+    suspend fun createProposal(@Body req: CreateProposalRequest): ProposalDto
 
     @GET("/technician/offers")
     suspend fun offers(): List<OfferDto>

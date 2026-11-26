@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
@@ -70,7 +71,14 @@ class TechniciansViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                val items = api.technicians(skill = skill?.takeIf { it != "SEMUA" }, query = query?.takeIf { it.isNotBlank() })
+                val addresses = runCatching { api.addresses() }.getOrDefault(emptyList())
+                val home = addresses.firstOrNull { it.isPrimary } ?: addresses.firstOrNull()
+                val items = api.technicians(
+                    skill = skill?.takeIf { it != "SEMUA" },
+                    query = query?.takeIf { it.isNotBlank() },
+                    lat = home?.lat,
+                    lng = home?.lng
+                )
                 _state.value = _state.value.copy(isLoading = false, items = items, error = null)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.message ?: "Gagal memuat teknisi")
@@ -97,7 +105,11 @@ class TechniciansViewModel @Inject constructor(
 private val SKILLS = listOf("SEMUA", "LISTRIK", "PIPA", "AC")
 
 @Composable
-fun TechniciansScreen(onBack: () -> Unit, viewModel: TechniciansViewModel = hiltViewModel()) {
+fun TechniciansScreen(
+    onBack: () -> Unit,
+    onChat: (Long) -> Unit,
+    viewModel: TechniciansViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
     var query by remember { mutableStateOf("") }
     var skill by remember { mutableStateOf("SEMUA") }
@@ -153,6 +165,7 @@ fun TechniciansScreen(onBack: () -> Unit, viewModel: TechniciansViewModel = hilt
                 items(state.items, key = { it.id }) { item ->
                     TechnicianCard(
                         item = item,
+                        onChat = { onChat(item.id) },
                         favorite = item.id in state.favoriteIds,
                         onFavorite = { viewModel.toggleFavorite(item) },
                         onDetail = { detail = item }
@@ -192,6 +205,7 @@ private fun TechnicianCard(
     item: TechnicianBrowseDto,
     favorite: Boolean,
     onFavorite: () -> Unit,
+    onChat: () -> Unit,
     onDetail: () -> Unit
 ) {
     Row(
@@ -216,7 +230,8 @@ private fun TechnicianCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    "${String.format("%.1f", item.ratingAvg)} (${item.jobsCount} pekerjaan)",
+                    "${String.format("%.1f", item.ratingAvg)} (${item.jobsCount} pekerjaan)" +
+                        if (item.distanceKm != null) " · ${String.format("%.1f", item.distanceKm)} km" else "",
                     color = TKColor.Mist,
                     fontSize = 11.sp
                 )
@@ -225,6 +240,9 @@ private fun TechnicianCard(
                     Text("Online", color = TKColor.Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
+        }
+        IconButton(onClick = onChat) {
+            Icon(Icons.Filled.Chat, "Chat teknisi", tint = TKColor.Orange)
         }
         IconButton(onClick = onFavorite) {
             Icon(

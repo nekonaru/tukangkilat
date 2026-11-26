@@ -27,12 +27,14 @@ object DatabaseTransfer {
     private val TABLES = listOf(
         "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
         "promo_codes", "photos", "orders", "order_photos", "order_events",
-        "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals"
+        "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals",
+        "direct_messages", "proposals"
     )
 
     private val AUTO_ID_TABLES = setOf(
         "users", "refresh_tokens", "addresses", "services", "time_slots", "photos", "orders",
-        "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals"
+        "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals",
+        "direct_messages", "proposals"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

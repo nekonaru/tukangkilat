@@ -105,7 +105,12 @@ class OrderRepository @Inject constructor(
     }
 
     suspend fun detail(id: Long) = api.orderDetail(id)
-    suspend fun pay(id: Long, method: PaymentMethod, promoCode: String? = null) = api.pay(id, PayRequest(method, promoCode))
+    suspend fun pay(
+        id: Long,
+        method: PaymentMethod,
+        promoCode: String? = null,
+        provider: String? = null
+    ) = api.pay(id, PayRequest(method, promoCode, provider))
     suspend fun cancel(id: Long, reason: String) = api.cancel(id, CancelRequest(reason))
     suspend fun reschedule(id: Long, date: String, slotId: Long) = api.reschedule(id, RescheduleRequest(date, slotId))
     suspend fun confirm(id: Long) = api.confirm(id)
