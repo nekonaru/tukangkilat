@@ -4,6 +4,17 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Opsi backend online**: aplikasi bisa terhubung ke satu server Ktor bersama, sehingga pesanan dari satu HP langsung muncul di HP lain. Termasuk `Dockerfile` di root, packaging distribusi backend, dan `docs/DEPLOY_ONLINE.md`.
+
+### Diperbaiki
+
+- **Regresi startup**: H2 mode PostgreSQL punya tabel sistem bernama `users`. Deteksi skema kini hanya memeriksa schema `public`, sehingga instalasi baru menjalankan migrasi dengan benar. Instalasi yang tertinggal dengan penanda versi tanpa skema akan memperbaiki diri saat peluncuran berikutnya. Logika deteksi ada di helper JVM beserta tes regresi.
+- **Alamat WebSocket**: klien WebSocket kini memakai alamat server yang diisi di layar Login, termasuk `wss` untuk HTTPS, dan menyambung ulang saat alamat berubah.
+
 ## [2.12.0] - 2026-11-26
 
 ### Ditambahkan
@@ -233,6 +244,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0
 [2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0
 [2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0

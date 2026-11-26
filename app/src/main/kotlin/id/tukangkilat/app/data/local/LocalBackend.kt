@@ -7,6 +7,7 @@ import id.tukangkilat.backend.AppConfig
 import id.tukangkilat.backend.AndroidCompat
 import id.tukangkilat.backend.ServerErrorHook
 import id.tukangkilat.backend.Seed
+import id.tukangkilat.backend.EmbeddedSchema
 import id.tukangkilat.backend.ensureUploadDir
 import id.tukangkilat.backend.module
 import io.ktor.server.cio.CIO
@@ -165,10 +166,12 @@ object LocalBackend {
             }
             // Detect the table itself, not row presence. An empty users table from an
             // interrupted legacy install must still be adopted instead of re-created.
-            val tableExists = connection.metaData.getTables(null, null, "%", arrayOf("TABLE")).use { rs ->
-                val names = mutableSetOf<String>()
-                while (rs.next()) names += rs.getString("TABLE_NAME").lowercase()
-                "users" in names
+            val tableExists = EmbeddedSchema.usersTableExists(connection)
+            if (!tableExists && applied.isNotEmpty()) {
+                // A previous build could mark migrations as applied without creating the schema.
+                // Clear those markers so this launch can install the schema from scratch.
+                EmbeddedSchema.resetVersionMarkers(connection)
+                applied.clear()
             }
             if (tableExists && applied.isEmpty()) {
                 // Adopt only versions that existed before the marker. Future migrations

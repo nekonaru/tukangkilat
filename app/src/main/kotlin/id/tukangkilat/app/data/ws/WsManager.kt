@@ -1,6 +1,6 @@
 package id.tukangkilat.app.data.ws
 
-import id.tukangkilat.app.BuildConfig
+import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.local.SessionManager
 import id.tukangkilat.shared.WsEvent
 import id.tukangkilat.shared.WsEventType
@@ -27,7 +27,8 @@ import javax.inject.Singleton
 /** Persistent WebSocket client for order events, with automatic reconnection. */
 @Singleton
 class WsManager @Inject constructor(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val serverConfig: ServerConfigManager
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -48,14 +49,22 @@ class WsManager @Inject constructor(
         running = true
         scope.launch {
             var backoffMs = 1_000L
+            var lastUrl: String? = null
             while (isActive && running) {
+                val serverUrl = serverConfig.current()
+                if (lastUrl != null && serverUrl != lastUrl) {
+                    socket?.close(1000, "server changed")
+                    socket = null
+                    backoffMs = 1_000L
+                }
+                lastUrl = serverUrl
                 val token = sessionManager.accessToken()
                 if (token == null) {
                     delay(5_000)
                     continue
                 }
                 val request = Request.Builder()
-                    .url("${BuildConfig.BASE_URL.replace("http", "ws", ignoreCase = true)}/ws?token=$token")
+                    .url("${serverUrl.replace("http", "ws", ignoreCase = true)}/ws?token=$token")
                     .build()
                 val opened = try {
                     client.newWebSocket(request, object : WebSocketListener() {
