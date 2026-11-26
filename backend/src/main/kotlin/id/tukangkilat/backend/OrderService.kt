@@ -160,8 +160,31 @@ object OrderService {
             .where { (ServicesTable.id eq req.serviceId) and (ServicesTable.isActive eq true) }
             .singleOrNull() ?: throw NotFoundException("Layanan tidak ditemukan atau tidak aktif")
 
-        val slot = TimeSlotsTable.selectAll().where { TimeSlotsTable.id eq req.slotId }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
-            ?: throw NotFoundException("Slot waktu tidak ditemukan")
+        val customLabel = req.customTime?.trim()?.takeIf { it.isNotBlank() }
+        if (customLabel != null && !Regex("^([01]\\d|2[0-3]):[0-5]\\d$").matches(customLabel)) {
+            throw BadRequestException("Format jam harus HH:mm, misalnya 14:35")
+        }
+        val slotId: Long
+        val slotLabel: String
+        val slotCapacity: Int
+        if (customLabel != null) {
+            // A customer-chosen time becomes its own slot with generous capacity.
+            val existing = TimeSlotsTable.selectAll()
+                .where { TimeSlotsTable.label eq customLabel }.singleOrNull()
+            slotId = existing?.get(TimeSlotsTable.id) ?: TimeSlotsTable.insert {
+                it[label] = customLabel
+                it[capacity] = 999
+            } get TimeSlotsTable.id
+            slotLabel = customLabel
+            slotCapacity = 999
+        } else {
+            val slot = TimeSlotsTable.selectAll()
+                .where { TimeSlotsTable.id eq req.slotId }.forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
+                ?: throw NotFoundException("Slot waktu tidak ditemukan")
+            slotId = slot[TimeSlotsTable.id]
+            slotLabel = slot[TimeSlotsTable.label]
+            slotCapacity = slot[TimeSlotsTable.capacity]
+        }
 
         val address = AddressesTable.selectAll()
             .where { (AddressesTable.id eq req.addressId) and (AddressesTable.userId eq consumerId) }
@@ -170,12 +193,12 @@ object OrderService {
         // slot availability
         val used = OrdersTable.selectAll().where {
             (OrdersTable.scheduledDate eq scheduledDate) and
-                (OrdersTable.slotId eq slot[TimeSlotsTable.id]) and
+                (OrdersTable.slotId eq slotId) and
                 (OrdersTable.status neq OrderStatus.DIBATALKAN.name) and
                 (OrdersTable.status neq OrderStatus.PEMBAYARAN_GAGAL.name)
         }.count()
-        if (used >= slot[TimeSlotsTable.capacity]) {
-            throw ConflictException("Slot ${slot[TimeSlotsTable.label]} sudah penuh untuk tanggal tersebut")
+        if (used >= slotCapacity) {
+            throw ConflictException("Slot $slotLabel sudah penuh untuk tanggal tersebut")
         }
 
         val serviceFee = service[ServicesTable.basePrice]
@@ -213,7 +236,7 @@ object OrderService {
             it[description] = req.description.trim()
             it[addressId] = address[AddressesTable.id]
             it[OrdersTable.scheduledDate] = scheduledDate
-            it[slotId] = slot[TimeSlotsTable.id]
+            it[OrdersTable.slotId] = slotId
             it[OrdersTable.status] = OrderStatus.MENUNGGU_PEMBAYARAN.name
             it[OrdersTable.serviceFee] = serviceFee
             it[OrdersTable.visitFee] = visitFee

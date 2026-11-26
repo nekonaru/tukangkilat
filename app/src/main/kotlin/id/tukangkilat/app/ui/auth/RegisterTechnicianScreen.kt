@@ -6,6 +6,7 @@ import id.tukangkilat.app.ui.theme.TKSpacing
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -53,7 +54,9 @@ data class RegisterTechUiState(
     val serviceRadiusKm: Int = 10,
     val skills: Set<String> = emptySet(),
     val ktpPhotoUrl: String? = null,
+    val ktpLocalUri: Uri? = null,
     val selfiePhotoUrl: String? = null,
+    val selfieLocalUri: Uri? = null,
     val uploadingKtp: Boolean = false,
     val uploadingSelfie: Boolean = false,
     val isLoading: Boolean = false,
@@ -83,11 +86,13 @@ class RegisterTechnicianViewModel @Inject constructor(
     fun uploadPhoto(context: android.content.Context, uri: Uri, which: String) {
         viewModelScope.launch {
             try {
-                if (which == "ktp") _state.value = _state.value.copy(uploadingKtp = true)
-                else _state.value = _state.value.copy(uploadingSelfie = true)
+                if (which == "ktp") _state.value = _state.value.copy(uploadingKtp = true, ktpLocalUri = uri)
+                else _state.value = _state.value.copy(uploadingSelfie = true, selfieLocalUri = uri)
 
-                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                    ?: throw IllegalStateException("Berkas tidak bisa dibaca")
+                val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        ?: throw IllegalStateException("Berkas tidak bisa dibaca")
+                }
                 if (bytes.size > 5 * 1024 * 1024) throw IllegalStateException("Ukuran foto maksimal 5 MB")
                 val body = MultipartBody.Part.createFormData(
                     "file",
@@ -249,6 +254,7 @@ fun RegisterTechnicianScreen(
                 onClick = { ktpPicker.launch("image/*") },
                 uploading = state.uploadingKtp,
                 done = state.ktpPhotoUrl != null,
+                preview = state.ktpLocalUri,
                 label = "Unggah foto KTP"
             )
             Spacer(Modifier.height(12.dp))
@@ -258,6 +264,7 @@ fun RegisterTechnicianScreen(
                 onClick = { selfiePicker.launch("image/*") },
                 uploading = state.uploadingSelfie,
                 done = state.selfiePhotoUrl != null,
+                preview = state.selfieLocalUri,
                 label = "Unggah selfie"
             )
 
@@ -279,23 +286,53 @@ fun RegisterTechnicianScreen(
 }
 
 @Composable
-private fun PhotoUploadBox(onClick: () -> Unit, uploading: Boolean, done: Boolean, label: String) {
+private fun PhotoUploadBox(
+    onClick: () -> Unit,
+    uploading: Boolean,
+    done: Boolean,
+    preview: Uri?,
+    label: String
+) {
+    var zoom by remember { mutableStateOf(false) }
+    if (zoom && preview != null) {
+        AlertDialog(
+            onDismissRequest = { zoom = false },
+            confirmButton = { TextButton(onClick = { zoom = false }) { Text("Tutup") } },
+            text = {
+                AsyncImage(
+                    model = preview,
+                    contentDescription = "Pratinjau foto",
+                    modifier = Modifier.fillMaxWidth().height(320.dp).clip(TKShape.Media)
+                )
+            }
+        )
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(if (done) TKColor.GreenSoft else TKColor.InkSoft)
-            .clickable(onClick = onClick)
+            .clickable {
+                if (preview != null && !uploading) zoom = true else onClick()
+            }
             .padding(18.dp),
         contentAlignment = Alignment.Center
     ) {
         if (uploading) {
             CircularProgressIndicator(color = TKColor.Orange, modifier = Modifier.size(24.dp))
-        } else if (done) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Check, "Centang", tint = TKColor.GreenDeep)
-                Spacer(Modifier.width(TKSpacing.Xs))
-                Text("Foto terunggah", color = TKColor.GreenDeep, fontWeight = FontWeight.Bold)
+        } else if (preview != null) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                AsyncImage(
+                    model = preview,
+                    contentDescription = "Pratinjau $label",
+                    modifier = Modifier.fillMaxWidth().height(120.dp).clip(TKShape.Media)
+                )
+                Spacer(Modifier.height(TKSpacing.Xs))
+                Text(
+                    if (done) "Foto terunggah · ketuk untuk memperbesar" else "Ketuk untuk memperbesar",
+                    color = if (done) TKColor.GreenDeep else TKColor.Mist,
+                    fontSize = 12.sp
+                )
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
