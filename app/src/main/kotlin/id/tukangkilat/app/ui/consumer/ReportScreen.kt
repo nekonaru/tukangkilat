@@ -242,6 +242,7 @@ fun ReportScreen(
             }
             if (state.photos.size < 3) {
                 Spacer(Modifier.height(10.dp))
+                val borderColor = TKColor.Orange
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -250,7 +251,7 @@ fun ReportScreen(
                         .background(TKColor.InkSoft)
                         .drawBehind {
                             drawRoundRect(
-                                color = TKColor.Orange,
+                                color = borderColor,
                                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
                                 style = androidx.compose.ui.graphics.drawscope.Stroke(
                                     width = 1.5.dp.toPx(),

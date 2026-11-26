@@ -275,18 +275,20 @@ private fun PulsingBolt() {
         ),
         label = "rotation"
     )
+    val trackColor = TKColor.InkLine
+    val progressColor = TKColor.Orange
     Box(modifier = Modifier.size(130.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(130.dp)) {
             val stroke = 10f
             drawArc(
-                color = TKColor.InkLine,
+                color = trackColor,
                 startAngle = 0f,
                 sweepAngle = 360f,
                 useCenter = false,
                 style = Stroke(width = stroke)
             )
             drawArc(
-                color = TKColor.Orange,
+                color = progressColor,
                 startAngle = rotation,
                 sweepAngle = 90f,
                 useCenter = false,
