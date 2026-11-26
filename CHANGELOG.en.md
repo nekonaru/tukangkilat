@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-11-26
+
+### Added
+
+- **Reorder**: the receipt screen now has a **Pesan lagi layanan ini** button that opens the order form with the same service preselected. Works from the rating flow and from the completed-orders history.
+
 ## [2.10.0] - 2026-11-26
 
 ### Added
@@ -211,6 +217,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
 [2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0
 [2.8.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.8.0

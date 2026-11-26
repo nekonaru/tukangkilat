@@ -45,6 +45,7 @@ class ReceiptViewModel @Inject constructor(
 fun ReceiptScreen(
     orderId: Long,
     onBack: () -> Unit,
+    onReorder: (Long) -> Unit = {},
     viewModel: ReceiptViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -53,6 +54,6 @@ fun ReceiptScreen(
     when {
         state.isLoading -> LoadingView()
         state.error != null && state.order == null -> ErrorView(message = state.error!!, onRetry = { viewModel.load(orderId) })
-        else -> ReceiptContent(order = state.order!!, onBack = onBack)
+        else -> ReceiptContent(order = state.order!!, onBack = onBack, onReorder = onReorder)
     }
 }

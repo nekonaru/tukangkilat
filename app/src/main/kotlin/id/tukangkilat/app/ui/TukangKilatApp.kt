@@ -330,7 +330,8 @@ fun TukangKilatApp(
                 val orderId = entry.arguments!!.getLong("orderId")
                 RatingScreen(
                     orderId = orderId,
-                    onDone = { navController.navigate(Routes.C_HOME) { popUpTo(Routes.C_HOME) { inclusive = true } } }
+                    onDone = { navController.navigate(Routes.C_HOME) { popUpTo(Routes.C_HOME) { inclusive = true } } },
+                    onReorder = { serviceId -> navController.navigate("${Routes.C_ORDER_NEW}?serviceId=$serviceId") }
                 )
             }
             composable(Routes.C_REPORT, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
@@ -343,7 +344,11 @@ fun TukangKilatApp(
             }
             composable(Routes.C_RECEIPT, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
-                ReceiptScreen(orderId = orderId, onBack = { navController.navigate(Routes.C_HOME) { popUpTo(0) } })
+                ReceiptScreen(
+                    orderId = orderId,
+                    onBack = { navController.navigate(Routes.C_HOME) { popUpTo(0) } },
+                    onReorder = { serviceId -> navController.navigate("${Routes.C_ORDER_NEW}?serviceId=$serviceId") }
+                )
             }
             composable(Routes.C_CHAT, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
