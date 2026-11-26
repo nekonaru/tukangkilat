@@ -215,11 +215,13 @@ fun LoginScreen(
             }
 
             Spacer(Modifier.height(TKSpacing.Sm))
-            if (state.isLoading) {
-                CircularProgressIndicator(color = TKColor.Orange)
-            } else {
-                TKPrimaryButton("LOGIN", onClick = { viewModel.login(onLoggedIn) })
-            }
+            TKPrimaryButton(
+                "LOGIN",
+                onClick = { viewModel.login(onLoggedIn) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !state.isLoading,
+                loading = state.isLoading
+            )
 
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

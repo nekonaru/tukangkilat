@@ -38,9 +38,11 @@ import id.tukangkilat.app.data.repository.FavoriteRepository
 import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.ui.components.ScreenHeader
+import id.tukangkilat.app.ui.components.SectionLabel
 import id.tukangkilat.app.ui.components.TextFieldDark
 import id.tukangkilat.app.ui.components.AvatarCircle
 import id.tukangkilat.app.ui.theme.TKColor
+import id.tukangkilat.app.ui.theme.TKShape
 import id.tukangkilat.app.ui.util.cleanApiError
 import id.tukangkilat.shared.AddressDto
 import id.tukangkilat.shared.AddressUpsertRequest
@@ -214,30 +216,42 @@ fun AccountScreen(
             ScreenHeader("Akun")
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = TKSpacing.Sm, vertical = TKSpacing.Xs)
+                            .background(MaterialTheme.colorScheme.surfaceContainer, TKShape.Card)
+                            .padding(TKSpacing.Sm),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AvatarCircle(state.fullName.ifBlank { "U" }, size = 84)
-                        Spacer(Modifier.height(12.dp))
-                        Text(state.fullName.ifBlank { "Pengguna" }, color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
-                        Text("@${state.username}", color = TKColor.Mist, fontSize = 13.sp)
-                        if (state.phone.isNotBlank()) Text(state.phone, color = TKColor.Mist, fontSize = 13.sp)
+                        AvatarCircle(state.fullName.ifBlank { "U" }, size = 56)
+                        Spacer(Modifier.width(TKSpacing.Sm))
+                        Column(Modifier.weight(1f)) {
+                            Text(state.fullName.ifBlank { "Pengguna" }, style = MaterialTheme.typography.titleMedium)
+                            Text("@${state.username}", style = MaterialTheme.typography.bodySmall, color = TKColor.Mist)
+                            if (state.phone.isNotBlank()) {
+                                Text(state.phone, style = MaterialTheme.typography.bodySmall, color = TKColor.Mist)
+                            }
+                        }
                     }
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
                 }
                 item {
+                    SectionLabel("Akun")
                     SectionRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }
                     SectionRow(Icons.Filled.Notifications, "Notifikasi", onClick = onNotifications)
-                    SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
-                    SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
-                    Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Settings, "Pengaturan", onClick = onSettings)
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat", onClick = onSettings)
-                    Spacer(Modifier.height(TKSpacing.Xs))
+
+                    Spacer(Modifier.height(TKSpacing.Sm))
+                    SectionLabel("Teknisi")
+                    SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
+                    SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
+
+                    Spacer(Modifier.height(TKSpacing.Sm))
                     SectionRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height(TKSpacing.Md))
                 }
             }
         }

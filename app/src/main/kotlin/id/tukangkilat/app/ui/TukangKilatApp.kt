@@ -117,13 +117,6 @@ fun TukangKilatApp(
     val navController = rememberNavController()
 
     if (!backendReady && usesEmbeddedBackend) {
-        val reduce = rememberReduceMotion()
-        val pulse = rememberInfiniteTransition(label = "loader").animateFloat(
-            initialValue = 0.96f,
-            targetValue = 1.04f,
-            animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Reverse),
-            label = "pulse"
-        )
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         Box(
@@ -135,13 +128,7 @@ fun TukangKilatApp(
                     painter = painterResource(R.drawable.ic_brand),
                     contentDescription = "Tukang Kilat",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(96.dp)
-                        .graphicsLayer {
-                            val s = if (reduce) 1f else pulse.value
-                            scaleX = s
-                            scaleY = s
-                        }
+                    modifier = Modifier.size(96.dp)
                 )
                 Spacer(Modifier.height(24.dp))
                 if (startupError == null) {
@@ -215,11 +202,9 @@ fun TukangKilatApp(
         bottomBar = {
             if (showBottomBar) {
                 TKNavigationBar(roleName, currentRoute ?: "") { route ->
-                    navController.navigate(route) {
-                        popUpTo(route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    // Navigating to a tab must always emit a new destination. popUpTo(route)
+                    // made the call a no-op when that tab was already in the back stack.
+                    navController.navigate(route) { launchSingleTop = true }
                 }
             }
         }
