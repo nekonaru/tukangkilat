@@ -22,7 +22,8 @@ object OrderStateMachine {
         ),
         OrderStatus.TEKNISI_DITEMUKAN to mapOf(
             OrderStatus.DALAM_PERJALANAN to setOf(Actor.TUKANG, Actor.ADMIN),
-            OrderStatus.MENCARI_TEKNISI to setOf(Actor.TUKANG, Actor.SYSTEM, Actor.ADMIN)
+            OrderStatus.MENCARI_TEKNISI to setOf(Actor.KONSUMEN, Actor.TUKANG, Actor.SYSTEM, Actor.ADMIN),
+            OrderStatus.DIBATALKAN to setOf(Actor.KONSUMEN, Actor.ADMIN, Actor.SYSTEM)
         ),
         OrderStatus.DALAM_PERJALANAN to mapOf(
             OrderStatus.TIBA to setOf(Actor.TUKANG, Actor.ADMIN)
@@ -38,7 +39,8 @@ object OrderStateMachine {
             OrderStatus.DILAPORKAN to setOf(Actor.KONSUMEN, Actor.ADMIN)
         ),
         OrderStatus.DILAPORKAN to mapOf(
-            OrderStatus.KUNJUNGAN_ULANG to setOf(Actor.ADMIN, Actor.SYSTEM)
+            OrderStatus.KUNJUNGAN_ULANG to setOf(Actor.ADMIN, Actor.SYSTEM),
+            OrderStatus.SELESAI to setOf(Actor.ADMIN)
         ),
         OrderStatus.KUNJUNGAN_ULANG to mapOf(
             OrderStatus.TEKNISI_DITEMUKAN to setOf(Actor.TUKANG, Actor.SYSTEM, Actor.ADMIN),

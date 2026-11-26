@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.0] - 2026-11-26
+
+### Changed
+
+- **Faster startup**: demo password hashes are precomputed instead of running five BCrypt cost-12 hashes inside the loading gate. The system uploader account is now created only when a public registration photo is uploaded.
+- **Lighter requests**: the AndroidKeyStore key is cached, interceptors read only the access token, and the server address is cached for image requests. This removes repeated KeyStore reads and token decryption per request.
+- **Native feel**: reduced-motion users no longer get continuous skeleton animation, time formatters are hoisted out of composition, geocoding runs off the main thread, and payment/account collectors no longer stack on reload.
+
+### Fixed
+
+- Orders can now be cancelled after a technician is found, and a technician can be released back to searching from the UI.
+- Closing an issue report no longer strands the consumer order in `DILAPORKAN`.
+- Demo technicians start with a location near the seeded address and dispatch accepts a slightly older fix, so offers work on a fresh install.
+- Server validation messages are now shown instead of a generic error, logout always clears the local session, and cancel/submit actions update state immediately.
+- The searching screen handles cancellation and failed loads instead of spinning forever, and technician job lists include `MENUNGGU_KONFIRMASI`.
+
 ## [2.19.0] - 2026-11-26
 
 ### Fixed
@@ -322,6 +338,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
 [2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
 [2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0
 [2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0

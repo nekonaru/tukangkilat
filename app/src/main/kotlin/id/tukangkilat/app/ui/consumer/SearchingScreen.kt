@@ -38,6 +38,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.data.ws.WsManager
 import id.tukangkilat.shared.SlotDto
+import id.tukangkilat.app.ui.components.TKButton
+import id.tukangkilat.app.ui.components.TKButtonVariant
 import id.tukangkilat.app.ui.components.ScreenHeader
 import id.tukangkilat.app.ui.components.TKPrimaryButton
 import id.tukangkilat.app.ui.theme.TKColor
@@ -77,7 +79,21 @@ class SearchingViewModel @Inject constructor(
                 val slots = orderRepository.slots(date)
                 _state.value = _state.value.copy(slotsLoading = false, slots = slots)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(slotsLoading = false)
+                _state.value = _state.value.copy(
+                    slotsLoading = false,
+                    error = e.cleanApiError()
+                )
+            }
+        }
+    }
+
+    fun cancelOrder(orderId: Long, onDone: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                orderRepository.cancel(orderId, "Tidak jadi memesan")
+                found(onDone)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = e.cleanApiError())
             }
         }
     }
@@ -99,7 +115,7 @@ class SearchingViewModel @Inject constructor(
             try {
                 val order = orderRepository.detail(orderId)
                 _state.value = _state.value.copy(isLoading = false, order = order)
-                if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
+                if (order.status == OrderStatus.TEKNISI_DITEMUKAN || order.status == OrderStatus.DIBATALKAN) {
                     found(onFound)
                     return@launch
                 }
@@ -113,7 +129,7 @@ class SearchingViewModel @Inject constructor(
                 if (event.type == WsEventType.ORDER_STATUS && event.orderId == orderId) {
                     try {
                         val order = orderRepository.detail(orderId)
-                        if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
+                        if (order.status == OrderStatus.TEKNISI_DITEMUKAN || order.status == OrderStatus.DIBATALKAN) {
                             found(onFound)
                         } else {
                             _state.value = _state.value.copy(order = order)
@@ -128,7 +144,7 @@ class SearchingViewModel @Inject constructor(
             while (true) {
                 delay(5_000)
                 val order = try { orderRepository.detail(orderId) } catch (e: Exception) { continue }
-                if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
+                if (order.status == OrderStatus.TEKNISI_DITEMUKAN || order.status == OrderStatus.DIBATALKAN) {
                     found(onFound)
                     return@launch
                 } else {
@@ -256,6 +272,14 @@ fun SearchingScreen(
             Spacer(Modifier.height(18.dp))
             TKPrimaryButton("Jadwal ulang", onClick = { showReschedule = true }, enabled = order != null)
             Spacer(Modifier.height(10.dp))
+            if (order != null) {
+                TKButton(
+                    "Batalkan pesanan",
+                    onClick = { viewModel.cancelOrder(orderId, onFound) },
+                    variant = TKButtonVariant.Outlined
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             state.error?.let {
                 Text(it, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(10.dp))

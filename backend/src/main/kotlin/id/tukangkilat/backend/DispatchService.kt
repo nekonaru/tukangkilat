@@ -117,7 +117,7 @@ object DispatchService {
 
     private suspend fun notifyNoTechnician(orderId: Long) {
         // No technician after the search window ends: cancel and refund, then notify once.
-        OrderService.autoCancelNoTechnician(orderId)
+        // The consumer can reschedule or cancel from the searching screen; do not cancel here.
         // Cooldown, not a permanent flag: the order may re-enter the search state later.
         // A process-local map also avoids writing an unknown status into order_events,
         // which would break OrderQueries.loadEvents when the detail screen opens.
@@ -174,8 +174,9 @@ object DispatchService {
                     val lng = row[TechnicianProfilesTable.lastLng]
                     val lastAt = row[TechnicianProfilesTable.lastLocationAt]
                     if (lat == null || lng == null || lastAt == null) return@filter false
-                    // location must be fresh (15 minutes)
-                    if (java.time.Duration.between(lastAt, now).toMinutes() > 15) return@filter false
+                    // Demo-friendly window: going online refreshes GPS, but a slightly older
+                    // fix must not make the order spin until cancellation.
+                    if (java.time.Duration.between(lastAt, now).toMinutes() > 120) return@filter false
                     val distance = Geo.haversineKm(lat, lng, addressLat, addressLng)
                     distance <= row[TechnicianProfilesTable.serviceRadiusKm]
                 }

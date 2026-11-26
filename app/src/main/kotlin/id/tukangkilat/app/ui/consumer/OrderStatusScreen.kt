@@ -115,8 +115,12 @@ class OrderStatusViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isCancelling = true)
             try {
-                orderRepository.cancel(orderId, reason)
-                _state.value = _state.value.copy(isCancelling = false, snackbar = "Pesanan dibatalkan")
+                val result = orderRepository.cancel(orderId, reason)
+                _state.value = _state.value.copy(
+                    isCancelling = false,
+                    order = result,
+                    snackbar = "Pesanan dibatalkan"
+                )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isCancelling = false, snackbar = e.cleanApiError())
             }
@@ -337,6 +341,7 @@ fun OrderStatusScreen(
                         if (order.status in CANCELABLE) {
                             OutlinedButton(
                                 onClick = { showCancelDialog = true },
+                                enabled = !state.isCancelling,
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
                                 shape = RoundedCornerShape(14.dp),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Red),

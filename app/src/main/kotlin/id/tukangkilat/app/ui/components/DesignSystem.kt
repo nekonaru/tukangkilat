@@ -615,12 +615,31 @@ fun ChoiceFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
 @Composable
 fun SkeletonCard() {
     val reduceMotion = rememberReduceMotion()
+    if (reduceMotion) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = TKShape.Card,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Column(Modifier.padding(TKSpacing.Sm)) {
+                repeat(3) {
+                    Box(
+                        Modifier.fillMaxWidth().height(12.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), TKShape.Field)
+                    )
+                    Spacer(Modifier.height(TKSpacing.Xs))
+                }
+            }
+        }
+        return
+    }
     val infinite = rememberInfiniteTransition(label = "skeleton")
     val alpha by infinite.animateFloat(
         initialValue = 0.35f, targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "alpha"
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "alpha"
     )
-    val tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (reduceMotion) 0.6f else alpha)
+    val tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = TKShape.Card,

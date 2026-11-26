@@ -12,6 +12,20 @@ object Seed {
 
     private val log = LoggerFactory.getLogger("Seed")
 
+    // Demo password hashes are precomputed with cost 12 so a fresh install does not spend
+    // seconds hashing fixed credentials inside the app startup gate. Custom env passwords
+    // still use the normal hashing path.
+    private val DEMO_HASHES = mapOf(
+        "admin12345" to "\$2a\$12\$o1UcTY/9rr1Hw.uNu2YzQue3qpOPZvAS905bHiZzmjg.gwL28wvOS",
+        "rina12345" to "\$2a\$12\$b5mxAgly08ZC5vd5U5swG.wGWOoUQBdKGd1gomdgAFu4JKSZfqshK",
+        "budi12345" to "\$2a\$12\$yRUk2uMHNWIm8FBE.v5roeeyjlNApva.0vCEJctZcyBSSoxaVDN1O",
+        "sari12345" to "\$2a\$12\$L.OXK06MbAQB/HDwMLgtiOTj1ktSIikfKk1i.iKro2qIHnDSFVeP6"
+    )
+
+    private val SYSTEM_HASH = "\$2a\$12\$o1UcTY/9rr1Hw.uNu2YzQue3qpOPZvAS905bHiZzmjg.gwL28wvOS"
+
+    private fun hashFor(password: String): String = DEMO_HASHES[password] ?: Passwords.hash(password)
+
     /** Ensure the placeholder uploader used by public registration photos exists. */
     fun ensureSystemUser() {
         transaction {
@@ -19,7 +33,7 @@ object Seed {
             UsersTable.insert {
                 it[id] = 0L
                 it[username] = "system_registration"
-                it[passwordHash] = Passwords.hash(java.util.UUID.randomUUID().toString())
+                it[passwordHash] = SYSTEM_HASH
                 it[role] = Role.TUKANG.name
                 it[fullName] = "Pendaftaran"
                 it[phone] = "-"
@@ -53,7 +67,7 @@ object Seed {
                 }
                 return UsersTable.insert {
                     it[UsersTable.username] = username
-                    it[passwordHash] = Passwords.hash(password)
+                    it[passwordHash] = hashFor(password)
                     it[UsersTable.role] = role.name
                     it[UsersTable.fullName] = fullName
                     it[UsersTable.phone] = phone
@@ -87,6 +101,9 @@ object Seed {
                     it[skills] = if (techId == budiId) "LISTRIK,PIPA,AC" else "PIPA,AC"
                     it[verificationStatus] = "TERVERIFIKASI"
                     it[isOnline] = false
+                    it[lastLat] = -6.2297
+                    it[lastLng] = 106.8294
+                    it[lastLocationAt] = now
                     it[ratingAvg] = if (techId == budiId) 4.9 else 4.8
                     it[jobsCount] = if (techId == budiId) 128 else 96
                     it[serviceRadiusKm] = 10
