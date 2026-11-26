@@ -4,6 +4,17 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Server LAN untuk demo**: `start-lan-server.bat` menjalankan backend di laptop dengan database H2 lokal dan menampilkan IP LAN laptop. Beberapa HP pada WiFi yang sama bisa memakai server itu. Lihat `docs/DEPLOY_LAN.md`.
+- H2 kini menjadi dependency runtime backend supaya server laptop bisa memakai file database lokal.
+
+### Diubah
+
+- Konfigurasi keamanan jaringan Android mengizinkan HTTP polos ke alamat LAN privat, yang dibutuhkan server demo di laptop.
+
 ## [2.13.0] - 2026-11-26
 
 ### Ditambahkan
@@ -244,6 +255,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0
 [2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0
 [2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0
 [2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
