@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -202,7 +205,7 @@ fun TechJobScreen(
                         ) {
                             Row(verticalAlignment = Alignment.Top) {
                                 Icon(Icons.Filled.Place, null, tint = TKColor.Orange, modifier = Modifier.padding(top = 2.dp))
-                                Spacer(Modifier.width(8.dp))
+                                Spacer(Modifier.width(TKSpacing.Xs))
                                 Text(order.addressFull, color = TKColor.White, fontSize = 14.sp)
                             }
                             Spacer(Modifier.height(4.dp))
@@ -224,12 +227,12 @@ fun TechJobScreen(
                                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
                             },
                             modifier = Modifier.fillMaxWidth().height(46.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = TKShape.Media,
                             border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
                         ) {
                             Icon(Icons.Filled.Navigation, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(TKSpacing.Xs))
                             Text("Buka navigasi", fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(Modifier.height(14.dp))
@@ -259,7 +262,7 @@ fun TechJobScreen(
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .size(110.dp)
-                                            .clip(RoundedCornerShape(12.dp))
+                                            .clip(TKShape.Media)
                                             .background(TKColor.InkSoft)
                                     )
                                 }
@@ -291,12 +294,12 @@ private fun ActionBar(
         color = TKColor.Ink,
         tonalElevation = 0.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth().background(TKColor.Ink).padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().background(TKColor.Ink).padding(TKSpacing.Sm)) {
             if (spec == null) {
                 Text(
                     "Status: ${status.name.replace('_', ' ')}",
                     color = TKColor.Mist,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = TKSpacing.Xs)
                 )
             } else if (isActing) {
                 Box(Modifier.fillMaxWidth().height(56.dp), contentAlignment = Alignment.Center) {
@@ -306,7 +309,7 @@ private fun ActionBar(
                 Button(
                     onClick = { onAction(spec.second) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = TKShape.Card,
                     colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
                 ) {
                     Icon(spec.third, null)

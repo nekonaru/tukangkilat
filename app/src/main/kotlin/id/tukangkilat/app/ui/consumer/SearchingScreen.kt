@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -177,7 +180,7 @@ fun SearchingScreen(
             Text("Mencari teknisi lain", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
             Spacer(Modifier.height(6.dp))
             Text(
-                "Kami sedang mencari teknisi pengganti di sekitar lokasi Anda.",
+                "Kami sedang mencari teknisi pengganti di sekitar lokasi kamu.",
                 color = TKColor.Mist,
                 fontSize = 13.sp
             )
@@ -187,26 +190,26 @@ fun SearchingScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(TKShape.Card)
                         .background(TKColor.Card)
-                        .padding(16.dp)
+                        .padding(TKSpacing.Sm)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.ElectricBolt, null, tint = TKColor.Ink)
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(TKSpacing.Xs))
                         Column {
                             Text(order.serviceName, color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Text(order.description, color = TKColor.CreamText, fontSize = 12.sp, maxLines = 2)
                         }
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     HorizontalDivider(color = TKColor.Mist.copy(alpha = 0.4f))
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     Text("${order.scheduledDate} · ${order.slotLabel}", color = TKColor.Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,7 +233,7 @@ fun SearchingScreen(
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Info, null, tint = TKColor.Mist, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     "Kami akan memberi kabar begitu teknisi ditemukan.",
                     color = TKColor.Mist,
@@ -363,7 +366,7 @@ private fun RescheduleDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { selectedSlot = slot.id }
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = TKSpacing.Xs),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
@@ -371,7 +374,7 @@ private fun RescheduleDialog(
                                 onClick = { selectedSlot = slot.id },
                                 colors = RadioButtonDefaults.colors(selectedColor = TKColor.Orange)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(TKSpacing.Xs))
                             Text(slot.label, color = TKColor.White)
                         }
                     }

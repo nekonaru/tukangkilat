@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
@@ -180,7 +183,7 @@ fun TechFinishScreen(
                 Column(modifier = Modifier.padding(horizontal = 18.dp)) {
                     Text(order.serviceName, color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
                     Text(order.code, color = TKColor.Mist, fontSize = 12.sp)
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
 
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text("Foto bukti (1-5)", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
@@ -201,7 +204,7 @@ fun TechFinishScreen(
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .size(96.dp)
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .clip(TKShape.Media)
                                         .background(TKColor.InkSoft)
                                 )
                                 IconButton(onClick = { viewModel.removePhoto(url) }, modifier = Modifier.align(Alignment.TopEnd)) {
@@ -214,8 +217,8 @@ fun TechFinishScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(96.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .border(1.5.dp, TKColor.Orange, RoundedCornerShape(12.dp))
+                                        .clip(TKShape.Media)
+                                        .border(1.5.dp, TKColor.Orange, TKShape.Media)
                                         .background(TKColor.InkSoft)
                                         .clickable {
                                             photoPicker.launch(
@@ -241,7 +244,7 @@ fun TechFinishScreen(
                     Spacer(Modifier.height(18.dp))
 
                     Text("Catatan pekerjaan", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     TextFieldDark(
                         value = state.note,
                         onValueChange = viewModel::onNote,
@@ -256,7 +259,7 @@ fun TechFinishScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(TKShape.Media)
                                 .background(if (state.cashReceived) TKColor.OrangeSoft else TKColor.InkSoft)
                                 .clickable { viewModel.onCashReceived(!state.cashReceived) }
                                 .padding(14.dp),

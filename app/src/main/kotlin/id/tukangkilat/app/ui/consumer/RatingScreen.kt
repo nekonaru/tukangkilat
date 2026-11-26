@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -154,7 +157,7 @@ private fun RatingForm(
             modifier = Modifier.padding(horizontal = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             order.technician?.let { tech ->
                 AvatarCircle(tech.fullName, size = 64)
                 Spacer(Modifier.height(10.dp))
@@ -207,13 +210,13 @@ private fun RatingForm(
                     )
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             TextFieldDark(
                 value = state.comment,
                 onValueChange = onComment,
                 placeholder = "Tulis ulasan (opsional)"
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             if (state.isSubmitting) {
                 CircularProgressIndicator(color = TKColor.Orange)
             } else {
@@ -245,12 +248,12 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(TKShape.Card)
                     .background(TKColor.GreenSoft)
-                    .padding(16.dp)
+                    .padding(TKSpacing.Sm)
             ) {
                 Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(36.dp))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 Text("Pesanan selesai", color = TKColor.GreenDeep, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 Spacer(Modifier.height(10.dp))
                 Text(
@@ -272,9 +275,9 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
                 ReceiptRow("Biaya jasa", Format.rupiah(order.serviceFee))
                 ReceiptRow("Biaya kunjungan", Format.rupiah(order.visitFee))
                 if (order.discount > 0) ReceiptRow("Diskon", "-${Format.rupiah(order.discount)}")
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 HorizontalDivider(color = TKColor.Mist.copy(alpha = 0.4f))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 Row {
                     Text(
                         "Lunas · ${methodLabel(order)}",
@@ -297,7 +300,7 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
             OutlinedButton(
                 onClick = onToggleFavorite,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = TKShape.Card,
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
             ) {
@@ -314,7 +317,7 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
             OutlinedButton(
                 onClick = { onReorder(order.serviceId) },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = TKShape.Card,
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
             ) {
@@ -335,7 +338,7 @@ private fun ShareReceiptButton(order: OrderDto) {
     OutlinedButton(
         onClick = { id.tukangkilat.app.ui.util.ReceiptPdf.createAndShare(context, order) },
         modifier = Modifier.fillMaxWidth().height(52.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = TKShape.Card,
         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
     ) {

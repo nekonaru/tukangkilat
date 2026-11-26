@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -148,7 +151,7 @@ fun AdminOrdersScreen(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(TKShape.Card)
                             .background(if (selected) TKColor.Orange else TKColor.InkSoft)
                             .clickable { viewModel.setFilter(value) }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
@@ -164,7 +167,7 @@ fun AdminOrdersScreen(
                     icon = { Icon(Icons.Filled.ReceiptLong, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                 )
                 else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                     contentPadding = PaddingValues(vertical = 10.dp, horizontal = 0.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {

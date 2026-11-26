@@ -108,7 +108,7 @@ fun RegisterScreen(
         ScreenHeader("Buat akun", onBack = onBack)
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
             Text(
-                "Daftar untuk pesan teknisi tepercaya ke rumah Anda.",
+                "Daftar untuk pesan teknisi tepercaya ke rumah kamu.",
                 color = TKColor.Mist,
                 fontSize = 13.sp
             )

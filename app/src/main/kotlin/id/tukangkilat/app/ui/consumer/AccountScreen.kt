@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Geocoder
@@ -229,9 +231,9 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.Notifications, "Notifikasi", onClick = onNotifications)
                     SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
                     SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
                     Spacer(Modifier.height(28.dp))
                 }
@@ -368,9 +370,9 @@ private fun AddressEditorDialog(
         text = {
             Column {
                 TextFieldDark(label, { label = it }, placeholder = "Label, misalnya Rumah")
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 TextFieldDark(fullAddress, { fullAddress = it }, placeholder = "Alamat lengkap")
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 TextButton(onClick = { useCurrentLocation() }) {
                     Text("Gunakan lokasi saya", color = TKColor.Orange, fontSize = 12.sp)
                 }
@@ -416,7 +418,7 @@ private fun SectionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, la
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = if (danger) TKColor.Red else TKColor.Orange)
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(TKSpacing.Sm))
         Text(
             label,
             color = if (danger) TKColor.Red else TKColor.White,
@@ -459,7 +461,7 @@ private fun ChangePasswordDialog(onDismiss: () -> Unit, onSubmit: (String, Strin
                 TextFieldDark(newPassword, { newPassword = it }, placeholder = "Password baru (min 8)", visualTransformation = PasswordVisualTransformation())
                 Spacer(Modifier.height(10.dp))
                 TextFieldDark(confirm, { confirm = it }, placeholder = "Ulangi password baru", visualTransformation = PasswordVisualTransformation())
-                error?.let { Spacer(Modifier.height(8.dp)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
+                error?.let { Spacer(Modifier.height(TKSpacing.Xs)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
             }
         }
     )
@@ -488,14 +490,14 @@ private fun AddressDialog(
             LazyColumn {
                 items(addresses, key = { it.id }) { address ->
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = TKSpacing.Xs),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(address.label, color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 if (address.isPrimary) {
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(TKSpacing.Xs))
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))

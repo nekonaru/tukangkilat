@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -109,9 +112,9 @@ fun DoneScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(TKShape.Card)
                             .background(TKColor.GreenSoft)
-                            .padding(16.dp)
+                            .padding(TKSpacing.Sm)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(28.dp))
@@ -139,7 +142,7 @@ fun DoneScreen(
                             }
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
 
                     SectionLabel("Bukti hasil kerja")
                     Spacer(Modifier.height(4.dp))
@@ -180,16 +183,16 @@ fun DoneScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(TKColor.Card)
-                                .padding(16.dp)
+                                .padding(TKSpacing.Sm)
                         ) {
                             Text("Catatan ${order.technician?.fullName?.split(" ")?.firstOrNull() ?: "teknisi"}",
                                 color = TKColor.Ink,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp)
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(TKSpacing.Xs))
                             Text(note, color = TKColor.Ink, fontSize = 14.sp)
                         }
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(TKSpacing.Sm))
                     }
 
                     TKPrimaryButton("Konfirmasi hasil pekerjaan", onClick = onConfirm)
@@ -217,7 +220,7 @@ fun DoneScreen(
                         )
                         IconButton(
                             onClick = { zoomPhoto = null },
-                            modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                            modifier = Modifier.align(Alignment.TopEnd).padding(TKSpacing.Sm)
                         ) {
                             Icon(Icons.Filled.Close, "Tutup", tint = androidx.compose.ui.graphics.Color.White)
                         }

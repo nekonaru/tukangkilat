@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.background
@@ -210,14 +213,14 @@ private fun OffersTab(
     if (state.offers.isEmpty()) {
         EmptyView(
             title = "Belum ada tawaran",
-            subtitle = "Tawaran pekerjaan akan muncul otomatis di sini selama Anda online.",
+            subtitle = "Tawaran pekerjaan akan muncul otomatis di sini selama kamu online.",
             icon = { Icon(Icons.Filled.TaskAlt, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
         )
         return
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
         contentPadding = PaddingValues(vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -262,9 +265,9 @@ private fun OfferCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.Cream)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row {
             Column(modifier = Modifier.weight(1f)) {
@@ -275,7 +278,7 @@ private fun OfferCard(
             }
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(TKShape.Field)
                     .background(if (seconds <= 15) TKColor.Red else TKColor.OrangeSoft)
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
@@ -287,25 +290,25 @@ private fun OfferCard(
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         Text(offer.description, color = TKColor.CreamText, fontSize = 13.sp, maxLines = 3)
         Spacer(Modifier.height(10.dp))
-        OfferRow(Icons.Filled.Place, "%.1f km dari lokasi Anda".format(offer.distanceKm))
+        OfferRow(Icons.Filled.Place, "%.1f km dari lokasi kamu".format(offer.distanceKm))
         OfferRow(Icons.Filled.Schedule, "${offer.scheduledDate} · ${offer.slotLabel}")
         OfferRow(Icons.Filled.ElectricBolt, "Estimasi pendapatan ${Format.rupiah(offer.estimatedPayout)}")
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(
                 onClick = onReject,
-                modifier = Modifier.weight(1f).height(48.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f).heightIn(min = TKSpacing.MinTouch),
+                shape = TKShape.Media,
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.CreamText),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Ink)
             ) { Text("Tolak", fontWeight = FontWeight.Bold) }
             Button(
                 onClick = onAccept,
-                modifier = Modifier.weight(1.5f).height(48.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1.5f).heightIn(min = TKSpacing.MinTouch),
+                shape = TKShape.Media,
                 colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
             ) { Text("Terima tawaran", fontWeight = FontWeight.Bold) }
         }
@@ -316,7 +319,7 @@ private fun OfferCard(
 private fun OfferRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
         Icon(icon, null, tint = TKColor.CreamText, modifier = Modifier.size(16.dp))
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(TKSpacing.Xs))
         Text(text, color = TKColor.Ink, fontSize = 13.sp)
     }
 }
@@ -351,7 +354,7 @@ private fun RejectDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                             onClick = { reason = r },
                             colors = RadioButtonDefaults.colors(selectedColor = TKColor.Orange)
                         )
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(TKSpacing.Xs))
                         Text(r, color = TKColor.White, fontSize = 14.sp)
                     }
                 }
@@ -371,7 +374,7 @@ private fun ActiveJobsTab(orders: List<OrderSummaryDto>, onOpenJob: (Long) -> Un
         return
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
         contentPadding = PaddingValues(vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -392,7 +395,7 @@ private fun HistoryJobsTab(orders: List<OrderSummaryDto>, onOpenJob: (Long) -> U
         return
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
         contentPadding = PaddingValues(vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -410,7 +413,7 @@ private fun JobListCard(order: OrderSummaryDto, onClick: () -> Unit) {
             .clip(RoundedCornerShape(14.dp))
             .background(TKColor.InkSoft)
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row {
             Text(order.code, color = TKColor.Mist, fontSize = 12.sp)

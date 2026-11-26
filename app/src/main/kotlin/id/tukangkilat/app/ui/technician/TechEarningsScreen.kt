@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -147,12 +150,12 @@ fun TechEarningsScreen(
                         Button(
                             onClick = { viewModel.requestPayout() },
                             colors = ButtonDefaults.buttonColors(containerColor = TKColor.White),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = TKShape.Media
                         ) {
                             Text("Tarik saldo", color = TKColor.Ink, fontWeight = FontWeight.ExtraBold)
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
 
                     SectionLabel("Riwayat pendapatan (komisi platform ${(earnings.commissionRate * 100).toInt()}%)", modifier = Modifier.padding(horizontal = 18.dp))
                     Spacer(Modifier.height(4.dp))
@@ -171,7 +174,7 @@ fun TechEarningsScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .clip(TKShape.Media)
                                         .background(TKColor.InkSoft)
                                         .padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
@@ -222,9 +225,9 @@ private fun EarningRow(entry: EarningEntryDto) {
                 fontSize = 15.sp
             )
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         HorizontalDivider(color = TKColor.InkLine.copy(alpha = 0.4f))
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         FeeLine("Biaya jasa", Format.rupiah(entry.serviceFee))
         FeeLine("Komisi platform", "-${Format.rupiah(entry.commission)}")
         FeeLine("Biaya kunjungan", "+${Format.rupiah(entry.visitFee)}")

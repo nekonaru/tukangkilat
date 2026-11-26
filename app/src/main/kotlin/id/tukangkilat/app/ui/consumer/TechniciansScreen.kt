@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -109,7 +111,7 @@ fun TechniciansScreen(onBack: () -> Unit, viewModel: TechniciansViewModel = hilt
     ) {
         ScreenHeader("Cari Teknisi", onBack = onBack)
         TextFieldDark(query, { query = it }, placeholder = "Cari nama atau keahlian", modifier = Modifier.padding(horizontal = 18.dp))
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -130,7 +132,7 @@ fun TechniciansScreen(onBack: () -> Unit, viewModel: TechniciansViewModel = hilt
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         TextButton(
             onClick = { viewModel.load(skill, query) },
             modifier = Modifier.padding(horizontal = 12.dp)
@@ -219,7 +221,7 @@ private fun TechnicianCard(
                     fontSize = 11.sp
                 )
                 if (item.isOnline) {
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(TKSpacing.Xs))
                     Text("Online", color = TKColor.Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }

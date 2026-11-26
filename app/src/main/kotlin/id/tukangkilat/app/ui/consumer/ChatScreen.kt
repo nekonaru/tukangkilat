@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -141,7 +144,7 @@ fun ChatScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = TKSpacing.Sm),
                 contentPadding = PaddingValues(vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -155,7 +158,7 @@ fun ChatScreen(
                             "Belum ada pesan. Mulai obrolan.",
                             color = TKColor.Mist,
                             fontSize = 13.sp,
-                            modifier = Modifier.padding(24.dp)
+                            modifier = Modifier.padding(TKSpacing.Md)
                         )
                     }
                 }
@@ -175,9 +178,9 @@ fun ChatScreen(
                 onValueChange = viewModel::onDraft,
                 modifier = Modifier
                     .weight(1f)
-                    .background(TKColor.Card, RoundedCornerShape(24.dp)),
+                    .background(TKColor.Card, TKShape.Button),
                 placeholder = { Text("Tulis pesan...", color = TKColor.CreamText) },
-                shape = RoundedCornerShape(24.dp),
+                shape = TKShape.Button,
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = TKColor.Orange,
@@ -187,11 +190,11 @@ fun ChatScreen(
                     cursorColor = TKColor.Orange
                 )
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(TKSpacing.Xs))
             IconButton(
                 onClick = { viewModel.send(orderId, technicianSide) },
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(TKSpacing.MinTouch)
                     .background(TKColor.Orange, androidx.compose.foundation.shape.CircleShape)
             ) {
                 Icon(Icons.Filled.Send, "Kirim", tint = TKColor.White)

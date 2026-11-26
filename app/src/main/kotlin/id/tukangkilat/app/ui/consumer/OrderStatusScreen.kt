@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -188,7 +191,7 @@ fun OrderStatusScreen(
                     // orange accent line like the design
                     Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(TKColor.Orange))
 
-                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = TKSpacing.Sm)) {
                         when (order.status) {
                             OrderStatus.DIBATALKAN -> {
                                 Spacer(Modifier.height(24.dp))
@@ -204,7 +207,7 @@ fun OrderStatusScreen(
                             }
                             OrderStatus.DILAPORKAN -> {
                                 Spacer(Modifier.height(18.dp))
-                                InfoBanner("Laporan Anda sedang kami proses. Admin akan menjadwalkan kunjungan ulang.")
+                                InfoBanner("Laporan kamu sedang kami proses. Admin akan menjadwalkan kunjungan ulang.")
                                 return@Column
                             }
                             OrderStatus.KUNJUNGAN_ULANG -> {
@@ -237,7 +240,7 @@ fun OrderStatusScreen(
                         order.eta?.let { eta ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.Schedule, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
+                                Spacer(Modifier.width(TKSpacing.Xs))
                                 Column {
                                     Text("Tiba sekitar ${eta.arriveAt}", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                     Text(
@@ -255,7 +258,7 @@ fun OrderStatusScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
+                                    .clip(TKShape.Card)
                                     .background(TKColor.Card)
                                     .padding(14.dp)
                             ) {
@@ -280,23 +283,23 @@ fun OrderStatusScreen(
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(46.dp),
-                                        shape = RoundedCornerShape(12.dp),
+                                        shape = TKShape.Media,
                                         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Mist),
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Ink)
                                     ) {
                                         Icon(Icons.Filled.Phone, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
+                                        Spacer(Modifier.width(TKSpacing.Xs))
                                         Text("Telepon", fontWeight = FontWeight.SemiBold)
                                     }
                                     OutlinedButton(
                                         onClick = onOpenChat,
                                         modifier = Modifier.weight(1f).height(46.dp),
-                                        shape = RoundedCornerShape(12.dp),
+                                        shape = TKShape.Media,
                                         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Mist),
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Ink)
                                     ) {
                                         Icon(Icons.Filled.Chat, null, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
+                                        Spacer(Modifier.width(TKSpacing.Xs))
                                         Text("Pesan", fontWeight = FontWeight.SemiBold)
                                     }
                                 }
@@ -306,7 +309,7 @@ fun OrderStatusScreen(
 
                         // timeline
                         TimelineCard(order = order)
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(TKSpacing.Sm))
 
                         if (order.status in CANCELABLE) {
                             OutlinedButton(
@@ -340,7 +343,7 @@ private fun InfoBanner(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(TKShape.Media)
             .background(TKColor.Cream)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -356,7 +359,7 @@ private fun CancelledCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.RedSoft)
             .padding(18.dp)
     ) {
@@ -381,9 +384,9 @@ private fun TimelineCard(order: OrderDto) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.Orange)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         steps.forEachIndexed { index, (status, label) ->
             val eventTime = eventTimes[status]
@@ -450,7 +453,7 @@ private fun CancelDialog(
         text = {
             Column {
                 Text("Alasan pembatalan:", color = TKColor.Mist, fontSize = 12.sp)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 quickReasons.forEach { quick ->
                     Row(
                         modifier = Modifier
@@ -464,11 +467,11 @@ private fun CancelDialog(
                             onClick = { reason = quick },
                             colors = RadioButtonDefaults.colors(selectedColor = TKColor.Orange)
                         )
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(TKSpacing.Xs))
                         Text(quick, color = TKColor.White, fontSize = 14.sp)
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 TextFieldDark(reason, { reason = it }, placeholder = "Tulis alasan lain (opsional)")
             }
         }

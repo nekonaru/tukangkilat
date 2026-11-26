@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.auth
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -175,7 +178,7 @@ fun RegisterTechnicianScreen(
         ScreenHeader("Daftar jadi tukang", onBack = onBack)
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
             Text(
-                "Isi data diri. Akun Anda diaktifkan setelah diverifikasi admin.",
+                "Isi data diri. Akun kamu diaktifkan setelah diverifikasi admin.",
                 color = TKColor.Mist,
                 fontSize = 13.sp
             )
@@ -202,13 +205,13 @@ fun RegisterTechnicianScreen(
 
             Spacer(Modifier.height(20.dp))
             Text("Keahlian", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             SKILLS.forEach { (key, label) ->
                 val checked = key in state.skills
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TKShape.Media)
                         .background(if (checked) TKColor.OrangeSoft else TKColor.InkSoft)
                         .clickable { viewModel.toggleSkill(key) }
                         .padding(14.dp),
@@ -226,10 +229,10 @@ fun RegisterTechnicianScreen(
                     Spacer(Modifier.width(12.dp))
                     Text(label, color = TKColor.White, fontWeight = FontWeight.Medium)
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             Text("Radius layanan (km): ${state.serviceRadiusKm}", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Slider(
                 value = state.serviceRadiusKm.toFloat(),
@@ -239,9 +242,9 @@ fun RegisterTechnicianScreen(
                 colors = SliderDefaults.colors(thumbColor = TKColor.Orange, activeTrackColor = TKColor.Orange, inactiveTrackColor = TKColor.InkLine)
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             Text("Foto KTP", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             PhotoUploadBox(
                 onClick = { ktpPicker.launch("image/*") },
                 uploading = state.uploadingKtp,
@@ -250,7 +253,7 @@ fun RegisterTechnicianScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text("Selfie", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             PhotoUploadBox(
                 onClick = { selfiePicker.launch("image/*") },
                 uploading = state.uploadingSelfie,
@@ -291,13 +294,13 @@ private fun PhotoUploadBox(onClick: () -> Unit, uploading: Boolean, done: Boolea
         } else if (done) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Check, null, tint = TKColor.GreenDeep)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(TKSpacing.Xs))
                 Text("Foto terunggah", color = TKColor.GreenDeep, fontWeight = FontWeight.Bold)
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.CameraAlt, null, tint = TKColor.Orange)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(TKSpacing.Xs))
                 Text(label, color = TKColor.White, fontWeight = FontWeight.Medium)
             }
         }

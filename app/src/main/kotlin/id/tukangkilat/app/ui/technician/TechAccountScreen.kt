@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -197,11 +200,11 @@ fun TechAccountScreen(
                             fontSize = 15.sp,
                             modifier = Modifier.padding(horizontal = 20.dp)
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(TKSpacing.Xs))
                         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                             state.reviews.take(3).forEach { review ->
                                 ReviewCard(review)
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(TKSpacing.Xs))
                             }
                         }
                         Spacer(Modifier.height(4.dp))
@@ -209,7 +212,7 @@ fun TechAccountScreen(
 
                     // edit skills
                     Text("Keahlian", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(horizontal = 20.dp))
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     Row(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -229,7 +232,7 @@ fun TechAccountScreen(
                             )
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
 
                     Text("Radius layanan: ${state.radius} km", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(horizontal = 20.dp))
                     Slider(
@@ -240,7 +243,7 @@ fun TechAccountScreen(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         colors = SliderDefaults.colors(thumbColor = TKColor.Orange, activeTrackColor = TKColor.Orange, inactiveTrackColor = TKColor.InkLine)
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     if (state.saving) {
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = TKColor.Orange)
@@ -248,8 +251,8 @@ fun TechAccountScreen(
                     } else {
                         Button(
                             onClick = { viewModel.saveProfile() },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).heightIn(min = TKSpacing.MinTouch),
+                            shape = TKShape.Media,
                             colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
                         ) {
                             Text("Simpan perubahan", fontWeight = FontWeight.Bold)
@@ -259,7 +262,7 @@ fun TechAccountScreen(
 
                     AccountRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     AccountRow(Icons.Filled.Notifications, "Notifikasi") { onNotifications() }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     AccountRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
                     Spacer(Modifier.height(28.dp))
                 }
@@ -280,7 +283,7 @@ private fun ReviewCard(review: id.tukangkilat.shared.ReviewDto) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(TKShape.Media)
             .background(TKColor.InkSoft)
             .padding(12.dp)
     ) {
@@ -295,7 +298,7 @@ private fun ReviewCard(review: id.tukangkilat.shared.ReviewDto) {
                     )
                 }
             }
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(TKSpacing.Xs))
             Text(review.orderCode, color = TKColor.Mist, fontSize = 11.sp)
         }
         if (review.tags.isNotEmpty()) {
@@ -339,7 +342,7 @@ private fun AccountRow(icon: androidx.compose.ui.graphics.vector.ImageVector, la
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = if (danger) TKColor.Red else TKColor.Orange)
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(TKSpacing.Sm))
         Text(label, color = if (danger) TKColor.Red else TKColor.White, fontWeight = FontWeight.Medium, fontSize = 16.sp, modifier = Modifier.weight(1f))
         Icon(Icons.Filled.ChevronRight, null, tint = TKColor.InkLine)
     }
@@ -376,7 +379,7 @@ private fun PasswordDialog(onDismiss: () -> Unit, onSubmit: (String, String) -> 
                 TextFieldDark(newPassword, { newPassword = it }, placeholder = "Password baru (min 8)", visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
                 Spacer(Modifier.height(10.dp))
                 TextFieldDark(confirm, { confirm = it }, placeholder = "Ulangi password baru", visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
-                error?.let { Spacer(Modifier.height(8.dp)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
+                error?.let { Spacer(Modifier.height(TKSpacing.Xs)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
             }
         }
     )

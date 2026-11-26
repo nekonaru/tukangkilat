@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -115,12 +117,12 @@ fun OrdersScreen(
         OutlinedTextField(
             value = state.query,
             onValueChange = { viewModel.onQuery(it) },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = TKSpacing.Sm).height(56.dp),
             placeholder = { Text("Cari kode atau layanan", color = TKColor.Mist, fontSize = 13.sp) },
             singleLine = true,
             shape = RoundedCornerShape(14.dp)
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         TabRow(
             selectedTabIndex = state.tab,
             containerColor = TKColor.Ink,
@@ -144,7 +146,7 @@ fun OrdersScreen(
                 icon = { Icon(Icons.Filled.ReceiptLong, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
             )
             else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 items(shown, key = { it.id }) { order ->
@@ -164,7 +166,7 @@ private fun OrderListCard(order: OrderSummaryDto, onClick: () -> Unit) {
             .clip(RoundedCornerShape(14.dp))
             .background(TKColor.InkSoft)
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row {
             Text(order.code, color = TKColor.Mist, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
@@ -175,7 +177,7 @@ private fun OrderListCard(order: OrderSummaryDto, onClick: () -> Unit) {
         Text(order.serviceName, color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(Modifier.height(4.dp))
         Text("${order.scheduledDate} · ${order.slotLabel}", color = TKColor.Mist, fontSize = 12.sp)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         Text(Format.rupiah(order.total), color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
     }
 }

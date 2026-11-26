@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.Manifest
 import android.location.Geocoder
 import android.net.Uri
@@ -286,9 +289,9 @@ fun OrderFormScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(TKShape.Card)
                         .background(TKColor.Orange)
-                        .padding(16.dp),
+                        .padding(TKSpacing.Sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -330,7 +333,7 @@ fun OrderFormScreen(
             Spacer(Modifier.height(18.dp))
 
             Text("Ceritakan masalahnya", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             TextFieldDark(
                 value = state.description,
                 onValueChange = viewModel::onDescription,
@@ -359,7 +362,7 @@ fun OrderFormScreen(
                             contentDescription = "Foto masalah",
                             modifier = Modifier
                                 .size(96.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(TKShape.Media)
                                 .background(TKColor.InkSoft)
                         )
                         IconButton(
@@ -375,8 +378,8 @@ fun OrderFormScreen(
                         Box(
                             modifier = Modifier
                                 .size(96.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(1.5.dp, TKColor.Orange, RoundedCornerShape(12.dp))
+                                .clip(TKShape.Media)
+                                .border(1.5.dp, TKColor.Orange, TKShape.Media)
                                 .background(TKColor.InkSoft)
                                 .clickable {
                                     photoPicker.launch(
@@ -402,7 +405,7 @@ fun OrderFormScreen(
             Spacer(Modifier.height(18.dp))
 
             Text("Tanggal dan waktu", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             DateSelector(date = state.date, onDate = viewModel::onDate)
             Spacer(Modifier.height(10.dp))
             if (state.isLoadingSlots) {
@@ -454,7 +457,7 @@ fun OrderFormScreen(
                     onSelect = viewModel::selectAddress
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             state.selectedAddress?.let { address ->
                 Text(address.label, color = TKColor.Mist, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 Text(address.fullAddress, color = TKColor.White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -472,7 +475,7 @@ fun OrderFormScreen(
                 enabled = !state.isLocating
             ) {
                 Icon(Icons.Filled.MyLocation, null, tint = TKColor.Orange)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     if (state.isLocating) "Mencari lokasi..." else "Gunakan lokasi saya",
                     color = TKColor.Orange,
@@ -481,7 +484,7 @@ fun OrderFormScreen(
             }
 
             state.error?.let {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 Text(it, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(Modifier.height(14.dp))
@@ -543,7 +546,7 @@ private fun DateSelector(date: String, onDate: (String) -> Unit) {
             .clip(RoundedCornerShape(14.dp))
             .background(TKColor.Orange)
             .clickable { showPicker = true }
-            .padding(16.dp),
+            .padding(TKSpacing.Sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Filled.CalendarMonth, null, tint = TKColor.White)
@@ -580,7 +583,7 @@ private fun AddressPickerDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(TKShape.Media)
                                 .clickable { onSelect(address.id); show = false }
                                 .padding(vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -590,7 +593,7 @@ private fun AddressPickerDialog(
                                 onClick = { onSelect(address.id); show = false },
                                 colors = RadioButtonDefaults.colors(selectedColor = TKColor.Orange, unselectedColor = TKColor.Mist)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(TKSpacing.Xs))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(address.label, color = TKColor.White, fontWeight = FontWeight.Medium, fontSize = 13.sp)
                                 Text(address.fullAddress, color = TKColor.Mist, fontSize = 12.sp, maxLines = 2)

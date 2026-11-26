@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.technician
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -136,7 +139,7 @@ class TechHomeViewModel @Inject constructor(
                 technicianRepository.setOnline(online)
                 _state.value = _state.value.copy(
                     profile = _state.value.profile?.copy(isOnline = online),
-                    snackbar = if (online) "Anda online, siap menerima tawaran" else "Anda offline"
+                    snackbar = if (online) "Kamu online, siap menerima tawaran" else "Kamu offline"
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(snackbar = e.cleanApiError())
@@ -230,7 +233,7 @@ fun TechHomeScreen(
                         Spacer(Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                if (state.profile?.isOnline == true) "Anda Online" else "Anda Offline",
+                                if (state.profile?.isOnline == true) "Kamu Online" else "Kamu Offline",
                                 color = TKColor.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -265,7 +268,7 @@ fun TechHomeScreen(
                             )
                         )
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
 
                     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp)) {
                         item {
@@ -275,7 +278,7 @@ fun TechHomeScreen(
                                 SummaryCard("Pendapatan hari ini", Format.rupiah(state.todayEarnings), Modifier.weight(1f))
                                 SummaryCard("Tawaran", "${state.offerCount}", Modifier.weight(1f))
                             }
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(TKSpacing.Sm))
                         }
 
                         item {
@@ -288,7 +291,7 @@ fun TechHomeScreen(
                                     "Belum ada pekerjaan aktif. Tawaran baru akan muncul otomatis saat online.",
                                     color = TKColor.Mist,
                                     fontSize = 13.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
+                                    modifier = Modifier.padding(vertical = TKSpacing.Xs)
                                 )
                             }
                         } else {
@@ -336,9 +339,9 @@ private fun ActiveJobCard(order: OrderSummaryDto, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.OrangeSoft)
-            .padding(16.dp),
+            .padding(TKSpacing.Sm),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Row {
@@ -373,7 +376,7 @@ private fun UpcomingJobCard(order: OrderSummaryDto, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(TKShape.Media)
             .background(TKColor.InkSoft)
             .clickable(onClick = onClick)
             .padding(12.dp)
