@@ -112,6 +112,7 @@ private val QUICK_TAGS = listOf("Tepat waktu", "Ramah", "Rapi")
 fun RatingScreen(
     orderId: Long,
     onDone: () -> Unit,
+    onReorder: (Long) -> Unit = {},
     viewModel: RatingViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -120,7 +121,7 @@ fun RatingScreen(
     when {
         state.isLoading -> LoadingView()
         state.error != null && state.order == null -> ErrorView(message = state.error!!, onRetry = { viewModel.load(orderId) })
-        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone, isFavorite = state.isFavorite, onToggleFavorite = { viewModel.toggleFavorite() })
+        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone, isFavorite = state.isFavorite, onToggleFavorite = { viewModel.toggleFavorite() }, onReorder = onReorder)
         else -> RatingForm(
             state = state,
             onStars = viewModel::onStars,
@@ -229,7 +230,7 @@ private fun RatingForm(
 
 /** Struk ringkas (layar 08 bagian bawah). Juga dipakai untuk pesanan SELESAI. */
 @Composable
-internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boolean = false, onToggleFavorite: () -> Unit = {}) {
+internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boolean = false, onToggleFavorite: () -> Unit = {}, onReorder: (Long) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -308,6 +309,18 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(if (isFavorite) "Teknisi favorit" else "Simpan teknisi favorit", fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(10.dp))
+            OutlinedButton(
+                onClick = { onReorder(order.serviceId) },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
+            ) {
+                Icon(Icons.Filled.Send, null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Text("Pesan lagi layanan ini", fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(10.dp))
             TKPrimaryButton("Kembali ke Beranda", onClick = onBack)

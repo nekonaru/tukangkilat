@@ -4,6 +4,12 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Pesan lagi**: layar struk kini punya tombol **Pesan lagi layanan ini** yang membuka form Pemesanan dengan layanan yang sama sudah dipilih. Berlaku untuk struk dari alur penilaian maupun riwayat pesanan selesai.
+
 ## [2.10.0] - 2026-11-26
 
 ### Ditambahkan
@@ -211,6 +217,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
 [2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0
 [2.8.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.8.0
