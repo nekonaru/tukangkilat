@@ -43,7 +43,7 @@ release-build.txt
 backend-test-out.txt
 
 backend/uploads/
-data/
+/data/
 uploads/
 .kotlin/
 release-password.txt
