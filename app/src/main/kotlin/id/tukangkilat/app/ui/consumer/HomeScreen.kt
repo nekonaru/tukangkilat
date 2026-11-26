@@ -187,9 +187,10 @@ fun HomeScreen(
                         modifier = Modifier.padding(top = 14.dp, bottom = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
+                        Icon(
                             painter = painterResource(R.drawable.ic_brand),
-                            contentDescription = null,
+                            contentDescription = "Tukang Kilat",
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(30.dp)
                         )
                         Spacer(Modifier.width(10.dp))
