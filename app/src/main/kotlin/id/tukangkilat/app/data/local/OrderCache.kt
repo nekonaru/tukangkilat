@@ -38,14 +38,18 @@ interface OrderDao {
 }
 
 @androidx.room.Database(
-    entities = [CachedOrder::class, CachedService::class, CachedAddress::class, FavoriteTechnician::class],
-    version = 3,
+    entities = [
+        CachedOrder::class, CachedService::class, CachedAddress::class,
+        FavoriteTechnician::class, CachedNotification::class
+    ],
+    version = 4,
     exportSchema = false
 )
 abstract class TukangKilatDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
     abstract fun catalogDao(): CatalogDao
     abstract fun favoriteDao(): FavoriteDao
+    abstract fun notificationDao(): NotificationDao
 }
 
 fun OrderSummaryDto.toCached() = CachedOrder(

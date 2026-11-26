@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Assigns waiting orders to nearby verified online technicians.
@@ -15,6 +16,10 @@ object DispatchService {
     private const val MAX_OFFERS_PER_ORDER = 5
     private const val OFFER_TTL_SECONDS = 60L
     private const val MAX_SEARCH_MINUTES = 10L
+    private const val NO_TECH_NOTICE_COOLDOWN_MS = 10 * 60 * 1000L
+
+    /** Last time a no-technician notice was sent per order. Process-local by design. */
+    private val lastNoTechnicianNotice = ConcurrentHashMap<Long, Long>()
 
     /** Run one full dispatch pass. Safe to call frequently. */
     suspend fun dispatchRound() {
@@ -83,22 +88,41 @@ object DispatchService {
             return
         }
 
-        transaction {
+        val inserted = transaction {
             val now = OffsetDateTime.now()
-            JobOffersTable.insert {
-                it[JobOffersTable.orderId] = orderId
-                it[JobOffersTable.technicianId] = next
-                it[JobOffersTable.status] = OfferStatus.MENUNGGU.name
-                it[JobOffersTable.expiresAt] = now.plusSeconds(OFFER_TTL_SECONDS)
-                it[JobOffersTable.isRevisit] = (orderStatus == OrderStatus.KUNJUNGAN_ULANG)
-                it[JobOffersTable.createdAt] = now
+            // Re-check inside the insert transaction: the scheduled tick and a manual dispatch
+            // may both have passed the earlier check.
+            val hasActive = JobOffersTable.selectAll().where {
+                (JobOffersTable.orderId eq orderId) and (JobOffersTable.status eq OfferStatus.MENUNGGU.name)
+            }.any()
+            val alreadyOffered = JobOffersTable.selectAll().where {
+                (JobOffersTable.orderId eq orderId) and (JobOffersTable.technicianId eq next)
+            }.any()
+            if (hasActive || alreadyOffered) {
+                false
+            } else {
+                JobOffersTable.insert {
+                    it[JobOffersTable.orderId] = orderId
+                    it[JobOffersTable.technicianId] = next
+                    it[JobOffersTable.status] = OfferStatus.MENUNGGU.name
+                    it[JobOffersTable.expiresAt] = now.plusSeconds(OFFER_TTL_SECONDS)
+                    it[JobOffersTable.isRevisit] = (orderStatus == OrderStatus.KUNJUNGAN_ULANG)
+                    it[JobOffersTable.createdAt] = now
+                }
+                true
             }
         }
-        // push the offer to the technician
-        WsHub.sendTo(next, WsEvent(WsEventType.OFFER_NEW, orderId))
+        if (inserted) WsHub.sendTo(next, WsEvent(WsEventType.OFFER_NEW, orderId))
     }
 
     private suspend fun notifyNoTechnician(orderId: Long) {
+        // Cooldown, not a permanent flag: the order may re-enter the search state later.
+        // A process-local map also avoids writing an unknown status into order_events,
+        // which would break OrderQueries.loadEvents when the detail screen opens.
+        val nowMs = System.currentTimeMillis()
+        val previous = lastNoTechnicianNotice.putIfAbsent(orderId, nowMs)
+        if (previous != null && nowMs - previous < NO_TECH_NOTICE_COOLDOWN_MS) return
+        lastNoTechnicianNotice[orderId] = nowMs
         val consumerId = transaction { OrderQueries.loadOrderRow(orderId)[OrdersTable.consumerId] }
         val payload = kotlinx.serialization.json.JsonObject(
             mapOf("reason" to kotlinx.serialization.json.JsonPrimitive("TIDAK_ADA_TEKNISI"))

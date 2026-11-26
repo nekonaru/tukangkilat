@@ -32,6 +32,12 @@ interface ApiService {
     @GET("/consumer/services")
     suspend fun services(): List<ServiceDto>
 
+    @GET("/consumer/technicians")
+    suspend fun technicians(
+        @Query("skill") skill: String? = null,
+        @Query("q") query: String? = null
+    ): List<TechnicianBrowseDto>
+
     @GET("/consumer/slots")
     suspend fun slots(@Query("date") date: String): List<SlotDto>
 

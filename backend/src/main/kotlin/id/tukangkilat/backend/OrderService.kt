@@ -245,9 +245,10 @@ object OrderService {
     private fun generateOrderCode(): String {
         val today = LocalDate.now()
         val prefix = "TK-" + today.format(DateTimeFormatter.ofPattern("ddMMyy")) + "-"
-        repeat(MAX_CODE_ATTEMPTS) {
+        repeat(MAX_CODE_ATTEMPTS) { attempt ->
             val count = OrdersTable.selectAll().where { OrdersTable.code like "$prefix%" }.count()
-            val candidate = prefix + (count + 1).toString().padStart(2, '0')
+            // Advance the candidate on every retry so a collision does not retry the same value.
+            val candidate = prefix + (count + 1 + attempt).toString().padStart(2, '0')
             val exists = OrdersTable.selectAll().where { OrdersTable.code eq candidate }.any()
             if (!exists) return candidate
         }

@@ -134,6 +134,19 @@ data class TechnicianPublicDto(
     val phone: String? = null
 )
 
+/** Public card shown in the consumer technician directory. No contact data is exposed. */
+@Serializable
+data class TechnicianBrowseDto(
+    val id: Long,
+    val fullName: String,
+    val skills: List<String>,
+    val ratingAvg: Double,
+    val jobsCount: Int,
+    val serviceRadiusKm: Int,
+    val isOnline: Boolean,
+    val photoUrl: String? = null
+)
+
 @Serializable
 data class OrderPhotoDto(
     val id: Long,

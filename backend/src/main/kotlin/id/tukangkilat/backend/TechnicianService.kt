@@ -3,6 +3,7 @@ package id.tukangkilat.backend
 import id.tukangkilat.shared.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import java.time.OffsetDateTime
 
 /** Technician-side operations: presence, location, offers, job actions, earnings. */
@@ -14,7 +15,12 @@ object TechnicianService {
         assertVerified(userId)
         TechnicianProfilesTable.update({ TechnicianProfilesTable.userId eq userId }) {
             it[isOnline] = online
-            it[lastLocationAt] = if (online) OffsetDateTime.now() else null
+            if (!online) {
+                // Dispatch must not reuse a stale coordinate after the technician comes back.
+                it[lastLat] = null
+                it[lastLng] = null
+                it[lastLocationAt] = null
+            }
         }
     }
 
@@ -304,6 +310,10 @@ object TechnicianService {
     fun withdraw(userId: Long, req: WithdrawRequest): WithdrawalDto = transaction {
         assertVerified(userId)
         if (req.amount <= 0) throw BadRequestException("Jumlah penarikan harus lebih dari 0")
+        // Serialize concurrent withdrawals for this technician with a row lock.
+        UsersTable.selectAll().where { UsersTable.id eq userId }
+            .forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
+            ?: throw BadRequestException("Teknisi tidak ditemukan")
         val earned = OrdersTable.selectAll().where {
             (OrdersTable.technicianId eq userId) and (OrdersTable.status eq OrderStatus.SELESAI.name)
         }.sumOf { Pricing.technicianPayout(it[OrdersTable.serviceFee], it[OrdersTable.visitFee]) }

@@ -154,6 +154,15 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 get("/services") {
                     call.requireRole(Role.KONSUMEN); call.respond(OrderService.listServices())
                 }
+                get("/technicians") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(
+                        ConsumerBrowseService.technicians(
+                            call.request.queryParameters["skill"],
+                            call.request.queryParameters["q"]
+                        )
+                    )
+                }
                 get("/slots") {
                     call.requireRole(Role.KONSUMEN)
                     val date = call.request.queryParameters["date"]?.let {

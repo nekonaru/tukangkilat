@@ -156,6 +156,7 @@ internal fun statusLabel(status: OrderStatus): String = when (status) {
 fun HomeScreen(
     onOrder: (Long) -> Unit,
     onActiveOrder: (Long, OrderStatus) -> Unit,
+    onFindTechnicians: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -247,6 +248,28 @@ fun HomeScreen(
                             subtitle = "Coba kata kunci lain, misalnya \"listrik\", \"pipa\", atau \"AC\"."
                         )
                     }
+                }
+
+                item {
+                    SectionLabel("Teknisi")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, TKColor.InkLine, RoundedCornerShape(16.dp))
+                            .background(TKColor.InkSoft)
+                            .clickable(onClick = onFindTechnicians)
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.Search, null, tint = TKColor.Orange, modifier = Modifier.size(24.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text("Cari teknisi terverifikasi", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Lihat rating, keahlian, dan simpan favorit", color = TKColor.Mist, fontSize = 12.sp)
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
 
                 state.activeOrder?.let { order ->

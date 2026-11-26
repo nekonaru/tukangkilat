@@ -21,6 +21,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +41,7 @@ import id.tukangkilat.app.ui.consumer.*
 import id.tukangkilat.app.ui.technician.*
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.shared.Role
+import kotlinx.coroutines.launch
 
 data class BottomTab(val route: String, val label: String, val icon: ImageVector)
 
@@ -51,6 +53,7 @@ object Routes {
 
     // consumer
     const val C_HOME = "consumer/home"
+    const val C_TECHNICIANS = "consumer/technicians"
     const val C_ORDERS = "consumer/orders"
     const val C_ACCOUNT = "consumer/account"
     const val NOTIFICATIONS = "notifications"
@@ -102,6 +105,7 @@ fun TukangKilatApp(
 ) {
     val session by viewModel.session.collectAsState()
     val backendReady by LocalBackend.ready.collectAsState()
+    val startupError by LocalBackend.startupError.collectAsState()
     val navController = rememberNavController()
 
     if (!backendReady) {
@@ -112,11 +116,13 @@ fun TukangKilatApp(
             animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Reverse),
             label = "pulse"
         )
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
         Box(
             modifier = Modifier.fillMaxSize().background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                 Image(
                     painter = painterResource(R.drawable.ic_brand),
                     contentDescription = null,
@@ -129,9 +135,19 @@ fun TukangKilatApp(
                         }
                 )
                 Spacer(Modifier.height(24.dp))
-                CircularProgressIndicator(color = TKColor.Orange)
-                Spacer(Modifier.height(12.dp))
-                Text("Menyiapkan aplikasi...", color = TKColor.Mist, fontSize = 13.sp)
+                if (startupError == null) {
+                    CircularProgressIndicator(color = TKColor.Orange)
+                    Spacer(Modifier.height(12.dp))
+                    Text("Menyiapkan aplikasi...", color = TKColor.Mist, fontSize = 13.sp)
+                } else {
+                    Text("Aplikasi gagal dimulai", color = TKColor.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    Text(startupError ?: "", color = TKColor.Mist, fontSize = 12.sp)
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { scope.launch { LocalBackend.retry(context.applicationContext) } }) {
+                        Text("Coba lagi")
+                    }
+                }
             }
         }
         return
@@ -262,7 +278,8 @@ fun TukangKilatApp(
             composable(Routes.C_HOME) {
                 HomeScreen(
                     onOrder = { serviceId -> navController.navigate("${Routes.C_ORDER_NEW}?serviceId=$serviceId") },
-                    onActiveOrder = { orderId, status -> navController.navigate(statusRouteFor(status, orderId)) }
+                    onActiveOrder = { orderId, status -> navController.navigate(statusRouteFor(status, orderId)) },
+                    onFindTechnicians = { navController.navigate(Routes.C_TECHNICIANS) }
                 )
             }
             composable(
@@ -281,7 +298,13 @@ fun TukangKilatApp(
                     onOpen = { orderId, status -> navController.navigate(statusRouteFor(status, orderId)) }
                 )
             }
-            composable(Routes.C_ACCOUNT) { AccountScreen(onNotifications = { navController.navigate(Routes.NOTIFICATIONS) }) }
+            composable(Routes.C_ACCOUNT) {
+                AccountScreen(
+                    onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
+                    onBrowseTechnicians = { navController.navigate(Routes.C_TECHNICIANS) }
+                )
+            }
+            composable(Routes.C_TECHNICIANS) { TechniciansScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.NOTIFICATIONS) { NotificationsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_STATUS, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")

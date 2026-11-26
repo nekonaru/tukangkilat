@@ -14,6 +14,7 @@ import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.api.TokenAuthenticator
 import id.tukangkilat.app.data.local.CatalogDao
 import id.tukangkilat.app.data.local.FavoriteDao
+import id.tukangkilat.app.data.local.NotificationDao
 import id.tukangkilat.app.data.local.OrderDao
 import id.tukangkilat.app.data.local.TukangKilatDatabase
 import kotlinx.serialization.json.Json
@@ -75,7 +76,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TukangKilatDatabase =
         Room.databaseBuilder(context, TukangKilatDatabase::class.java, "tukangkilat.db")
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_3_4)
             .build()
 
     @Provides
@@ -86,4 +87,18 @@ object AppModule {
 
     @Provides
     fun provideOrderDao(db: TukangKilatDatabase): OrderDao = db.orderDao()
+
+    @Provides
+    fun provideNotificationDao(db: TukangKilatDatabase): NotificationDao = db.notificationDao()
+}
+
+/** Version 4 adds the persisted notification history without clearing favorites or orders. */
+private val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS cached_notifications (" +
+                "id INTEGER PRIMARY KEY NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL, " +
+                "createdAt INTEGER NOT NULL, read INTEGER NOT NULL)"
+        )
+    }
 }

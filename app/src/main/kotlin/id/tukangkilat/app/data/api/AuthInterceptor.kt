@@ -1,6 +1,6 @@
 package id.tukangkilat.app.data.api
 
-import id.tukangkilat.app.BuildConfig
+import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.local.SessionManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -38,10 +38,14 @@ class AuthInterceptor @Inject constructor(
  */
 @Singleton
 class TokenAuthenticator @Inject constructor(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val serverConfig: ServerConfigManager
 ) : Authenticator {
 
-    private val bareClient = OkHttpClient.Builder().build()
+    private val bareClient = OkHttpClient.Builder()
+        .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
 
     override fun authenticate(route: Route?, response: Response): Request? {
         // only retry once per response chain
@@ -53,7 +57,7 @@ class TokenAuthenticator @Inject constructor(
                 val body = """{"refreshToken":"$refresh"}"""
                     .toRequestBody("application/json".toMediaType())
                 val refreshRequest = Request.Builder()
-                    .url("${BuildConfig.BASE_URL}/auth/refresh")
+                    .url("${serverConfig.current()}/auth/refresh")
                     .post(body)
                     .build()
                 bareClient.newCall(refreshRequest).execute().use { res ->
