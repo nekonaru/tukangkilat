@@ -208,7 +208,8 @@ data class OrderSummaryDto(
 @Serializable
 data class PayRequest(
     val method: PaymentMethod,
-    val promoCode: String? = null
+    val promoCode: String? = null,
+    val provider: String? = null
 )
 
 @Serializable

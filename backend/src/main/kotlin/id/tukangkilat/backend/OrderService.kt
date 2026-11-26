@@ -347,7 +347,9 @@ object OrderService {
                 PayResponse(orderId, paymentId, PaymentMethod.TUNAI, effectiveTotal, null, PaymentStatus.BELUM_DIBAYAR, null)
             }
             else -> {
-                val reference = (if (req.method == PaymentMethod.TRANSFER) "BCA-" else "DOMPET-") + randomDigits(10)
+                val prefix = req.provider?.takeIf { it.isNotBlank() }
+                    ?: if (req.method == PaymentMethod.TRANSFER) "BCA" else "DOMPET"
+                val reference = "$prefix-" + randomDigits(10)
                 val expires = now.plusMinutes(30)
                 OrdersTable.update({ OrdersTable.id eq orderId }) {
                     it[OrdersTable.paymentMethod] = req.method.name

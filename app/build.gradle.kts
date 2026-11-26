@@ -121,6 +121,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.coil.compose)
+    implementation(libs.zxing.core)
     implementation(libs.osmdroid.android)
     implementation(libs.datastore.preferences)
     implementation(libs.play.services.location)
