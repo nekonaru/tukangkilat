@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -38,6 +39,7 @@ class WsManager @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
     private var socket: WebSocket? = null
     private var running = false
+    private var connectJob: Job? = null
 
     private val client = OkHttpClient.Builder()
         .pingInterval(20, TimeUnit.SECONDS)
@@ -47,7 +49,8 @@ class WsManager @Inject constructor(
     fun start() {
         if (running) return
         running = true
-        scope.launch {
+        connectJob?.cancel()
+        connectJob = scope.launch {
             var backoffMs = 1_000L
             var lastUrl: String? = null
             while (isActive && running) {
@@ -109,6 +112,8 @@ class WsManager @Inject constructor(
 
     fun stop() {
         running = false
+        connectJob?.cancel()
+        connectJob = null
         socket?.close(1000, "bye")
         socket = null
     }

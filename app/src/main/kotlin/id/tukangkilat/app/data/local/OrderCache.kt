@@ -42,7 +42,7 @@ interface OrderDao {
         CachedOrder::class, CachedService::class, CachedAddress::class,
         FavoriteTechnician::class, CachedNotification::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class TukangKilatDatabase : RoomDatabase() {

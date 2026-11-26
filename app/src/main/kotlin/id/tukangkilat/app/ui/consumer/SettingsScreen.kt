@@ -10,12 +10,15 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import id.tukangkilat.app.BuildConfig
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.api.BaseUrlInterceptor
+import id.tukangkilat.app.data.repository.SystemRepository
 import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.local.UiPreferencesManager
 import id.tukangkilat.app.ui.components.*
@@ -31,13 +34,15 @@ import javax.inject.Inject
 data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.System,
     val serverUrl: String = "",
-    val message: String? = null
+    val message: String? = null,
+    val connection: String? = null
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val uiPreferences: UiPreferencesManager,
-    private val serverConfig: ServerConfigManager
+    private val serverConfig: ServerConfigManager,
+    private val systemRepository: SystemRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettingsUiState())
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -60,6 +65,15 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearMessage() { _state.value = _state.value.copy(message = null) }
+
+    fun checkConnection() = viewModelScope.launch {
+        _state.value = _state.value.copy(connection = "Memeriksa...")
+        _state.value = _state.value.copy(
+            connection = runCatching { systemRepository.health() }
+                .map { "Terhubung: $it" }
+                .getOrDefault("Tidak terhubung ke server")
+        )
+    }
 }
 
 @Composable
@@ -108,10 +122,22 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewMo
                     )
                 }
 
+                Spacer(Modifier.height(TKSpacing.Xs))
+                TKButton("Cek koneksi server", { viewModel.checkConnection() }, variant = TKButtonVariant.Outlined)
+                state.connection?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
+                Spacer(Modifier.height(TKSpacing.Sm))
+                SectionLabel("Bantuan")
+                FaqItem("Bagaimana cara memesan teknisi?", "Pilih layanan di Beranda, isi detail dan alamat, lalu bayar. Teknisi akan diispatch otomatis.")
+                FaqItem("Teknisi tidak ditemukan?", "Pastikan HP teknisi online, izin lokasi aktif, dan kedua perangkat memakai server yang sama.")
+                FaqItem("Bagaimana memakai server LAN?", "Jalankan start-lan-server.bat di laptop, lalu isi alamat http://IP_LAPTOP:8080 di layar ini.")
+
                 Spacer(Modifier.height(TKSpacing.Sm))
                 SectionLabel("Tentang")
                 Text(
-                    "Tukang Kilat versions 2.15.0. Tampilan mengikuti design system Figma.",
+                    "Tukang Kilat v${BuildConfig.VERSION_NAME}. Tampilan mengikuti design system Figma.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -119,6 +145,24 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewMo
             }
         }
     }
+}
+
+
+@Composable
+private fun FaqItem(question: String, answer: String) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(
+        Modifier.fillMaxWidth().heightIn(min = TKSpacing.MinTouch)
+            .background(MaterialTheme.colorScheme.surfaceContainer, TKShape.Card)
+            .clickable { expanded = !expanded }.padding(horizontal = TKSpacing.Sm, vertical = TKSpacing.Xs)
+    ) {
+        Text(question, style = MaterialTheme.typography.titleSmall)
+        if (expanded) {
+            Spacer(Modifier.height(4.dp))
+            Text(answer, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    Spacer(Modifier.height(TKSpacing.Xs))
 }
 
 @Composable

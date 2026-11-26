@@ -22,7 +22,8 @@ data class AppNotification(
     val title: String,
     val body: String,
     val createdAt: Long,
-    val read: Boolean = false
+    val read: Boolean = false,
+    val orderId: Long? = null
 )
 
 /**
@@ -46,7 +47,7 @@ class NotificationRepository @Inject constructor(
         scope.launch {
             val saved = dao.all()
             _notifications.value = saved.map {
-                AppNotification(it.id, it.title, it.body, it.createdAt, it.read)
+                AppNotification(it.id, it.title, it.body, it.createdAt, it.read, it.orderId)
             }
             nextId.set((saved.maxOfOrNull { it.id } ?: 0L) + 1L)
             launch {
@@ -69,12 +70,13 @@ class NotificationRepository @Inject constructor(
         val item = AppNotification(
             id = nextId.getAndIncrement(),
             title = title,
-            body = if (event.orderId != null) "$body (${event.orderId})" else body,
-            createdAt = System.currentTimeMillis()
+            body = body,
+            createdAt = System.currentTimeMillis(),
+            orderId = event.orderId
         )
         _notifications.value = listOf(item) + _notifications.value.take(49)
         writes.trySend {
-            dao.upsert(CachedNotification(item.id, item.title, item.body, item.createdAt, item.read))
+            dao.upsert(CachedNotification(item.id, item.title, item.body, item.createdAt, item.read, item.orderId))
             dao.trim()
         }
     }

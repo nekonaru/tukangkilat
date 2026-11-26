@@ -69,8 +69,12 @@ class OrderStatusViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(StatusUiState())
     val state: StateFlow<StatusUiState> = _state.asStateFlow()
+    private var pollJob: kotlinx.coroutines.Job? = null
+    private var wsJob: kotlinx.coroutines.Job? = null
 
     fun load(orderId: Long) {
+        pollJob?.cancel()
+        wsJob?.cancel()
         viewModelScope.launch {
             try {
                 val order = orderRepository.detail(orderId)
@@ -79,7 +83,7 @@ class OrderStatusViewModel @Inject constructor(
                 _state.value = StatusUiState(isLoading = false, error = e.cleanApiError())
             }
         }
-        viewModelScope.launch {
+        wsJob = viewModelScope.launch {
             wsManager.events.collect { event ->
                 if (event.type == WsEventType.ORDER_STATUS && event.orderId == orderId) {
                     refreshSilently(orderId)
@@ -89,7 +93,7 @@ class OrderStatusViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
+        pollJob = viewModelScope.launch {
             while (true) {
                 delay(6_000)
                 refreshSilently(orderId)
@@ -281,6 +285,7 @@ fun OrderStatusScreen(
                                 }
                                 Spacer(Modifier.height(12.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    if (!tech.phone.isNullOrBlank()) {
                                     OutlinedButton(
                                         onClick = {
                                             tech.phone?.let { phone ->
@@ -295,6 +300,7 @@ fun OrderStatusScreen(
                                         Icon(Icons.Filled.Phone, "Telepon", modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(TKSpacing.Xs))
                                         Text("Telepon", fontWeight = FontWeight.SemiBold)
+                                    }
                                     }
                                     OutlinedButton(
                                         onClick = onOpenChat,
@@ -315,6 +321,18 @@ fun OrderStatusScreen(
                         // timeline
                         TimelineCard(order = order)
                         Spacer(Modifier.height(TKSpacing.Sm))
+
+                        if (order.status in setOf(
+                                id.tukangkilat.shared.OrderStatus.MENCARI_TEKNISI,
+                                id.tukangkilat.shared.OrderStatus.TEKNISI_DITEMUKAN
+                            )) {
+                            OutlinedButton(
+                                onClick = onBecomeSearching,
+                                modifier = Modifier.fillMaxWidth().heightIn(min = TKSpacing.MinTouch),
+                                shape = TKShape.Button
+                            ) { Text("Cari teknisi pengganti") }
+                            Spacer(Modifier.height(TKSpacing.Xs))
+                        }
 
                         if (order.status in CANCELABLE) {
                             OutlinedButton(

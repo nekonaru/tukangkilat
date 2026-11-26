@@ -160,11 +160,16 @@ class PaymentViewModel @Inject constructor(
     private fun startPoll(orderId: Long, onPaid: () -> Unit) {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
-            val deadline = System.currentTimeMillis() + 30 * 60_000L
+            val expiresAt = _state.value.payment?.expiresAt
+            val deadline = if (expiresAt != null) {
+                runCatching { Instant.parse(expiresAt).toEpochMilli() }.getOrDefault(
+                    System.currentTimeMillis() + 30 * 60_000L
+                )
+            } else System.currentTimeMillis() + 30 * 60_000L
             while (System.currentTimeMillis() < deadline) {
                 delay(4_000)
                 _state.value = _state.value.copy(
-                    secondsLeft = (_state.value.secondsLeft - 4).coerceAtLeast(0)
+                    secondsLeft = ((deadline - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
                 )
                 val order = try { orderRepository.detail(orderId) } catch (e: Exception) { null } ?: continue
                 when (order.status) {

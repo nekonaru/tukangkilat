@@ -234,7 +234,7 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
                     Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Settings, "Pengaturan", onClick = onSettings)
-                    SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
+                    SectionRow(Icons.Filled.Info, "Tentang TukangKilat", onClick = onSettings)
                     Spacer(Modifier.height(TKSpacing.Xs))
                     SectionRow(Icons.Filled.Logout, "Keluar", danger = true) { viewModel.logout() }
                     Spacer(Modifier.height(28.dp))
@@ -348,12 +348,14 @@ private fun AddressEditorDialog(
                 latText = location.latitude.toString()
                 lngText = location.longitude.toString()
                 if (fullAddress.isBlank()) {
-                    val geocoder = Geocoder(context, Locale.forLanguageTag("id"))
-                    @Suppress("DEPRECATION")
-                    val text = try {
-                        geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                            ?.firstOrNull()?.getAddressLine(0)
-                    } catch (e: Exception) { null }
+                    val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        val geocoder = Geocoder(context, Locale.forLanguageTag("id"))
+                        @Suppress("DEPRECATION")
+                        try {
+                            geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                                ?.firstOrNull()?.getAddressLine(0)
+                        } catch (e: Exception) { null }
+                    }
                     fullAddress = text ?: "Lokasi saya (${location.latitude}, ${location.longitude})"
                 }
                 error = null

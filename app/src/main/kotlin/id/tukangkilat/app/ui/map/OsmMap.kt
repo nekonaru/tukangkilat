@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -34,6 +38,7 @@ fun OsmMap(
     modifier: Modifier = Modifier,
     zoom: Double = 16.0
 ) {
+    var lastSignature by remember { mutableStateOf("") }
     Box(modifier = modifier.clip(RoundedCornerShape(14.dp))) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
@@ -49,6 +54,10 @@ fun OsmMap(
                 }
             },
             update = { map ->
+                val signature = "$centerLat,$centerLng,$zoom|" +
+                    markers.joinToString { "${it.lat},${it.lng},${it.title},${it.isHome}" }
+                if (signature == lastSignature) return@AndroidView
+                lastSignature = signature
                 map.controller.setZoom(zoom)
                 map.controller.setCenter(GeoPoint(centerLat, centerLng))
                 map.overlays.clear()

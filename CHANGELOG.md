@@ -4,6 +4,26 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Cek koneksi server dan bantuan**: Pengaturan kini punya tombol pemeriksaan `/health` dan FAQ yang bisa dibuka, mencakup pemesanan, teknisi tidak ditemukan, dan pengaturan LAN.
+- **Filter notifikasi**: pusat notifikasi bisa menampilkan semua item atau hanya yang belum dibaca.
+- Unggah foto pendaftaran teknisi kini publik, sehingga pendaftaran bisa selesai sebelum akun dibuat.
+
+### Diperbaiki
+
+- Tombol mati kini berfungsi: baris notifikasi membuka pesanan, lonceng chat membuka notifikasi, baris Tentang membuka Pengaturan, "Cari teknisi pengganti" dan "Lihat pendapatan" benar-benar berpindah halaman.
+- Jadwal ulang dinonaktifkan saat pesanan gagal dimuat, dan tombol telepon disembunyikan bila nomor tidak tersedia.
+- Lokasi teknisi kini memakai pembaruan lokasi segar saat online, bukan `lastLocation` yang bisa basih, sehingga tawaran benar-benar sampai.
+- Foto kini dimuat dengan token dan alamat server yang dikonfigurasi lewat satu ImageLoader Coil. URL verifikasi admin dinormalisasi agar prefiks `/photos/` tidak dobel.
+- Refresh token kini single-flight; beberapa 401 bersamaan memakai satu panggilan, dan galat server sementara tidak memaksa logout.
+- Cache Room bisa dibangun ulang dengan aman saat naik dari versi lama.
+- Layar pencarian dan status membatalkan polling serta pengumpul WebSocket lama; navigasi pencarian hanya terjadi sekali.
+- Pembayaran ulang membatalkan pembayaran pending lama, hitung mundur memakai waktu kedaluwarsa asli, dan snackbar admin serta kata kunci pencarian tidak hilang setelah refresh.
+- Peta hanya membangun ulang penanda saat nilainya berubah, hitung mundur tawaran lokal per kartu, dan pembacaan foto serta geocoding dipindah dari utas utama.
+
 ## [2.16.0] - 2026-11-26
 
 ### Ditambahkan
@@ -284,6 +304,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0
 [2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0
 [2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0

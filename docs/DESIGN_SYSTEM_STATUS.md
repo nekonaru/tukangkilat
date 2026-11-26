@@ -29,3 +29,9 @@
 - Pengalih tema (Sistem/Terang/Gelap) tersedia di layar Pengaturan dan dipersistenkan dengan DataStore.
 - Beberapa temuan audit pasca-redesain sudah diperbaiki: password field, snackbar, duplikat fetch, Chat polling, warna teks pada kontainer terang, navigasi bawah, dan state analitik admin.
 - Belum terselesaikan: variasi bobot font variable masih bergantung pada dukungan sistem, sebagian bilah atas layar memakai `ScreenHeader` lama, dan uji interaktif terang/gelap penuh belum tersedia.
+
+## Pembaruan v2.17.0
+
+- Banyak tombol dan jalur aksi yang sebelumnya mati kini tersambung, termasuk notifikasi, chat, pengaturan, teknisi pengganti, dan pendapatan.
+- Unggah foto pendaftaran teknisi, pemuatan foto bertoken, lokasi teknisi segar, dan refresh token single-flight diperbaiki.
+- Masih belum: sebagian layar detail tidak punya tombol kembali pada keadaan gagal, dan uji interaktif penuh di perangkat belum tersedia.

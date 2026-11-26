@@ -78,18 +78,6 @@ class TechJobsViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            while (true) {
-                delay(2_000)
-                _state.value = _state.value.copy(now = System.currentTimeMillis())
-                // drop expired offers locally
-                val current = _state.value
-                val filtered = current.offers.filter { secondsLeft(it) > 0 }
-                if (filtered.size != current.offers.size) {
-                    _state.value = current.copy(offers = filtered)
-                }
-            }
-        }
     }
 
     fun secondsLeft(offer: OfferDto): Long =
@@ -228,9 +216,15 @@ private fun OffersTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(state.offers, key = { it.id }) { offer ->
+            val nowLocal by produceState(initialValue = System.currentTimeMillis()) {
+                while (true) {
+                    delay(1_000)
+                    value = System.currentTimeMillis()
+                }
+            }
             OfferCard(
                 offer = offer,
-                secondsLeft = { state.now.let { OfferSeconds(offer, it) } },
+                secondsLeft = { OfferSeconds(offer, nowLocal) },
                 onAccept = { onAccept(offer.id, onOpenJob) },
                 onReject = { rejectTarget = offer }
             )

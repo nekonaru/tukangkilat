@@ -140,6 +140,11 @@ class TechnicianRepository @Inject constructor(
 }
 
 @Singleton
+class SystemRepository @Inject constructor(private val api: ApiService) {
+    suspend fun health(): String = runCatching { api.health()["status"] ?: "ok" }
+        .getOrElse { throw it }
+}
+
 class AdminRepository @Inject constructor(
     private val api: ApiService
 ) {

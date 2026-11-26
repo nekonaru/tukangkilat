@@ -84,14 +84,23 @@ class SearchingViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(SearchingUiState())
     val state: StateFlow<SearchingUiState> = _state.asStateFlow()
+    private var pollJob: kotlinx.coroutines.Job? = null
+    private var wsJob: kotlinx.coroutines.Job? = null
+    private val navigated = java.util.concurrent.atomic.AtomicBoolean(false)
+    private fun found(onFound: () -> Unit) {
+        if (navigated.compareAndSet(false, true)) onFound()
+    }
 
     fun load(orderId: Long, onFound: () -> Unit) {
+        pollJob?.cancel()
+        wsJob?.cancel()
+        navigated.set(false)
         viewModelScope.launch {
             try {
                 val order = orderRepository.detail(orderId)
                 _state.value = _state.value.copy(isLoading = false, order = order)
                 if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
-                    onFound()
+                    found(onFound)
                     return@launch
                 }
             } catch (e: Exception) {
@@ -99,13 +108,13 @@ class SearchingViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch {
+        wsJob = viewModelScope.launch {
             wsManager.events.collect { event ->
                 if (event.type == WsEventType.ORDER_STATUS && event.orderId == orderId) {
                     try {
                         val order = orderRepository.detail(orderId)
                         if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
-                            onFound()
+                            found(onFound)
                         } else {
                             _state.value = _state.value.copy(order = order)
                         }
@@ -115,12 +124,12 @@ class SearchingViewModel @Inject constructor(
         }
 
         // polling fallback, 5 seconds
-        viewModelScope.launch {
+        pollJob = viewModelScope.launch {
             while (true) {
                 delay(5_000)
                 val order = try { orderRepository.detail(orderId) } catch (e: Exception) { continue }
                 if (order.status == OrderStatus.TEKNISI_DITEMUKAN) {
-                    onFound()
+                    found(onFound)
                     return@launch
                 } else {
                     _state.value = _state.value.copy(order = order)
@@ -245,7 +254,7 @@ fun SearchingScreen(
                 )
             }
             Spacer(Modifier.height(18.dp))
-            TKPrimaryButton("Jadwal ulang", onClick = { showReschedule = true })
+            TKPrimaryButton("Jadwal ulang", onClick = { showReschedule = true }, enabled = order != null)
             Spacer(Modifier.height(10.dp))
             state.error?.let {
                 Text(it, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)

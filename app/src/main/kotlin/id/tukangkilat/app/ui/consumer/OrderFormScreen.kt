@@ -147,8 +147,10 @@ class OrderFormViewModel @Inject constructor(
             _state.value = _state.value.copy(uploadingCount = _state.value.uploadingCount + toUpload.size, error = null)
             for (uri in toUpload) {
                 try {
-                    val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                        ?: throw IllegalStateException("Berkas tidak bisa dibaca")
+                    val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            ?: throw IllegalStateException("Berkas tidak bisa dibaca")
+                    }
                     if (bytes.size > 5 * 1024 * 1024) throw IllegalStateException("Ukuran foto maksimal 5 MB")
                     val mime = context.contentResolver.getType(uri) ?: "image/jpeg"
                     val ext = if (mime.contains("png")) "png" else "jpg"
