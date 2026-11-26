@@ -182,9 +182,9 @@ class PaymentViewModel @Inject constructor(
     }
 
     /** Try again with the same method (order is PEMBAYARAN_GAGAL, goes back to MENUNGGU_PEMBAYARAN). */
-    fun tryAgain(orderId: Long) {
+    fun tryAgain(orderId: Long, onPaid: () -> Unit) {
         _state.value = _state.value.copy(payFailed = false, snackbar = null)
-        pay(orderId) {}
+        pay(orderId, onPaid)
     }
 
     /** Change payment method: back to the selection state. */
@@ -211,7 +211,7 @@ fun PaymentScreen(
         state.error != null && state.order == null -> ErrorView(message = state.error!!, onRetry = { viewModel.load(orderId) })
         state.payFailed -> PaymentFailedContent(
             state = state,
-            onTryAgain = { viewModel.tryAgain(orderId) },
+            onTryAgain = { viewModel.tryAgain(orderId, onPaid) },
             onChangeMethod = { viewModel.changeMethod() },
             onBack = onBack
         )

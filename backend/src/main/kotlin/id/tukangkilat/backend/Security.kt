@@ -79,6 +79,10 @@ class RateLimiter(private val maxRequests: Int, private val windowMs: Long) {
     @Synchronized
     fun allow(key: String): Boolean {
         val now = System.currentTimeMillis()
+        if (buckets.size >= 1000) {
+            buckets.entries.removeIf { now - it.value.windowStart >= windowMs }
+            if (buckets.size >= 1000) buckets.clear()
+        }
         val bucket = buckets[key]
         if (bucket == null || now - bucket.windowStart >= windowMs) {
             buckets[key] = Bucket(now, 1)

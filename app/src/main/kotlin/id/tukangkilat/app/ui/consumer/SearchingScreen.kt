@@ -317,7 +317,6 @@ private fun RescheduleDialog(
     var currentDate by remember { mutableStateOf(date) }
     var selectedSlot by remember { mutableStateOf<Long?>(null) }
 
-    LaunchedEffect(Unit) { onLoadSlots(currentDate) }
     LaunchedEffect(currentDate) {
         selectedSlot = null
         onLoadSlots(currentDate)

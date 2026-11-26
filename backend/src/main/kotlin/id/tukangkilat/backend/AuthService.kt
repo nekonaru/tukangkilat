@@ -3,6 +3,7 @@ package id.tukangkilat.backend
 import id.tukangkilat.shared.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import java.time.OffsetDateTime
 
 open class AuthService {
@@ -149,7 +150,8 @@ open class AuthService {
         val now = OffsetDateTime.now()
         return transaction {
             val tokenRow = RefreshTokensTable.selectAll()
-                .where { RefreshTokensTable.tokenHash eq hash }.limit(1).singleOrNull()
+                .where { RefreshTokensTable.tokenHash eq hash }.limit(1)
+                .forUpdate(ForUpdateOption.ForUpdate).singleOrNull()
                 ?: throw UnauthorizedException("Refresh token tidak valid")
             if (tokenRow[RefreshTokensTable.revoked] || tokenRow[RefreshTokensTable.expiresAt].isBefore(now)) {
                 throw UnauthorizedException("Sesi berakhir, silakan masuk lagi")

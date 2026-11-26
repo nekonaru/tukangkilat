@@ -137,4 +137,9 @@ class SessionManager @Inject constructor(
             context.sessionDataStore.edit { it.clear() }
         }.join()
     }
+
+    /** Clear the in-memory DataStore cache as well, used after a database import. */
+    suspend fun clear() {
+        context.sessionDataStore.edit { it.clear() }
+    }
 }

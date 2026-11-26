@@ -899,4 +899,29 @@ class ApiIntegrationTest {
         val services = json.decodeFromString<List<ServiceDto>>(client.okGet("/consumer/services", rina).bodyAsText())
         assertTrue(services.any { it.id == created.id && it.name == "Servis Kursi" })
     }
+
+    @Test
+    fun `consumer can browse verified technicians with filters`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+
+        val allText = client.okGet("/consumer/technicians", consumer).bodyAsText()
+        val all = json.decodeFromString<List<TechnicianBrowseDto>>(allText)
+        assertTrue(all.isNotEmpty(), "seed technicians must be visible")
+        assertTrue(all.any { it.fullName.contains("budi", ignoreCase = true) })
+
+        val bySkillText = client.okGet("/consumer/technicians?skill=LISTRIK", consumer).bodyAsText()
+        val bySkill = json.decodeFromString<List<TechnicianBrowseDto>>(bySkillText)
+        assertTrue(bySkill.isNotEmpty())
+        assertTrue(bySkill.all { "LISTRIK" in it.skills })
+
+        val byQueryText = client.okGet("/consumer/technicians?q=budi", consumer).bodyAsText()
+        val byQuery = json.decodeFromString<List<TechnicianBrowseDto>>(byQueryText)
+        assertTrue(byQuery.any { it.fullName.contains("budi", ignoreCase = true) })
+
+        val technician = client.loginToken("budi", "budi12345")
+        val denied = client.get("/consumer/technicians") { bearer(technician) }
+        assertEquals(HttpStatusCode.Forbidden, denied.status)
+    }
+
 }

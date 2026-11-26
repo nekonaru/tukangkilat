@@ -4,6 +4,22 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Direktori teknisi**: konsumen dapat menjelajahi teknisi terverifikasi, mencari berdasarkan nama atau keahlian, memfilter keahlian, melihat rating dan jumlah pekerjaan, serta menyimpan atau menghapus favorit. Endpoint baru `GET /consumer/technicians` beserta tes integrasi.
+- **editor alamat**: layar Akun kini dapat menambah dan mengubah alamat tersimpan, termasuk tombol **Gunakan lokasi saya** dengan geocoding dan isian koordinat manual.
+- **Notifikasi tersimpan**: pusat notifikasi kini bertahan setelah aplikasi dimulai ulang. Migrasi Room menambahkan tabel `cached_notifications` tanpa menghapus favorit atau pesanan tersimpan.
+
+### Diperbaiki
+
+- **Transfer database**: ekspor dan impor kini menyertakan `refresh_tokens`, menolak nama foto dan kolom tidak aman, membatasi ukuran arsip, membersihkan foto lama, dan menjaga konsistensi skema.
+- **Backend tertanam**: migrasi dilacak dalam tabel versi, dijalankan dengan penanda versi, pernyataan idempoten, dan pemisah SQL yang memahami komentar; instalasi lama diadopsi tanpa menjalankan ulang migrasi lama. Kegagalan startup kini menampilkan layar coba lagi.
+- **Kebenaran backend**: kode pesanan maju saat bentrok, tawaran ganda dan notifikasi teknisi kosong berulang dicegah, penarikan mengunci baris teknisi, rotasi refresh token mengunci baris token, lokasi basih dihapus saat teknisi offline, dan pembatas laju membuang bucket lama.
+- **Perbaikan klien**: refresh senyap memakai alamat server yang dikonfigurasi, pembayaran ulang berpindah layar setelah berhasil, notifikasi penarikan tidak tertimpa, beranda teknisi menampilkan pendapatan hari ini, dan slot tidak diambil dua kali.
+- **Penanganan crash**: pengecualian tidak tertangani dicatat dan diteruskan ke penangan sistem, bukan diabaikan diam-diam.
+
 ## [2.11.0] - 2026-11-26
 
 ### Ditambahkan
@@ -217,6 +233,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0
 [2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
 [2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0

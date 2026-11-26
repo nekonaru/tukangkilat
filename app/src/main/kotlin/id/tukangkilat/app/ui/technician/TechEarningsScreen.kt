@@ -56,19 +56,17 @@ class TechEarningsViewModel @Inject constructor(
         refresh()
     }
 
-    fun refresh() {
-        viewModelScope.launch {
-            try {
-                val earningsDeferred = async { technicianRepository.earnings() }
-                val withdrawalsDeferred = async { runCatching { technicianRepository.withdrawals() }.getOrDefault(emptyList()) }
-                _state.value = TechEarningsUiState(
-                    isLoading = false,
-                    earnings = earningsDeferred.await(),
-                    withdrawals = withdrawalsDeferred.await()
-                )
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
-            }
+    fun refresh() = viewModelScope.launch {
+        try {
+            val earningsDeferred = async { technicianRepository.earnings() }
+            val withdrawalsDeferred = async { runCatching { technicianRepository.withdrawals() }.getOrDefault(emptyList()) }
+            _state.value = TechEarningsUiState(
+                isLoading = false,
+                earnings = earningsDeferred.await(),
+                withdrawals = withdrawalsDeferred.await()
+            )
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
         }
     }
 
@@ -81,7 +79,7 @@ class TechEarningsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 technicianRepository.withdraw(amount)
-                refresh()
+                refresh().join()
                 _state.value = _state.value.copy(snackbar = "Penarikan ${Format.rupiah(amount)} berhasil (simulasi)")
             } catch (e: Exception) {
                 _state.value = _state.value.copy(snackbar = e.cleanApiError())

@@ -17,19 +17,25 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 1
+    private const val VERSION = 2
     private const val DATA_FILE = "database.json"
+    private const val MAX_JSON_BYTES = 64 * 1024 * 1024
+    private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
+    private const val PHOTO_NAME_REGEX = "[A-Za-z0-9._-]+"
 
+    /** Parent tables come before child tables so a reverse-order delete satisfies foreign keys. */
     private val TABLES = listOf(
-        "users", "technician_profiles", "addresses", "services", "time_slots",
+        "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
         "promo_codes", "photos", "orders", "order_photos", "order_events",
         "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals"
     )
 
     private val AUTO_ID_TABLES = setOf(
-        "users", "addresses", "services", "time_slots", "photos", "orders",
+        "users", "refresh_tokens", "addresses", "services", "time_slots", "photos", "orders",
         "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals"
     )
+
+    private val SAFE_TABLES = TABLES.toSet()
 
     @Serializable
     data class Snapshot(
@@ -88,13 +94,29 @@ object DatabaseTransfer {
     fun import(context: Context, input: InputStream) {
         var json = ""
         val photos = mutableMapOf<String, ByteArray>()
+        var jsonBytes = 0
+        var totalPhotoBytes = 0
         ZipInputStream(input).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
                 when {
-                    entry.name == DATA_FILE -> json = zip.readBytes().toString(Charsets.UTF_8)
-                    entry.name.startsWith("photos/") ->
-                        photos[entry.name.removePrefix("photos/")] = zip.readBytes()
+                    entry.name == DATA_FILE -> {
+                        val bytes = readBounded(zip, MAX_JSON_BYTES)
+                        jsonBytes += bytes.size
+                        require(jsonBytes <= MAX_JSON_BYTES) { "Arsip database terlalu besar" }
+                        json = bytes.toString(Charsets.UTF_8)
+                    }
+                    entry.name.startsWith("photos/") -> {
+                        val name = entry.name.removePrefix("photos/")
+                        require(name.isNotBlank() && !name.contains('/') && !name.contains('\\') &&
+                            name != "." && name != ".." && name.matches(Regex(PHOTO_NAME_REGEX))) {
+                            "Nama foto tidak valid: $name"
+                        }
+                        val bytes = readBounded(zip, MAX_PHOTO_BYTES)
+                        totalPhotoBytes += bytes.size
+                        require(totalPhotoBytes <= MAX_JSON_BYTES) { "Ukuran foto total terlalu besar" }
+                        photos[name] = bytes
+                    }
                 }
                 zip.closeEntry()
             }
@@ -103,6 +125,15 @@ object DatabaseTransfer {
         val snapshot = Json.decodeFromString<Snapshot>(json)
         require(snapshot.version == VERSION) { "Versi arsip tidak didukung: ${snapshot.version}" }
         TABLES.forEach { require(snapshot.tables.containsKey(it)) { "Tabel $it hilang dari arsip" } }
+        snapshot.tables.keys.forEach { require(it in SAFE_TABLES) { "Tabel asing ditolak: $it" } }
+        snapshot.tables.forEach { (table, rows) ->
+            rows.forEach { row ->
+                row.keys.forEach { column -> require(column.matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))) {
+                    "Nama kolom tidak valid: $column"
+                } }
+            }
+            require(table in SAFE_TABLES) { "Tabel asing ditolak: $table" }
+        }
 
         Class.forName("org.h2.Driver")
         DriverManager.getConnection(jdbcUrl(context), "", "").use { conn ->
@@ -129,8 +160,24 @@ object DatabaseTransfer {
         }
         val dir = LocalBackend.uploadDir(context)
         dir.mkdirs()
+        // Remove photos that are no longer referenced by the imported snapshot.
+        dir.listFiles()?.forEach { file -> if (file.isFile && file.name !in photos) file.delete() }
         photos.forEach { (name, bytes) -> File(dir, name).writeBytes(bytes) }
         File(context.filesDir, "datastore/tukangkilat_session.preferences_pb").delete()
+    }
+
+    private fun readBounded(input: InputStream, limit: Int): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(16 * 1024)
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            total += read
+            require(total <= limit) { "Entry arsip melebihi batas ukuran" }
+            out.write(buffer, 0, read)
+        }
+        return out.toByteArray()
     }
 
     private fun insertRow(conn: java.sql.Connection, table: String, row: Map<String, String?>) {
@@ -142,5 +189,5 @@ object DatabaseTransfer {
         conn.createStatement().use { it.execute("INSERT INTO $table ($columns) VALUES ($values)") }
     }
 
-    private fun quote(name: String) = "\"$name\""
+    private fun quote(name: String) = "\"${name.replace("\"", "\"\"")}\""
 }

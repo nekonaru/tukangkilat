@@ -1,11 +1,14 @@
 package id.tukangkilat.app.data.repository
 
+import id.tukangkilat.app.data.local.CachedNotification
+import id.tukangkilat.app.data.local.NotificationDao
 import id.tukangkilat.app.data.ws.WsManager
 import id.tukangkilat.shared.WsEvent
 import id.tukangkilat.shared.WsEventType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,19 +27,32 @@ data class AppNotification(
 
 /**
  * In-app notification center. PRD allows a WebSocket fallback when FCM is unavailable;
- * this turns those live events into a visible, readable history.
+ * this turns those live events into a visible, readable history that survives process death.
  */
 @Singleton
 class NotificationRepository @Inject constructor(
-    wsManager: WsManager
+    wsManager: WsManager,
+    private val dao: NotificationDao
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val nextId = AtomicLong(1)
     private val _notifications = MutableStateFlow<List<AppNotification>>(emptyList())
     val notifications: StateFlow<List<AppNotification>> = _notifications.asStateFlow()
 
+    /** All persistence goes through one channel so writes stay ordered. */
+    private val writes = Channel<suspend () -> Unit>(Channel.UNLIMITED)
+
     init {
         scope.launch {
+            val saved = dao.all()
+            _notifications.value = saved.map {
+                AppNotification(it.id, it.title, it.body, it.createdAt, it.read)
+            }
+            nextId.set((saved.maxOfOrNull { it.id } ?: 0L) + 1L)
+            launch {
+                for (operation in writes) operation()
+            }
+            // Start collecting only after the saved history is loaded, so no live event is lost.
             wsManager.events.collect { event -> add(event) }
         }
     }
@@ -57,13 +73,19 @@ class NotificationRepository @Inject constructor(
             createdAt = System.currentTimeMillis()
         )
         _notifications.value = listOf(item) + _notifications.value.take(49)
+        writes.trySend {
+            dao.upsert(CachedNotification(item.id, item.title, item.body, item.createdAt, item.read))
+            dao.trim()
+        }
     }
 
     fun markAllRead() {
         _notifications.value = _notifications.value.map { it.copy(read = true) }
+        writes.trySend { dao.markAllRead() }
     }
 
     fun clear() {
         _notifications.value = emptyList()
+        writes.trySend { dao.clear() }
     }
 }

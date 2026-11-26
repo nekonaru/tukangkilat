@@ -114,7 +114,9 @@ class TechHomeViewModel @Inject constructor(
                     isLoading = false,
                     profile = profile,
                     todayCount = todayOrders.count { it.status == OrderStatus.SELESAI },
-                    todayEarnings = earnings?.totalEarned ?: 0,
+                    todayEarnings = earnings?.entries
+                        ?.filter { it.finishedAt.take(10) == today }
+                        ?.sumOf { it.net } ?: 0,
                     activeOrder = active,
                     upcoming = orders.filter {
                         it.status == OrderStatus.TEKNISI_DITEMUKAN && it.id != active?.id
@@ -270,7 +272,7 @@ fun TechHomeScreen(
                             SectionLabel("Ringkasan hari ini")
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 SummaryCard("Selesai", "${state.todayCount}", Modifier.weight(1f))
-                                SummaryCard("Pendapatan", Format.rupiah(state.todayEarnings), Modifier.weight(1f))
+                                SummaryCard("Pendapatan hari ini", Format.rupiah(state.todayEarnings), Modifier.weight(1f))
                                 SummaryCard("Tawaran", "${state.offerCount}", Modifier.weight(1f))
                             }
                             Spacer(Modifier.height(16.dp))

@@ -28,6 +28,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.AdminRepository
+import id.tukangkilat.app.data.local.LocalBackend
+import id.tukangkilat.app.data.local.SessionManager
 import id.tukangkilat.app.data.repository.AuthRepository
 import id.tukangkilat.app.ui.components.tkPressScale
 import id.tukangkilat.app.ui.components.tkScreenEnter
@@ -57,7 +59,8 @@ data class AdminUiState(
 @HiltViewModel
 class AdminViewModel @Inject constructor(
     private val adminRepository: AdminRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AdminUiState())
@@ -94,6 +97,12 @@ class AdminViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch { authRepository.logout() }
     }
+
+    /** Clear the session through DataStore after a database import. */
+    suspend fun clearSession() {
+        sessionManager.clear()
+    }
+
 }
 
 @Composable
@@ -134,8 +143,15 @@ fun AdminSummaryScreen(
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch(Dispatchers.IO) {
             transferMessage = try {
-                context.contentResolver.openInputStream(uri)?.use { DatabaseTransfer.import(context, it) }
+                val stream = context.contentResolver.openInputStream(uri)
                     ?: error("File tidak bisa dibuka")
+                LocalBackend.stopForImport()
+                try {
+                    stream.use { DatabaseTransfer.import(context, it) }
+                } finally {
+                    LocalBackend.restartAfterImport(context.applicationContext)
+                }
+                viewModel.clearSession()
                 "Impor database berhasil. Silakan masuk ulang."
             } catch (e: Exception) {
                 "Impor gagal: ${e.message}"

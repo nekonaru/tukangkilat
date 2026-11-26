@@ -32,12 +32,23 @@ object LocalBackend {
 
     private const val PORT = 8080
     private const val DB_NAME = "tukangkilat"
-    private const val MIGRATIONS = "V1__init.sql,V2__add_promo_active.sql,V3__dispatch_indexes.sql,V4__withdrawals.sql"
+    /** Schema version of the database created by builds that had no version marker. */
+    private const val LEGACY_SCHEMA_VERSION = 4
     const val BASE_URL = "http://127.0.0.1:8080"
+
+    /** Migration files and the schema version they produce. Append only, never reorder. */
+    private val MIGRATIONS = listOf(
+        1 to "V1__init.sql",
+        2 to "V2__add_promo_active.sql",
+        3 to "V3__dispatch_indexes.sql",
+        4 to "V4__withdrawals.sql"
+    )
 
     private var server: EmbeddedServer<*, *>? = null
     private val _ready = MutableStateFlow(false)
     val ready: StateFlow<Boolean> = _ready.asStateFlow()
+    private val _startupError = MutableStateFlow<String?>(null)
+    val startupError: StateFlow<String?> = _startupError.asStateFlow()
 
     fun databasePath(context: Context): File = File(context.filesDir, "database/$DB_NAME")
 
@@ -59,79 +70,202 @@ object LocalBackend {
     /** Initialize schema, seed demo data and start the loopback server. Safe to call once per process. */
     suspend fun start(context: Context) = withContext(Dispatchers.IO) {
         if (server != null) return@withContext
+        _startupError.value = null
         val startedAt = System.currentTimeMillis()
-        databasePath(context).parentFile?.mkdirs()
-        val uploads = uploadDir(context)
-        ensureUploadDir(uploads.absolutePath)
+        try {
+            databasePath(context).parentFile?.mkdirs()
+            val uploads = uploadDir(context)
+            ensureUploadDir(uploads.absolutePath)
 
-        Class.forName("org.h2.Driver")
-        AndroidCompat.useSafeTimestampRead = true
-        ServerErrorHook.log = if (BuildConfig.DEBUG) {
-            { android.util.Log.e("TukangKilatBackend", "Unhandled", it) }
-        } else null
-        val url = jdbcUrl(context)
-        val isFresh = createSchemaIfNeeded(context, url)
+            Class.forName("org.h2.Driver")
+            AndroidCompat.useSafeTimestampRead = true
+            ServerErrorHook.log = if (BuildConfig.DEBUG) {
+                { android.util.Log.e("TukangKilatBackend", "Unhandled", it) }
+            } else null
+            val url = jdbcUrl(context)
+            val isFresh = createSchemaIfNeeded(context, url)
 
-        if (isFresh) {
-            // Tokens from a previous backend are invalid for this local database.
-            File(context.filesDir, "datastore/tukangkilat_session.preferences_pb").delete()
+            if (isFresh) {
+                // Tokens from a previous backend are invalid for this local database.
+                File(context.filesDir, "datastore/tukangkilat_session.preferences_pb").delete()
+            }
+
+            Database.connect(url = url, driver = "org.h2.Driver", user = "", password = "")
+
+            val localConfig = AppConfig(
+                dbUrl = url,
+                dbUser = "",
+                dbPassword = "",
+                jwtSecret = jwtSecret(context),
+                jwtIssuer = "tukangkilat-local",
+                uploadDir = uploads.absolutePath,
+                port = PORT,
+                startDispatcher = true,
+                dispatcherTickMs = 15_000L,
+                seedDemoData = true,
+                demoAdminPassword = "admin12345",
+                demoConsumerPassword = "rina12345",
+                demoTechPassword = "budi12345",
+                demoTech2Password = "sari12345",
+                h2InMemory = false
+            )
+            Seed.seedIfEmpty(localConfig)
+
+            server = embeddedServer(CIO, port = PORT, host = "127.0.0.1") {
+                module(localConfig)
+            }.start(wait = false)
+            if (BuildConfig.DEBUG) {
+                android.util.Log.d("TukangKilatBackend", "Ready in ${System.currentTimeMillis() - startedAt} ms")
+            }
+            _ready.value = true
+        } catch (e: Exception) {
+            server = null
+            _ready.value = false
+            _startupError.value = e.message ?: e.javaClass.simpleName
+            if (BuildConfig.DEBUG) android.util.Log.e("TukangKilatBackend", "Start failed", e)
         }
-
-        Database.connect(url = url, driver = "org.h2.Driver", user = "", password = "")
-
-        val localConfig = AppConfig(
-            dbUrl = url,
-            dbUser = "",
-            dbPassword = "",
-            jwtSecret = jwtSecret(context),
-            jwtIssuer = "tukangkilat-local",
-            uploadDir = uploads.absolutePath,
-            port = PORT,
-            startDispatcher = true,
-            dispatcherTickMs = 15_000L,
-            seedDemoData = true,
-            demoAdminPassword = "admin12345",
-            demoConsumerPassword = "rina12345",
-            demoTechPassword = "budi12345",
-            demoTech2Password = "sari12345",
-            h2InMemory = false
-        )
-        Seed.seedIfEmpty(localConfig)
-
-        server = embeddedServer(CIO, port = PORT, host = "127.0.0.1") {
-            module(localConfig)
-        }.start(wait = false)
-        if (BuildConfig.DEBUG) {
-            android.util.Log.d("TukangKilatBackend", "Ready in ${System.currentTimeMillis() - startedAt} ms")
-        }
-        _ready.value = true
     }
 
+    /** Retry startup after a failure, for example a temporary port conflict. */
+    suspend fun retry(context: Context) {
+        stopForImport()
+        start(context)
+    }
+
+    /** Stop the loopback server and its background dispatchers before replacing the database. */
+    suspend fun stopForImport() = withContext(Dispatchers.IO) {
+        server?.stop()
+        server = null
+        _ready.value = false
+    }
+
+    /** Start again after an import has replaced the local database. */
+    suspend fun restartAfterImport(context: Context) = withContext(Dispatchers.IO) {
+        start(context)
+    }
+
+    /**
+     * Bring the local schema to the latest version and return true when the database is brand new.
+     * Existing databases without a version marker are adopted at the current version instead of
+     * re-running old migrations, which would fail on already existing tables.
+     */
     private fun createSchemaIfNeeded(context: Context, url: String): Boolean =
         DriverManager.getConnection(url, "", "").use { connection ->
-            val exists = try {
-                connection.createStatement().use { st ->
-                    st.executeQuery("SELECT 1 FROM users LIMIT 1").use { it.next() }
-                }
-            } catch (e: Exception) {
-                false
+            connection.createStatement().use { st ->
+                st.execute(
+                    "CREATE TABLE IF NOT EXISTS local_schema_version (" +
+                        "version INT PRIMARY KEY, applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+                )
             }
-            if (exists) return false
+            val applied = mutableSetOf<Int>()
+            connection.createStatement().use { st ->
+                st.executeQuery("SELECT version FROM local_schema_version").use { rs ->
+                    while (rs.next()) applied += rs.getInt(1)
+                }
+            }
+            // Detect the table itself, not row presence. An empty users table from an
+            // interrupted legacy install must still be adopted instead of re-created.
+            val tableExists = connection.metaData.getTables(null, null, "%", arrayOf("TABLE")).use { rs ->
+                val names = mutableSetOf<String>()
+                while (rs.next()) names += rs.getString("TABLE_NAME").lowercase()
+                "users" in names
+            }
+            if (tableExists && applied.isEmpty()) {
+                // Adopt only versions that existed before the marker. Future migrations
+                // must still run on this database.
+                (1..LEGACY_SCHEMA_VERSION).forEach { version ->
+                    connection.createStatement().use { st ->
+                        st.execute("INSERT INTO local_schema_version (version) VALUES ($version)")
+                    }
+                    applied += version
+                }
+            }
             val loader = LocalBackend::class.java.classLoader
-            val statements = MIGRATIONS.split(",").flatMap { name ->
+            MIGRATIONS.filter { (version, _) -> version !in applied }.forEach { (version, name) ->
                 val sql = loader.getResourceAsStream("db/migration/$name")
                     ?.bufferedReader()?.use { it.readText() }
                     ?: error("Migrasi $name tidak ditemukan di APK")
-                sql.lines()
-                    .filterNot { it.trim().startsWith("--") }
-                    .joinToString("\n")
-                    .split(";")
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
+                // H2 commits DDL implicitly, so a partial migration cannot be rolled back.
+                // Making statements idempotent lets the next launch finish the same version.
+                val idempotentSql = sql
+                    .replace(Regex("CREATE TABLE (?!IF NOT EXISTS)"), "CREATE TABLE IF NOT EXISTS ")
+                    .replace(Regex("CREATE INDEX (?!IF NOT EXISTS)"), "CREATE INDEX IF NOT EXISTS ")
+                val statements = splitSql(idempotentSql)
+                connection.autoCommit = false
+                try {
+                    connection.createStatement().use { st -> statements.forEach { st.execute(it) } }
+                    connection.createStatement().use { st ->
+                        st.execute("INSERT INTO local_schema_version (version) VALUES ($version)")
+                    }
+                    connection.commit()
+                } catch (e: Exception) {
+                    connection.rollback()
+                    throw e
+                } finally {
+                    connection.autoCommit = true
+                }
             }
-            connection.createStatement().use { st ->
-                statements.forEach { st.execute(it) }
-            }
-            true
+            !tableExists
         }
+
+    /** Split SQL on semicolons that are outside strings and comments. */
+    private fun splitSql(sql: String): List<String> {
+        val statements = mutableListOf<String>()
+        val current = StringBuilder()
+        var inString = false
+        var inLineComment = false
+        var inBlockComment = false
+        var i = 0
+        while (i < sql.length) {
+            val c = sql[i]
+            val next = if (i + 1 < sql.length) sql[i + 1] else '\u0000'
+            when {
+                inLineComment -> {
+                    if (c == '\n') {
+                        inLineComment = false
+                        current.append(c)
+                    }
+                }
+                inBlockComment -> {
+                    if (c == '*' && next == '/') {
+                        inBlockComment = false
+                        i++
+                    }
+                }
+                inString -> {
+                    current.append(c)
+                    if (c == '\'') {
+                        if (next == '\'') {
+                            current.append(next)
+                            i++
+                        } else {
+                            inString = false
+                        }
+                    }
+                }
+                c == '-' && next == '-' -> {
+                    inLineComment = true
+                    i++
+                }
+                c == '/' && next == '*' -> {
+                    inBlockComment = true
+                    i++
+                }
+                c == '\'' -> {
+                    inString = true
+                    current.append(c)
+                }
+                c == ';' -> {
+                    val statement = current.toString().trim()
+                    if (statement.isNotEmpty()) statements += statement
+                    current.setLength(0)
+                }
+                else -> current.append(c)
+            }
+            i++
+        }
+        val tail = current.toString().trim()
+        if (tail.isNotEmpty()) statements += tail
+        return statements
+    }
 }

@@ -21,7 +21,9 @@ data class SessionUiState(
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val sessionManager: SessionManager,
-    private val wsManager: WsManager
+    private val wsManager: WsManager,
+    // Injected at app start so the notification center starts collecting WS events immediately.
+    notificationRepository: id.tukangkilat.app.data.repository.NotificationRepository
 ) : ViewModel() {
 
     private val _session = MutableStateFlow(SessionUiState(false, null, null))

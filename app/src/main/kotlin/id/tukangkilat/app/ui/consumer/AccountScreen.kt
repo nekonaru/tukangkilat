@@ -1,6 +1,12 @@
 package id.tukangkilat.app.ui.consumer
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.local.FavoriteTechnician
 import id.tukangkilat.app.data.repository.AuthRepository
@@ -41,6 +48,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.Locale
 import javax.inject.Inject
 
 data class AccountUiState(
@@ -72,8 +81,6 @@ class AccountViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             try {
-                val session = authRepository.currentSession()
-                // wait for the first emission
                 val addressesDeferred = async { orderRepository.addresses() }
                 favoriteRepository.refresh()
                 _state.value = _state.value.copy(
@@ -120,6 +127,32 @@ class AccountViewModel @Inject constructor(
         }
     }
 
+    fun saveAddress(
+        existing: AddressDto?,
+        label: String,
+        fullAddress: String,
+        lat: Double,
+        lng: Double
+    ) {
+        viewModelScope.launch {
+            try {
+                val request = AddressUpsertRequest(
+                    label.trim(),
+                    fullAddress.trim(),
+                    lat,
+                    lng,
+                    isPrimary = existing?.isPrimary ?: _state.value.addresses.isEmpty()
+                )
+                if (existing == null) orderRepository.addAddress(request)
+                else orderRepository.updateAddress(existing.id, request)
+                refresh()
+                _state.value = _state.value.copy(snackbar = if (existing == null) "Alamat ditambahkan" else "Alamat diperbarui")
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(snackbar = e.cleanApiError())
+            }
+        }
+    }
+
     fun deleteAddress(address: AddressDto) {
         viewModelScope.launch {
             try {
@@ -150,11 +183,14 @@ class AccountViewModel @Inject constructor(
 @Composable
 fun AccountScreen(
     onNotifications: () -> Unit,
+    onBrowseTechnicians: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showAddressDialog by remember { mutableStateOf(false) }
+    var showAddressEditor by remember { mutableStateOf(false) }
+    var addressBeingEdited by remember { mutableStateOf<AddressDto?>(null) }
     var showFavorites by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -192,6 +228,7 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }
                     SectionRow(Icons.Filled.Notifications, "Notifikasi", onClick = onNotifications)
                     SectionRow(Icons.Filled.Star, "Teknisi favorit (${state.favorites.size})") { showFavorites = true }
+                    SectionRow(Icons.Filled.Search, "Cari teknisi terverifikasi", onClick = onBrowseTechnicians)
                     Spacer(Modifier.height(8.dp))
                     SectionRow(Icons.Filled.Info, "Tentang TukangKilat") { }
                     Spacer(Modifier.height(8.dp))
@@ -244,9 +281,129 @@ fun AccountScreen(
             addresses = state.addresses,
             onDismiss = { showAddressDialog = false },
             onSetPrimary = viewModel::setPrimary,
-            onDelete = viewModel::deleteAddress
+            onDelete = viewModel::deleteAddress,
+            onAdd = {
+                addressBeingEdited = null
+                showAddressEditor = true
+            },
+            onEdit = { address ->
+                addressBeingEdited = address
+                showAddressEditor = true
+            }
         )
     }
+
+    if (showAddressEditor) {
+        AddressEditorDialog(
+            existing = addressBeingEdited,
+            onDismiss = { showAddressEditor = false },
+            onSave = { label, fullAddress, lat, lng ->
+                viewModel.saveAddress(addressBeingEdited, label, fullAddress, lat, lng)
+                showAddressEditor = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun AddressEditorDialog(
+    existing: AddressDto?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, Double, Double) -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var label by remember { mutableStateOf(existing?.label ?: "Rumah") }
+    var fullAddress by remember { mutableStateOf(existing?.fullAddress ?: "") }
+    var latText by remember { mutableStateOf(existing?.lat?.toString().orEmpty()) }
+    var lngText by remember { mutableStateOf(existing?.lng?.toString().orEmpty()) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var permissionGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val locationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        permissionGranted = it
+        if (!it) error = "Izin lokasi ditolak. Isi titik lokasi Manual atau izinkan di pengaturan."
+    }
+
+    fun useCurrentLocation() {
+        if (!permissionGranted) {
+            locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            return
+        }
+        scope.launch {
+            try {
+                val location = LocationServices.getFusedLocationProviderClient(context).lastLocation.await()
+                if (location == null) {
+                    error = "Lokasi belum tersedia. Coba lagi atau isi manual."
+                    return@launch
+                }
+                latText = location.latitude.toString()
+                lngText = location.longitude.toString()
+                if (fullAddress.isBlank()) {
+                    val geocoder = Geocoder(context, Locale.forLanguageTag("id"))
+                    @Suppress("DEPRECATION")
+                    val text = try {
+                        geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                            ?.firstOrNull()?.getAddressLine(0)
+                    } catch (e: Exception) { null }
+                    fullAddress = text ?: "Lokasi saya (${location.latitude}, ${location.longitude})"
+                }
+                error = null
+            } catch (e: Exception) {
+                error = e.cleanApiError()
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = TKColor.InkSoft,
+        title = {
+            Text(if (existing == null) "Tambah alamat" else "Ubah alamat", color = TKColor.White, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column {
+                TextFieldDark(label, { label = it }, placeholder = "Label, misalnya Rumah")
+                Spacer(Modifier.height(8.dp))
+                TextFieldDark(fullAddress, { fullAddress = it }, placeholder = "Alamat lengkap")
+                Spacer(Modifier.height(8.dp))
+                TextButton(onClick = { useCurrentLocation() }) {
+                    Text("Gunakan lokasi saya", color = TKColor.Orange, fontSize = 12.sp)
+                }
+                Text(
+                    "Titik lokasi: ${if (latText.isBlank() || lngText.isBlank()) "belum diambil" else "$latText, $lngText"}",
+                    color = TKColor.Mist,
+                    fontSize = 11.sp
+                )
+                Spacer(Modifier.height(4.dp))
+                TextFieldDark(latText, { latText = it }, placeholder = "Lintang")
+                TextFieldDark(lngText, { lngText = it }, placeholder = "Bujur")
+                error?.let { Text(it, color = TKColor.Red, fontSize = 12.sp) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val parsedLat = latText.toDoubleOrNull()
+                val parsedLng = lngText.toDoubleOrNull()
+                error = when {
+                    label.isBlank() -> "Label wajib diisi"
+                    fullAddress.isBlank() -> "Alamat wajib diisi"
+                    parsedLat == null || parsedLng == null -> "Titik lokasi harus berupa angka"
+                    parsedLat !in -90.0..90.0 || parsedLng !in -180.0..180.0 -> "Titik lokasi tidak valid"
+                    parsedLat == 0.0 && parsedLng == 0.0 -> "Ambil lokasi atau isi titik lokasi"
+                    else -> {
+                        onSave(label, fullAddress, parsedLat, parsedLng)
+                        null
+                    }
+                }
+            }) { Text("Simpan", color = TKColor.Orange) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Batal", color = TKColor.Mist) } }
+    )
 }
 
 @Composable
@@ -313,12 +470,17 @@ private fun AddressDialog(
     addresses: List<AddressDto>,
     onDismiss: () -> Unit,
     onSetPrimary: (AddressDto) -> Unit,
-    onDelete: (AddressDto) -> Unit
+    onDelete: (AddressDto) -> Unit,
+    onAdd: () -> Unit,
+    onEdit: (AddressDto) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Tutup", color = TKColor.Orange) }
+            Row(horizontalArrangement = Arrangement.Start) {
+                TextButton(onClick = onAdd) { Text("Tambah", color = TKColor.Orange) }
+                TextButton(onClick = onDismiss) { Text("Tutup", color = TKColor.Mist) }
+            }
         },
         containerColor = TKColor.InkSoft,
         title = { Text("Kelola alamat", color = TKColor.White) },
@@ -343,6 +505,9 @@ private fun AddressDialog(
                                 }
                             }
                             Text(address.fullAddress, color = TKColor.Mist, fontSize = 12.sp, maxLines = 2)
+                        }
+                        IconButton(onClick = { onEdit(address) }) {
+                            Icon(Icons.Filled.Edit, "Ubah alamat", tint = TKColor.Mist)
                         }
                         if (!address.isPrimary) {
                             IconButton(onClick = { onSetPrimary(address) }) {

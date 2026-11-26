@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 @HiltAndroidApp
 class TukangKilatApplication : Application() {
@@ -16,13 +15,15 @@ class TukangKilatApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // A stale token must never crash the app. Clear it so the next screen shows login.
+        // Log every uncaught error and keep the platform default handling. Swallowing an
+        // exception here freezes the UI on a blank screen with no diagnostic.
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            if (throwable is HttpException && throwable.code() == 401) {
-                // The authenticator already clears the session; ignore the stale call.
+            android.util.Log.e("TukangKilat", "Uncaught on ${thread.name}", throwable)
+            if (previous != null) {
+                previous.uncaughtException(thread, throwable)
             } else {
-                previous?.uncaughtException(thread, throwable)
+                android.os.Process.killProcess(android.os.Process.myPid())
             }
         }
         // Start off the main thread; the UI shows a loading gate until ready.

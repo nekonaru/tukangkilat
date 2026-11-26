@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-11-26
+
+### Added
+
+- **Technician directory**: consumers can browse verified technicians, search by name or skill, filter by skill, see rating and job count, and save or remove favorites. New `GET /consumer/technicians` endpoint with an integration test.
+- **Address editor**: the Akun screen can now add and edit saved addresses, including a **Gunakan lokasi saya** GPS action with geocoding and manual coordinate fallback.
+- **Persisted notifications**: the notification center now survives process death. A Room migration adds a `cached_notifications` table without clearing favorites or cached orders.
+
+### Fixed
+
+- **Database transfer**: export and import now include `refresh_tokens`, reject unsafe photo names and column names, bound archive sizes, remove stale photos, and keep the schema consistent.
+- **Embedded backend**: migrations are tracked in a version table, applied with a version marker, idempotent statements and a comment-aware SQL splitter; existing installs are adopted without re-running old migrations. Startup failures now show a retry screen.
+- **Backend correctness**: order codes advance on collision, duplicate offers and repeated no-technician notices are prevented, withdrawals lock the technician row, refresh-token rotation locks the token row, stale locations are cleared on going offline, and the rate limiter evicts old buckets.
+- **Client fixes**: silent refresh uses the configured server address, payment retry navigates after success, withdrawal feedback is no longer overwritten, technician home shows today's earnings, and slots are no longer fetched twice.
+- **Crash handling**: uncaught exceptions are logged and delegated to the platform handler instead of being silently swallowed.
+
 ## [2.11.0] - 2026-11-26
 
 ### Added
@@ -217,6 +233,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0
 [2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
 [2.9.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.9.0
