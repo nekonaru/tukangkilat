@@ -287,6 +287,10 @@ object OrderService {
             if (status != OrderStatus.MENUNGGU_PEMBAYARAN) {
                 throw ConflictException("Pesanan tidak menunggu pembayaran")
             }
+            val hasPending = PaymentsTable.selectAll().where {
+                (PaymentsTable.orderId eq orderId) and (PaymentsTable.status eq PaymentStatus.MENUNGGU.name)
+            }.any()
+            if (hasPending) throw ConflictException("Pembayaran untuk pesanan ini sudah dibuat")
             val now = OffsetDateTime.now()
 
             // apply a promo code entered on the payment screen, if any
@@ -432,10 +436,37 @@ object OrderService {
             }.map { it[PaymentsTable.orderId] }
         }
         var count = 0
-        for (orderId in stale) {
-            if (markPaymentFailed(orderId, null, OrderStateMachine.Actor.SYSTEM)) count++
+        for (orderId in stale.distinct()) {
+            try {
+                if (markPaymentFailed(orderId, null, OrderStateMachine.Actor.SYSTEM)) count++
+            } catch (e: ConflictException) {
+                // Another path already settled this payment; skip it instead of aborting the sweep.
+            }
         }
         return count
+    }
+
+    /** System cancellation after the dispatcher exhausts all technicians. Refunds a paid order. */
+    suspend fun autoCancelNoTechnician(orderId: Long) {
+        val changed = transaction {
+            val row = OrderQueries.loadOrderRow(orderId)
+            if (OrderStatus.valueOf(row[OrdersTable.status]) != OrderStatus.MENCARI_TEKNISI) {
+                return@transaction false
+            }
+            if (row[OrdersTable.paymentStatus] == PaymentStatus.LUNAS.name) {
+                val paymentIds = PaymentsTable.selectAll().where {
+                    (PaymentsTable.orderId eq orderId) and (PaymentsTable.status eq PaymentStatus.LUNAS.name)
+                }.map { it[PaymentsTable.id] }
+                paymentIds.forEach { pid ->
+                    PaymentsTable.update({ PaymentsTable.id eq pid }) { it[PaymentsTable.status] = PaymentStatus.KEMBALI.name }
+                }
+                OrdersTable.update({ OrdersTable.id eq orderId }) { it[OrdersTable.paymentStatus] = PaymentStatus.KEMBALI.name }
+            }
+            expireOffersForOrder(orderId)
+            transitionInTx(orderId, OrderStatus.DIBATALKAN, null, OrderStateMachine.Actor.SYSTEM)
+            true
+        }
+        if (changed) notifyOrderParties(orderId)
     }
 
     // ---------- Cancel / reschedule ----------
@@ -570,11 +601,10 @@ object OrderService {
             .select(RatingsTable.stars.count(), RatingsTable.stars.avg())
             .where { OrdersTable.technicianId eq technicianId }
             .single()
-        val jobs = (aggregate[RatingsTable.stars.count()] as Number).toInt()
         val avg = (aggregate[RatingsTable.stars.avg()] as? Number)?.toDouble() ?: 0.0
+        // jobsCount is maintained by completed jobs; ratings only affect the average.
         TechnicianProfilesTable.update({ TechnicianProfilesTable.userId eq technicianId }) {
             it[ratingAvg] = Math.round(avg * 10) / 10.0
-            it[jobsCount] = jobs
         }
         OrderQueries.toOrderDto(OrderQueries.loadOrderRow(orderId))
     }

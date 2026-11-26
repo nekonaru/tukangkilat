@@ -312,7 +312,7 @@ private fun ActionBar(
                     shape = TKShape.Card,
                     colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
                 ) {
-                    Icon(spec.third, null)
+                    Icon(spec.third, spec.first)
                     Spacer(Modifier.width(10.dp))
                     Text(spec.first, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 }

@@ -341,7 +341,7 @@ private fun AccountRow(icon: androidx.compose.ui.graphics.vector.ImageVector, la
             .padding(horizontal = 22.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, tint = if (danger) TKColor.Red else TKColor.Orange)
+        Icon(icon, label, tint = if (danger) TKColor.Red else TKColor.Orange)
         Spacer(Modifier.width(TKSpacing.Sm))
         Text(label, color = if (danger) TKColor.Red else TKColor.White, fontWeight = FontWeight.Medium, fontSize = 16.sp, modifier = Modifier.weight(1f))
         Icon(Icons.Filled.ChevronRight, "Lanjut", tint = TKColor.InkLine)

@@ -288,7 +288,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         // ---------- Admin API ----------
         authenticate("auth-jwt") {
             route("/admin") {
-                get("/summary") { call.requireRole(Role.ADMIN); call.respond(AdminService.summary()) }
+                get("/analytics") { call.requireRole(Role.ADMIN); call.respond(AdminService.analytics()) }
+            get("/summary") { call.requireRole(Role.ADMIN); call.respond(AdminService.summary()) }
                 get("/technicians") {
                     call.requireRole(Role.ADMIN)
                     call.respond(AdminService.listTechnicians(call.request.queryParameters["status"]))

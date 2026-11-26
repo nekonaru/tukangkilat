@@ -19,4 +19,28 @@ object EmbeddedSchema {
     fun resetVersionMarkers(connection: Connection) {
         connection.createStatement().use { it.execute("DELETE FROM local_schema_version") }
     }
+
+    /** Infer which of the pre-marker migrations a legacy database actually has. */
+    fun detectedVersions(connection: Connection): Set<Int> {
+        if (!usersTableExists(connection)) return emptySet()
+        val versions = mutableSetOf(1)
+        if (columnExists(connection, "promo_codes", "is_active")) versions += 2
+        if (indexExists(connection, "idx_payments_status_expires")) versions += 3
+        if (tableExists(connection, "withdrawals")) versions += 4
+        return versions
+    }
+
+    private fun tableExists(connection: Connection, name: String): Boolean =
+        connection.metaData.getTables(null, "public", name, arrayOf("TABLE")).use { it.next() }
+
+    private fun columnExists(connection: Connection, table: String, column: String): Boolean =
+        connection.metaData.getColumns(null, "public", table, column).use { it.next() }
+
+    private fun indexExists(connection: Connection, name: String): Boolean =
+        connection.metaData.getIndexInfo(null, "public", null, false, false).use { rs ->
+            while (rs.next()) {
+                if (name.equals(rs.getString("INDEX_NAME"), ignoreCase = true)) return true
+            }
+            false
+        }
 }

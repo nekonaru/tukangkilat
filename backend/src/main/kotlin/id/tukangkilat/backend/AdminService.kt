@@ -19,6 +19,16 @@ object AdminService {
         AdminSummaryDto(ordersToday = ordersToday, techniciansOnline = techsOnline, openReports = openReports)
     }
 
+    /** Aggregate all orders in SQL so charts are correct beyond the 50-row list limit. */
+    fun analytics(): AdminAnalyticsDto = transaction {
+        val today = java.time.LocalDate.now()
+        val dates = (6 downTo 0).map { today.minusDays(it.toLong()).toString() }
+        val rows = OrdersTable.select(OrdersTable.status, OrdersTable.createdAt).toList()
+        val daily = dates.map { date -> rows.count { it[OrdersTable.createdAt].toLocalDate().toString() == date } }
+        val statuses = rows.groupingBy { it[OrdersTable.status] }.eachCount()
+        AdminAnalyticsDto(dates, daily, statuses, rows.size)
+    }
+
     private fun statusFilter(status: String?, build: SqlExpressionBuilder.() -> Op<Boolean>): Op<Boolean> =
         if (status.isNullOrBlank()) Op.TRUE else with(SqlExpressionBuilder, build)
 

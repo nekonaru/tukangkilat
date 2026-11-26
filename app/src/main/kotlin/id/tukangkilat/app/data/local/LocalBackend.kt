@@ -33,8 +33,6 @@ object LocalBackend {
 
     private const val PORT = 8080
     private const val DB_NAME = "tukangkilat"
-    /** Schema version of the database created by builds that had no version marker. */
-    private const val LEGACY_SCHEMA_VERSION = 4
     const val BASE_URL = "http://127.0.0.1:8080"
 
     /** Migration files and the schema version they produce. Append only, never reorder. */
@@ -137,7 +135,7 @@ object LocalBackend {
     suspend fun stopForImport() = withContext(Dispatchers.IO) {
         server?.stop()
         server = null
-        _ready.value = false
+        // Keep ready = true: the Import screen stays mounted so its coroutine survives.
     }
 
     /** Start again after an import has replaced the local database. */
@@ -174,9 +172,8 @@ object LocalBackend {
                 applied.clear()
             }
             if (tableExists && applied.isEmpty()) {
-                // Adopt only versions that existed before the marker. Future migrations
-                // must still run on this database.
-                (1..LEGACY_SCHEMA_VERSION).forEach { version ->
+                // Adopt only the migrations this legacy database actually contains.
+                EmbeddedSchema.detectedVersions(connection).forEach { version ->
                     connection.createStatement().use { st ->
                         st.execute("INSERT INTO local_schema_version (version) VALUES ($version)")
                     }

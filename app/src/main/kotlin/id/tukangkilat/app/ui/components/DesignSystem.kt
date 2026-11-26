@@ -119,9 +119,14 @@ fun TKOutlinedField(
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     error: Boolean = false,
+    errorMessage: String? = null,
     singleLine: Boolean = true,
     maxLines: Int = 1,
-    leadingIcon: ImageVector? = null
+    leadingIcon: ImageVector? = null,
+    visualTransformation: androidx.compose.ui.text.input.VisualTransformation =
+        androidx.compose.ui.text.input.VisualTransformation.None,
+    keyboardOptions: androidx.compose.foundation.text.KeyboardOptions =
+        androidx.compose.foundation.text.KeyboardOptions.Default
 ) {
     val scheme = MaterialTheme.colorScheme
     OutlinedTextField(
@@ -133,6 +138,8 @@ fun TKOutlinedField(
         isError = error,
         singleLine = singleLine,
         maxLines = maxLines,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
         shape = TKShape.Field,
         leadingIcon = leadingIcon?.let { { Icon(it, contentDescription = null, modifier = Modifier.size(18.dp)) } },
         colors = OutlinedTextFieldDefaults.colors(
@@ -148,7 +155,7 @@ fun TKOutlinedField(
             unfocusedContainerColor = scheme.surface
         ),
         supportingText = if (error) {
-            { Text("Periksa lagi isian kamu", color = scheme.error, style = MaterialTheme.typography.bodySmall) }
+            { Text(errorMessage ?: "Periksa lagi isian kamu", color = scheme.error, style = MaterialTheme.typography.bodySmall) }
         } else null
     )
 }
@@ -344,7 +351,7 @@ fun PriceSummary(serviceFee: Long, visitFee: Long, discount: Long, total: Long) 
     ) {
         SummaryRow("Biaya jasa", Format.rupiah(serviceFee))
         SummaryRow("Biaya kunjungan", Format.rupiah(visitFee))
-        if (discount > 0) SummaryRow("Diskon", "-${Format.rupiah(discount)}", color = scheme.error)
+        if (discount > 0) SummaryRow("Diskon", "-${Format.rupiah(discount)}", color = tukangKilatColors().success)
         HorizontalDivider(color = scheme.outlineVariant, modifier = Modifier.padding(vertical = TKSpacing.Xs))
         Row(
             Modifier.fillMaxWidth().background(scheme.primaryContainer, TKShape.Button).padding(TKSpacing.Xs),
@@ -505,6 +512,7 @@ fun JobOfferCard(
     area: String,
     netFee: Long,
     secondsLeft: Int = 60,
+    serviceLabel: String = "Perbaikan listrik",
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -517,7 +525,7 @@ fun JobOfferCard(
             this.value = value
         }
     }.value
-    val countdown = "${seconds / 60}:${String.format("%02d", seconds % 60)}"
+    val countdown = "${String.format("%02d", seconds / 60)}:${String.format("%02d", seconds % 60)}"
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = TKShape.Card,
@@ -526,7 +534,7 @@ fun JobOfferCard(
     ) {
         Column(Modifier.padding(TKSpacing.Sm)) {
             Text(countdown, style = MaterialTheme.typography.titleLarge, color = scheme.primary)
-            Text("Perbaikan listrik · $serviceName", style = MaterialTheme.typography.titleSmall)
+            Text("$serviceLabel · $serviceName", style = MaterialTheme.typography.titleSmall)
             Text("${String.format("%.1f", distanceKm)} km · $area", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
             Text("Estimasi bersih ${Format.rupiah(netFee)}", style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.height(TKSpacing.Xs))
@@ -604,12 +612,13 @@ fun ChoiceFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun SkeletonCard() {
+    val reduceMotion = rememberReduceMotion()
     val infinite = rememberInfiniteTransition(label = "skeleton")
     val alpha by infinite.animateFloat(
         initialValue = 0.35f, targetValue = 0.8f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "alpha"
     )
-    val tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
+    val tint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (reduceMotion) 0.6f else alpha)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = TKShape.Card,
@@ -707,23 +716,23 @@ private data class NavItem(val route: String, val label: String, val icon: Image
 fun TKNavigationBar(role: String, selectedRoute: String, onNavigate: (String) -> Unit) {
     val items = when (role) {
         "TUKANG" -> listOf(
-            NavItem("t_home", "Beranda", Icons.Filled.Home),
-            NavItem("t_jobs", "Pekerjaan", Icons.Filled.Assignment),
-            NavItem("t_earnings", "Pendapatan", Icons.Filled.Payments),
-            NavItem("t_account", "Akun", Icons.Filled.Person)
+            NavItem("technician/home", "Beranda", Icons.Filled.Home),
+            NavItem("technician/jobs", "Pekerjaan", Icons.Filled.Assignment),
+            NavItem("technician/earnings", "Pendapatan", Icons.Filled.Payments),
+            NavItem("technician/account", "Akun", Icons.Filled.Person)
         )
         "ADMIN" -> listOf(
-            NavItem("a_verify", "Verifikasi", Icons.Filled.VerifiedUser),
-            NavItem("a_reports", "Laporan", Icons.Filled.Report),
-            NavItem("a_services", "Layanan", Icons.Filled.Build),
-            NavItem("a_promo", "Promo", Icons.Filled.LocalOffer),
-            NavItem("a_more", "Lainnya", Icons.Filled.MoreHoriz)
+            NavItem("admin/verify", "Verifikasi", Icons.Filled.VerifiedUser),
+            NavItem("admin/reports", "Laporan", Icons.Filled.Report),
+            NavItem("admin/services", "Layanan", Icons.Filled.Build),
+            NavItem("admin/promo", "Promo", Icons.Filled.LocalOffer),
+            NavItem("admin/summary", "Lainnya", Icons.Filled.MoreHoriz)
         )
         else -> listOf(
-            NavItem("c_home", "Beranda", Icons.Filled.Home),
-            NavItem("c_orders", "Pesanan", Icons.Filled.ReceiptLong),
-            NavItem("c_chat", "Chat", Icons.Filled.Chat),
-            NavItem("c_account", "Akun", Icons.Filled.Person)
+            NavItem("consumer/home", "Beranda", Icons.Filled.Home),
+            NavItem("consumer/orders", "Pesanan", Icons.Filled.ReceiptLong),
+            NavItem("consumer/chats", "Chat", Icons.Filled.Chat),
+            NavItem("consumer/account", "Akun", Icons.Filled.Person)
         )
     }
     NavigationBar(

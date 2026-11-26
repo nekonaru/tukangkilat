@@ -924,4 +924,17 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.Forbidden, denied.status)
     }
 
+
+    @Test
+    fun `admin analytics aggregates all orders`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val res = client.okGet("/admin/analytics", admin)
+        val analytics = json.decodeFromString(AdminAnalyticsDto.serializer(), res.bodyAsText())
+        assertEquals(7, analytics.dates.size)
+        assertEquals(7, analytics.dailyCounts.size)
+        assertTrue(analytics.totalOrders > 0, "seed orders must be counted")
+        assertTrue(analytics.statusCounts.values.sum() == analytics.totalOrders)
+    }
+
 }

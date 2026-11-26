@@ -142,6 +142,9 @@ interface ApiService {
     suspend fun technicianSendMessage(@Path("id") id: Long, @Body req: SendMessageRequest): MessageDto
 
     // ----- Admin -----
+    @GET("/admin/analytics")
+    suspend fun adminAnalytics(): AdminAnalyticsDto
+
     @GET("/admin/summary")
     suspend fun adminSummary(): AdminSummaryDto
 

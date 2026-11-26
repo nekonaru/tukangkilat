@@ -402,6 +402,14 @@ data class IssueReportDto(
 )
 
 @Serializable
+data class AdminAnalyticsDto(
+    val dates: List<String>,
+    val dailyCounts: List<Int>,
+    val statusCounts: Map<String, Int>,
+    val totalOrders: Int
+)
+
+@Serializable
 data class AdminSummaryDto(
     val ordersToday: Int,
     val techniciansOnline: Int,

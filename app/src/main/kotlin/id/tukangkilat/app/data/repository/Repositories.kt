@@ -144,6 +144,7 @@ class AdminRepository @Inject constructor(
     private val api: ApiService
 ) {
     suspend fun summary() = api.adminSummary()
+    suspend fun analytics() = api.adminAnalytics()
     suspend fun technicians(status: String?) = api.adminTechnicians(status)
     suspend fun approveTechnician(id: Long) = api.approveTechnician(id)
     suspend fun rejectTechnician(id: Long, reason: String) = api.rejectTechnician(id, RejectTechnicianRequest(reason))

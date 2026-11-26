@@ -4,6 +4,26 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2026-11-26
+
+### Ditambahkan
+
+- **Pengalih tema dan Pengaturan**: pilih tampilan Sistem, Terang, atau Gelap dari layar Pengaturan baru. Layar yang sama mengatur alamat server dan menjelaskan mode lokal.
+- **Analitik admin di server**: `GET /admin/analytics` menghitung semua pesanan, bukan hanya 50 terbaru, beserta tes integrasi. Ringkasan admin memakainya dan tetap punya fallback ke perhitungan lama.
+- **Penyelesaian otomatis saat teknisi tidak ada**: setelah jendela pencarian berakhir, pesanan dibatalkan sistem dan pembayaran yang sudah lunas dikembalikan.
+
+### Diperbaiki
+
+- Bidang password kembali menerapkan penyamaran dan opsi keyboard, sehingga tombol tampil/sembunyi berfungsi.
+- Navigasi bawah per peran kini benar-benar terpasang, dengan tab Chat dan layar daftar chat yang bisa dibuka.
+- Teks di atas kontainer terang memakai peran warna on-container sehingga tetap terbaca di dua tema.
+- Pesan snackbar di layar pencarian dan status kini ditampilkan lalu dihapus, sehingga pesan yang sama bisa muncul lagi.
+- Lima layar tidak lagi mengambil data dua kali saat pertama dibuka. Chat membatalkan pengumpul dan polling lama sebelum memulai yang baru, serta hanya menggulir saat pesan terakhir berubah.
+- Pengaturan ulang ID saat impor database kini dijalankan setelah commit data, dan layar impor tetap terpasang sehingga restart serta penghapusan sesi benar-benar berjalan.
+- Database lama hanya mengadopsi migrasi yang memang sudah ada di dalamnya.
+- Pembayaran pending kedua ditolak, sweep kedaluwarsa melewati baris yang bertabrakan, penilaian tidak lagi menghapus jumlah pekerjaan seed, dan ETA dihitung dari lokasi teknisi terakhir.
+- Kesiapan backend tertanam tidak lagi memblokir UI ketika server LAN jarak jauh dikonfigurasi.
+
 ## [2.15.0] - 2026-11-26
 
 ### Diubah
@@ -264,6 +284,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0
 [2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0
 [2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0

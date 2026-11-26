@@ -30,13 +30,25 @@ import id.tukangkilat.app.ui.theme.TKSpacing
 
 /** Legacy names delegate to the design system so every screen inherits the new theme. */
 @Composable
-fun TKPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    TKButton(text, onClick, modifier, TKButtonVariant.Filled, enabled)
+fun TKPrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false
+) {
+    TKButton(text, onClick, modifier, TKButtonVariant.Filled, enabled, loading)
 }
 
 @Composable
-fun TKSecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    TKButton(text, onClick, modifier, TKButtonVariant.Tonal, enabled)
+fun TKSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false
+) {
+    TKButton(text, onClick, modifier, TKButtonVariant.Tonal, enabled, loading)
 }
 
 @Composable
@@ -212,7 +224,9 @@ fun TextFieldDark(
         placeholder = placeholder,
         error = isError,
         singleLine = singleLine,
-        maxLines = if (singleLine) 1 else minLines.coerceAtLeast(2)
+        maxLines = if (singleLine) 1 else minLines.coerceAtLeast(2),
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions
     )
 }
 

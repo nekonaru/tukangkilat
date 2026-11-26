@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -163,7 +165,10 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+    var firstResume by remember { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (firstResume) firstResume = false else viewModel.refresh()
+    }
 
     when {
         state.isLoading && state.services.isEmpty() && state.error == null -> LoadingView()
@@ -210,10 +215,10 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
-                            .clip(RoundedCornerShape(26.dp))
+                            .clip(TKShape.Button)
                             .background(TKColor.Orange)
-                            .clickable { }
-                            .padding(horizontal = TKSpacing.Sm),
+                            .padding(horizontal = TKSpacing.Sm)
+                            .semantics { contentDescription = "Cari layanan" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Filled.Search, "Cari", tint = TKColor.White)
@@ -309,7 +314,7 @@ private fun ServiceCard(service: ServiceDto, onClick: () -> Unit) {
                 .background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
-            Icon(serviceIcon(service.icon), null, tint = TKColor.Orange, modifier = Modifier.size(26.dp))
+            Icon(serviceIcon(service.icon), service.name, tint = TKColor.Orange, modifier = Modifier.size(26.dp))
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -332,12 +337,12 @@ private fun ActiveOrderCard(order: OrderSummaryDto, onClick: () -> Unit) {
             .padding(TKSpacing.Sm)
     ) {
         Row {
-            Text(order.code, color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(order.code, color = TKColor.CreamText, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.weight(1f))
             Text(statusLabel(order.status), color = TKColor.Orange, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
         Spacer(Modifier.height(TKSpacing.Xs))
-        Text(order.serviceName, color = TKColor.Ink, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+        Text(order.serviceName, color = TKColor.CreamText, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
         Spacer(Modifier.height(4.dp))
         Text("${order.scheduledDate} · ${order.slotLabel}", color = TKColor.CreamText, fontSize = 13.sp)
     }

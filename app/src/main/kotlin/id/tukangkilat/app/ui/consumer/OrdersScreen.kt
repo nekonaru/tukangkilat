@@ -101,7 +101,10 @@ fun OrdersScreen(
     viewModel: OrdersViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+    var firstResume by remember { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (firstResume) firstResume = false else viewModel.refresh()
+    }
     val base = if (state.tab == 0) state.active else state.history
     val shown = if (state.query.isBlank()) base else base.filter {
         it.code.contains(state.query, ignoreCase = true) || it.serviceName.contains(state.query, ignoreCase = true)

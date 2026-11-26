@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -58,7 +59,12 @@ class ChatViewModel @Inject constructor(
     private val _state = MutableStateFlow(ChatUiState())
     val state: StateFlow<ChatUiState> = _state.asStateFlow()
 
+    private var pollJob: Job? = null
+    private var wsJob: Job? = null
+
     fun load(orderId: Long, technicianSide: Boolean) {
+        pollJob?.cancel()
+        wsJob?.cancel()
         viewModelScope.launch {
             try {
                 val s = sessionManager.session.first()
@@ -66,14 +72,14 @@ class ChatViewModel @Inject constructor(
             } catch (_: Exception) {}
             refresh(orderId, technicianSide)
         }
-        viewModelScope.launch {
+        wsJob = viewModelScope.launch {
             wsManager.events.collect { event ->
                 if (event.type == WsEventType.CHAT_MESSAGE && event.orderId == orderId) {
                     refresh(orderId, technicianSide)
                 }
             }
         }
-        viewModelScope.launch {
+        pollJob = viewModelScope.launch {
             while (true) {
                 delay(5_000)
                 refresh(orderId, technicianSide)
@@ -120,8 +126,9 @@ fun ChatScreen(
     val listState = rememberLazyListState()
 
     LaunchedEffect(orderId) { viewModel.load(orderId, technicianSide) }
-    LaunchedEffect(state.messages.size) {
-        if (state.messages.isNotEmpty()) {
+    val lastMessageId = state.messages.lastOrNull()?.id
+    LaunchedEffect(lastMessageId) {
+        if (lastMessageId != null) {
             listState.animateScrollToItem(state.messages.lastIndex)
         }
     }

@@ -145,12 +145,14 @@ object DatabaseTransfer {
                 TABLES.forEach { table ->
                     snapshot.tables[table]?.forEach { row -> insertRow(conn, table, row) }
                 }
-                AUTO_ID_TABLES.forEach { table ->
+                conn.commit()
+                // H2 implicitly commits DDL, so identity resets must run after the data commit.
+                val restarts = AUTO_ID_TABLES.map { table ->
                     val rows = snapshot.tables[table].orEmpty()
                     val max = rows.mapNotNull { it["id"]?.toLongOrNull() }.maxOrNull() ?: 0
-                    conn.createStatement().use { it.execute("ALTER TABLE $table ALTER COLUMN id RESTART WITH ${max + 1}") }
+                    "ALTER TABLE $table ALTER COLUMN id RESTART WITH ${max + 1}"
                 }
-                conn.commit()
+                restarts.forEach { sql -> conn.createStatement().use { it.execute(sql) } }
             } catch (e: Exception) {
                 conn.rollback()
                 throw e
