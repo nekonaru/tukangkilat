@@ -265,6 +265,9 @@ object OrderService {
         OrderQueries.toOrderDto(OrderQueries.loadOrderRow(orderId))
     }
 
+    /** Used by other order creation paths that still need the daily sequence. */
+    fun generateOrderCodeForNegotiation(): String = generateOrderCode()
+
     private fun generateOrderCode(): String {
         val today = LocalDate.now()
         val prefix = "TK-" + today.format(DateTimeFormatter.ofPattern("ddMMyy")) + "-"

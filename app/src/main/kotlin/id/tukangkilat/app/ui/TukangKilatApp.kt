@@ -60,6 +60,9 @@ object Routes {
     const val C_ORDERS = "consumer/orders"
     const val C_ACCOUNT = "consumer/account"
     const val C_CHATS = "consumer/chats"
+    const val C_DIRECT_CHAT = "consumer/direct-chat/{peerId}"
+    const val T_DIRECT_CHAT = "technician/direct-chat/{peerId}"
+    const val T_DIRECT_PEERS = "technician/chats"
     const val NOTIFICATIONS = "notifications"
     const val SETTINGS = "settings"
     const val C_ORDER_NEW = "consumer/new"
@@ -276,7 +279,38 @@ fun TukangKilatApp(
                     onSettings = { navController.navigate(Routes.SETTINGS) }
                 )
             }
-            composable(Routes.C_TECHNICIANS) { TechniciansScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.C_TECHNICIANS) {
+                TechniciansScreen(
+                    onBack = { navController.navigateUp() },
+                    onChat = { id -> navController.navigate("consumer/direct-chat/$id") }
+                )
+            }
+            composable(
+                Routes.C_DIRECT_CHAT,
+                arguments = listOf(navArgument("peerId") { type = NavType.LongType })
+            ) { entry ->
+                DirectChatScreen(
+                    peerId = entry.arguments!!.getLong("peerId"),
+                    technicianSide = false,
+                    onBack = { navController.navigateUp() }
+                )
+            }
+            composable(
+                Routes.T_DIRECT_CHAT,
+                arguments = listOf(navArgument("peerId") { type = NavType.LongType })
+            ) { entry ->
+                DirectChatScreen(
+                    peerId = entry.arguments!!.getLong("peerId"),
+                    technicianSide = true,
+                    onBack = { navController.navigateUp() }
+                )
+            }
+            composable(Routes.T_DIRECT_PEERS) {
+                TechnicianChatsScreen(
+                    onOpenChat = { id -> navController.navigate("technician/direct-chat/$id") },
+                    onBack = { navController.navigateUp() }
+                )
+            }
             composable(Routes.NOTIFICATIONS) {
                 NotificationsScreen(
                     onBack = { navController.navigateUp() },
@@ -287,6 +321,7 @@ fun TukangKilatApp(
             composable(Routes.C_CHATS) {
                 ChatListScreen(
                     onOpenChat = { orderId -> navController.navigate(Routes.chat(orderId)) },
+                    onOpenTechnicianChat = { id -> navController.navigate("consumer/direct-chat/$id") },
                     onOpenNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onBack = { navController.navigateUp() }
                 )
@@ -367,7 +402,8 @@ fun TukangKilatApp(
             composable(Routes.T_HOME) {
                 TechHomeScreen(
                     onOpenJob = { orderId -> navController.navigate(Routes.techJob(orderId)) },
-                    onGoEarnings = { navController.navigate(Routes.T_EARNINGS) }
+                    onGoEarnings = { navController.navigate(Routes.T_EARNINGS) },
+                    onOpenChats = { navController.navigate(Routes.T_DIRECT_PEERS) }
                 )
             }
             composable(Routes.T_JOBS) {

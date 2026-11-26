@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.21.0] - 2026-11-26
+
+### Added
+
+- **Real QR payment**: bank transfer and e-wallet payments generate a scannable QR with an EMVCo-style QRIS payload and CRC checksum. Ten national banks and five e-wallets can be selected before paying.
+- **Nearby technicians**: the technician directory now receives the consumer address as the reference point and shows distance. Each card has a direct chat button.
+- **Direct negotiation**: consumers and technicians can chat without an order. Technicians can send a price proposal with their own description, service, date and time; consumers accept or reject it from the Chat tab. Acceptance creates an order with the negotiated price.
+- **Photo previews**: technician registration shows the selected KTP and selfie images with a zoomable preview, and the order form shows local photo previews before upload.
+- **Customer-chosen time**: the order form has a time picker in addition to preset slots.
+
+### Changed
+
+- New migration V5 adds `direct_messages` and `proposals`; the tables are included in database export and import.
+- New negotiation screens use the standard screen-entrance motion, and the payment QR fades in smoothly.
+
 ## [2.20.0] - 2026-11-26
 
 ### Changed
@@ -338,6 +353,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0
 [2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
 [2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
 [2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0

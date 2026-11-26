@@ -937,4 +937,38 @@ class ApiIntegrationTest {
         assertTrue(analytics.statusCounts.values.sum() == analytics.totalOrders)
     }
 
+
+    @Test
+    fun `technician proposal can be accepted into an order`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val technician = client.loginToken("budi", "budi12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val created = client.post("/technician/proposals") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    CreateProposalRequest.serializer(),
+                    CreateProposalRequest(
+                        consumerId = 2L,
+                        serviceId = serviceId,
+                        description = "Perbaikan listrik sesuai diskusi",
+                        price = 150000L,
+                        scheduledDate = java.time.LocalDate.now().plusDays(1).toString(),
+                        customTime = "14:35"
+                    )
+                )
+            )
+        }
+        assertEquals(HttpStatusCode.Created, created.status)
+        val proposal = json.decodeFromString(ProposalDto.serializer(), created.bodyAsText())
+        val accepted = client.post("/consumer/proposals/${proposal.id}/accept") { bearer(consumer) }
+        assertEquals(HttpStatusCode.OK, accepted.status)
+        val orderId = json.decodeFromString<Map<String, Long>>(accepted.bodyAsText())["orderId"]!!
+        val detail = client.okGet("/consumer/orders/$orderId", consumer).bodyAsText()
+        assertTrue(detail.contains("150000"), "negotiated price must be stored on the order")
+    }
+
 }

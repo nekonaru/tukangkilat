@@ -27,6 +27,7 @@ object EmbeddedSchema {
         if (columnExists(connection, "promo_codes", "is_active")) versions += 2
         if (indexExists(connection, "idx_payments_status_expires")) versions += 3
         if (tableExists(connection, "withdrawals")) versions += 4
+        if (tableExists(connection, "proposals")) versions += 5
         return versions
     }
 

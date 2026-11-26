@@ -17,10 +17,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.OrderRepository
+import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.ui.components.*
 import id.tukangkilat.app.ui.theme.TKShape
 import id.tukangkilat.app.ui.theme.TKSpacing
+import id.tukangkilat.shared.Format
 import id.tukangkilat.shared.OrderSummaryDto
+import id.tukangkilat.shared.ProposalDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,12 +33,14 @@ import javax.inject.Inject
 data class ChatListUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
-    val orders: List<OrderSummaryDto> = emptyList()
+    val orders: List<OrderSummaryDto> = emptyList(),
+    val proposals: List<ProposalDto> = emptyList()
 )
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val api: ApiService
 ) : ViewModel() {
     private val _state = MutableStateFlow(ChatListUiState())
     val state: StateFlow<ChatListUiState> = _state.asStateFlow()
@@ -47,10 +52,25 @@ class ChatListViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
                 val orders = orderRepository.myOrders()
-                _state.value = ChatListUiState(isLoading = false, orders = orders)
+                val proposals = runCatching { api.consumerProposals() }.getOrDefault(emptyList())
+                _state.value = ChatListUiState(isLoading = false, orders = orders, proposals = proposals)
             } catch (e: Exception) {
                 _state.value = ChatListUiState(isLoading = false, error = e.message ?: "Gagal memuat percakapan")
             }
+        }
+    }
+
+    fun acceptProposal(id: Long) {
+        viewModelScope.launch {
+            runCatching { api.acceptProposal(id) }
+            refresh()
+        }
+    }
+
+    fun rejectProposal(id: Long) {
+        viewModelScope.launch {
+            runCatching { api.rejectProposal(id) }
+            refresh()
         }
     }
 }
@@ -58,6 +78,7 @@ class ChatListViewModel @Inject constructor(
 @Composable
 fun ChatListScreen(
     onOpenChat: (Long) -> Unit,
+    onOpenTechnicianChat: (Long) -> Unit,
     onOpenNotifications: () -> Unit,
     onBack: () -> Unit,
     viewModel: ChatListViewModel = hiltViewModel()
@@ -80,6 +101,37 @@ fun ChatListScreen(
                 Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                 verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)
             ) {
+                item { SectionLabel("Penawaran teknisi") }
+                items(state.proposals, key = { it.id }) { proposal ->
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceContainer, TKShape.Card)
+                            .clickable { onOpenTechnicianChat(proposal.technicianId) }
+                            .padding(TKSpacing.Sm)
+                    ) {
+                        Text(
+                            "${proposal.technicianName} · ${Format.rupiah(proposal.price)}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(proposal.serviceName, style = MaterialTheme.typography.bodySmall)
+                        Text(proposal.description, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                        if (proposal.status == "MENUNGGU") {
+                            Row(horizontalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                                TKButton("Terima", { viewModel.acceptProposal(proposal.id) }, modifier = Modifier.weight(1f))
+                                TKButton(
+                                    "Tolak",
+                                    { viewModel.rejectProposal(proposal.id) },
+                                    modifier = Modifier.weight(1f),
+                                    variant = TKButtonVariant.Outlined
+                                )
+                            }
+                        } else {
+                            Text("Status: ${proposal.status}", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                item { SectionLabel("Percakapan pesanan") }
                 items(state.orders, key = { it.id }) { order ->
                     Row(
                         Modifier.fillMaxWidth().clickable { onOpenChat(order.id) }

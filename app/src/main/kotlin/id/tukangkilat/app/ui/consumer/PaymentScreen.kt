@@ -6,6 +6,8 @@ import id.tukangkilat.app.ui.theme.TKSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -506,8 +508,14 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
                     QrisPayload.buildSimple(payment.method.name, reference, payment.amount)
                 }
                 val qr = remember(reference, payment.amount) { PaymentQr.image(payload) }
+                val qrAlpha by animateFloatAsState(
+                    targetValue = 1f,
+                    animationSpec = tween(320),
+                    label = "qr-enter"
+                )
                 Image(
                     bitmap = qr,
+                    alpha = qrAlpha,
                     contentDescription = "QRIS pembayaran ${PaymentProviders.nameOf(reference.substringBefore('-'))}",
                     modifier = Modifier
                         .size(220.dp)

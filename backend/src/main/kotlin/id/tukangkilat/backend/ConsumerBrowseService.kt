@@ -1,5 +1,6 @@
 package id.tukangkilat.backend
 
+import id.tukangkilat.shared.Geo
 import id.tukangkilat.shared.TechnicianBrowseDto
 import id.tukangkilat.shared.TechnicianVerificationStatus
 import org.jetbrains.exposed.sql.*
@@ -8,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 /** Public, read-only directory of verified technicians for consumers. */
 object ConsumerBrowseService {
 
-    fun technicians(skill: String?, query: String?): List<TechnicianBrowseDto> = transaction {
+    fun technicians(skill: String?, query: String?, lat: Double? = null, lng: Double? = null): List<TechnicianBrowseDto> = transaction {
         // LIKE wildcards from the caller would make the filter meaningless.
         if (listOfNotNull(skill, query).any { it.contains('%') || it.contains('_') }) {
             return@transaction emptyList()
@@ -44,7 +45,19 @@ object ConsumerBrowseService {
                     jobsCount = row[TechnicianProfilesTable.jobsCount],
                     serviceRadiusKm = row[TechnicianProfilesTable.serviceRadiusKm],
                     isOnline = row[TechnicianProfilesTable.isOnline],
-                    photoUrl = row[TechnicianProfilesTable.photoUrl]
+                    photoUrl = row[TechnicianProfilesTable.photoUrl],
+                    distanceKm = if (lat != null && lng != null &&
+                        row[TechnicianProfilesTable.lastLat] != null &&
+                        row[TechnicianProfilesTable.lastLng] != null
+                    ) {
+                        kotlin.math.round(
+                            Geo.haversineKm(
+                                lat, lng,
+                                row[TechnicianProfilesTable.lastLat]!!,
+                                row[TechnicianProfilesTable.lastLng]!!
+                            ) * 10
+                        ) / 10.0
+                    } else null
                 )
             }
     }
