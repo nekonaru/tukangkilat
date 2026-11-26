@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.postgresql)
     implementation(libs.postgresql)
+    implementation(libs.h2)
     implementation(libs.hikari)
 
     implementation(libs.jwt.auth0)
