@@ -99,12 +99,14 @@ fun NotificationsScreen(
     }
 }
 
+private val notificationTimeFormat = SimpleDateFormat("dd MMM HH:mm", Locale.forLanguageTag("id"))
+
 @Composable
 private fun NotificationCard(
     item: id.tukangkilat.app.data.repository.AppNotification,
     onOpen: (id.tukangkilat.app.data.repository.AppNotification) -> Unit
 ) {
-    val time = SimpleDateFormat("dd MMM HH:mm", Locale.forLanguageTag("id")).format(Date(item.createdAt))
+    val time = notificationTimeFormat.format(Date(item.createdAt))
     Row(
         modifier = Modifier
             .fillMaxWidth()

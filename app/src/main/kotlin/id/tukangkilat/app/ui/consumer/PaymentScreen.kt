@@ -83,7 +83,10 @@ class PaymentViewModel @Inject constructor(
 
     private var pollJob: kotlinx.coroutines.Job? = null
 
+    private var wsJob: kotlinx.coroutines.Job? = null
+
     fun load(orderId: Long) {
+        wsJob?.cancel()
         viewModelScope.launch {
             try {
                 val order = orderRepository.detail(orderId)
@@ -98,7 +101,7 @@ class PaymentViewModel @Inject constructor(
         }
 
         // realtime: refetch on ORDER_STATUS for this order
-        viewModelScope.launch {
+        wsJob = viewModelScope.launch {
             wsManager.events.collect { event ->
                 if (event.type == WsEventType.ORDER_STATUS && event.orderId == orderId) {
                     refreshSilently(orderId)

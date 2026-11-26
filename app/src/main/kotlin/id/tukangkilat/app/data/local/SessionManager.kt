@@ -53,9 +53,11 @@ private object TokenCipher {
         return generator.generateKey()
     }
 
+    private val cachedKey: SecretKey by lazy { secretKey() }
+
     fun encrypt(plain: String): String {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey())
+        cipher.init(Cipher.ENCRYPT_MODE, cachedKey)
         val iv = cipher.iv
         val encrypted = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
         return Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
@@ -67,7 +69,7 @@ private object TokenCipher {
             val iv = raw.copyOfRange(0, 12)
             val payload = raw.copyOfRange(12, raw.size)
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            cipher.init(Cipher.DECRYPT_MODE, secretKey(), GCMParameterSpec(128, iv))
+            cipher.init(Cipher.DECRYPT_MODE, cachedKey, GCMParameterSpec(128, iv))
             String(cipher.doFinal(payload), Charsets.UTF_8)
         } catch (e: Exception) {
             null
@@ -120,6 +122,10 @@ class SessionManager @Inject constructor(
     }
 
     suspend fun accessToken(): String? = session.first().accessToken
+
+    /** Read only the encrypted access token; interceptors need no user/role parsing. */
+    suspend fun accessTokenSnapshot(): String? =
+        context.sessionDataStore.data.first()[KEY_ACCESS]?.let { TokenCipher.decrypt(it) }
 
     suspend fun refreshToken(): String? =
         context.sessionDataStore.data.first()[KEY_REFRESH]?.let { TokenCipher.decrypt(it) }

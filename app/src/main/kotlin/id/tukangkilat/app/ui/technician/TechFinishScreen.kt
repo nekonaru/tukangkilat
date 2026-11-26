@@ -125,6 +125,7 @@ class TechFinishViewModel @Inject constructor(
     fun removePhoto(url: String) { _state.value = _state.value.copy(photos = _state.value.photos - url) }
 
     fun submit(orderId: Long, onDone: () -> Unit) {
+        if (_state.value.isSubmitting) return
         val s = _state.value
         if (s.note.isBlank()) { _state.value = s.copy(error = "Catatan pekerjaan wajib diisi"); return }
         if (s.photos.isEmpty()) { _state.value = s.copy(error = "Minimal 1 foto bukti"); return }

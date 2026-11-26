@@ -67,6 +67,7 @@ object AppModule {
     fun provideImageLoader(
         @ApplicationContext context: Context,
         authInterceptor: AuthInterceptor,
+        baseUrlInterceptor: BaseUrlInterceptor,
         serverConfig: ServerConfigManager
     ): ImageLoader {
         val client = OkHttpClient.Builder()
@@ -75,7 +76,7 @@ object AppModule {
                 val request = chain.request()
                 val url = request.url
                 if (url.host == "127.0.0.1" || url.host == "localhost") {
-                    val current = runBlocking { serverConfig.current() }
+                    val current = baseUrlInterceptor.configuredUrl()
                     val uri = java.net.URI(current)
                     val rewritten = url.newBuilder()
                         .scheme(uri.scheme)

@@ -35,9 +35,9 @@ class AuthRepository @Inject constructor(
         api.registerTechnician(req)
     }
 
-    suspend fun logout() = runCatching {
-        session.refreshToken()?.let { api.logout(RefreshRequest(it)) }
-        session.logout()
+    suspend fun logout() {
+        runCatching { session.refreshToken()?.let { api.logout(RefreshRequest(it)) } }
+        runCatching { session.logout() }
     }
 
     fun currentSession() = session.session

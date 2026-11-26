@@ -4,6 +4,22 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.0] - 2026-11-26
+
+### Diubah
+
+- **Startup lebih cepat**: hash password demo dihitung sebelumnya, bukan lima kali BCrypt cost 12 di dalam layar pemuatan. Akun sistem untuk unggahan pendaftaran kini dibuat hanya saat dibutuhkan.
+- **Request lebih ringan**: kunci AndroidKeyStore disimpan sekali, interceptor hanya membaca access token, dan alamat server di-cache untuk gambar. Ini menghilangkan pembacaan KeyStore dan dekripsi berulang per request.
+- **Lebih native**: pengguna reduced motion tidak lagi mendapat animasi skeleton berkelanjutan, formater waktu dipindah keluar komposisi, geocoding berjalan di luar utas utama, dan collector pembayaran serta akun tidak menumpuk saat dimuat ulang.
+
+### Diperbaiki
+
+- Pesanan kini bisa dibatalkan setelah teknisi ditemukan, dan teknisi bisa dilepaskan kembali ke pencarian dari layar.
+- Penutupan laporan tidak lagi menggantung pesanan konsumen di status `DILAPORKAN`.
+- Teknisi demo mulai dengan lokasi dekat alamat contoh dan dispatcher menerima lokasi yang sedikit lebih lama, sehingga tawaran berjalan di instalasi baru.
+- Pesan validasi server kini ditampilkan, logout selalu menghapus sesi lokal, dan aksi batal serta kirim langsung memperbarui tampilan.
+- Layar pencarian kini menangani pembatalan dan kegagalan muat, serta daftar pekerjaan teknisi menyertakan `MENUNGGU_KONFIRMASI`.
+
 ## [2.19.0] - 2026-11-26
 
 ### Diperbaiki
@@ -322,6 +338,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
 [2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
 [2.18.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.18.0
 [2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0

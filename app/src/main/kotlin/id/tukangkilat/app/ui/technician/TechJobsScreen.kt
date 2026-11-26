@@ -98,7 +98,8 @@ class TechJobsViewModel @Inject constructor(
                             OrderStatus.TEKNISI_DITEMUKAN,
                             OrderStatus.DALAM_PERJALANAN,
                             OrderStatus.TIBA,
-                            OrderStatus.SEDANG_BEKERJA
+                            OrderStatus.SEDANG_BEKERJA,
+                            OrderStatus.MENUNGGU_KONFIRMASI
                         )
                     },
                     history = orders.filter {

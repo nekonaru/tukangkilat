@@ -123,6 +123,11 @@ object AdminService {
         val report = IssueReportsTable.selectAll().where { IssueReportsTable.id eq reportId }.singleOrNull()
             ?: throw NotFoundException("Laporan tidak ditemukan")
         IssueReportsTable.update({ IssueReportsTable.id eq reportId }) { it[IssueReportsTable.status] = IssueStatus.DITUTUP.name }
+        val orderId = report[IssueReportsTable.orderId]
+        val order = OrderQueries.loadOrderRow(orderId)
+        if (OrderStatus.valueOf(order[OrdersTable.status]) == OrderStatus.DILAPORKAN) {
+            OrderService.transitionInTx(orderId, OrderStatus.SELESAI, null, OrderStateMachine.Actor.ADMIN)
+        }
         Unit
     }
 

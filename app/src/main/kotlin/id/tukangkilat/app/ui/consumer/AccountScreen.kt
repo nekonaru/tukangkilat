@@ -80,6 +80,17 @@ class AccountViewModel @Inject constructor(
 
     init {
         refresh()
+        viewModelScope.launch {
+            authRepository.currentSession().collect { s ->
+                s.user?.let { u ->
+                    _state.value = _state.value.copy(
+                        fullName = u.fullName,
+                        username = u.username,
+                        phone = u.phone.orEmpty()
+                    )
+                }
+            }
+        }
     }
 
     fun refresh() {
@@ -94,13 +105,6 @@ class AccountViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
-            }
-        }
-        viewModelScope.launch {
-            authRepository.currentSession().collect { s ->
-                s.user?.let { u ->
-                    _state.value = _state.value.copy(fullName = u.fullName, username = u.username, phone = u.phone.orEmpty())
-                }
             }
         }
     }
@@ -214,6 +218,15 @@ fun AccountScreen(
                 .background(TKColor.Ink)
         ) {
             ScreenHeader("Akun")
+            state.error?.let { message ->
+                Text(
+                    message,
+                    color = TKColor.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = TKSpacing.Sm)
+                )
+                TextButton(onClick = { viewModel.refresh() }) { Text("Coba lagi", color = TKColor.Orange) }
+            }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     Row(

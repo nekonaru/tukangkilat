@@ -96,6 +96,7 @@ class RatingViewModel @Inject constructor(
     fun onComment(value: String) { _state.value = _state.value.copy(comment = value) }
 
     fun submit(orderId: Long) {
+        if (_state.value.isSubmitting) return
         val s = _state.value
         viewModelScope.launch {
             _state.value = s.copy(isSubmitting = true, error = null)

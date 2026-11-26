@@ -183,11 +183,14 @@ class OrderFormViewModel @Inject constructor(
                     _state.value = _state.value.copy(isLocating = false, error = "Lokasi tidak tersedia. Coba lagi di tempat terbuka.")
                     return@launch
                 }
-                val addressText = try {
-                    val geocoder = Geocoder(context, Locale.forLanguageTag("id"))
-                    @Suppress("DEPRECATION")
-                    geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull()?.getAddressLine(0)
-                } catch (e: Exception) { null } ?: "Lokasi saya (${location.latitude}, ${location.longitude})"
+                val addressText = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val geocoder = Geocoder(context, Locale.forLanguageTag("id"))
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                            ?.firstOrNull()?.getAddressLine(0)
+                    } catch (e: Exception) { null }
+                } ?: "Lokasi saya (${location.latitude}, ${location.longitude})"
 
                 val address = orderRepository.addAddress(
                     AddressUpsertRequest(

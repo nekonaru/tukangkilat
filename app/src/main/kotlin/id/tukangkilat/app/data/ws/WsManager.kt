@@ -54,14 +54,15 @@ class WsManager @Inject constructor(
             var backoffMs = 1_000L
             var lastUrl: String? = null
             while (isActive && running) {
-                val serverUrl = serverConfig.current()
+                val serverUrl = runCatching { serverConfig.current() }.getOrNull()
+                    ?: run { delay(5_000); continue }
                 if (lastUrl != null && serverUrl != lastUrl) {
                     socket?.close(1000, "server changed")
                     socket = null
                     backoffMs = 1_000L
                 }
                 lastUrl = serverUrl
-                val token = sessionManager.accessToken()
+                val token = runCatching { sessionManager.accessToken() }.getOrNull()
                 if (token == null) {
                     delay(5_000)
                     continue

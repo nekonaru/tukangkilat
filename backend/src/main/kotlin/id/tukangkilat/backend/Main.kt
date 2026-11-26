@@ -101,6 +101,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.respond(HttpStatusCode.Created, authService.registerTechnician(req))
             }
             post("/register/photo") {
+                Seed.ensureSystemUser()
                 val multipart = call.receiveMultipart()
                 var saved: PhotoService.PhotoDto? = null
                 multipart.forEachPart { part ->

@@ -20,9 +20,13 @@ class BaseUrlInterceptor @Inject constructor(
         fun invalidate() { cachedUrl = null }
     }
 
+    /** Returns the configured address, reading DataStore at most once until invalidated. */
+    fun configuredUrl(): String =
+        cachedUrl ?: runBlocking { serverConfig.current() }.also { cachedUrl = it }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
-        val configured = cachedUrl ?: runBlocking { serverConfig.current() }.also { cachedUrl = it }
+        val configured = configuredUrl()
         val target = (configured + "/").toHttpUrlOrNull() ?: return chain.proceed(original)
         val current = original.url
         val rewritten = original.newBuilder()

@@ -2,13 +2,19 @@ package id.tukangkilat.app.ui.util
 
 /** Extract a short, user-safe Indonesian message from a Retrofit/serialization/network error. */
 fun Throwable.cleanApiError(): String {
-    val raw = message ?: return "Terjadi kesalahan. Coba lagi."
-    val idx = raw.indexOf("\"message\"")
-    if (idx >= 0) {
+    fun extract(raw: String): String? {
+        val idx = raw.indexOf("\"message\"")
+        if (idx < 0) return null
         val start = raw.indexOf('"', idx + 9) + 1
         val end = raw.indexOf('"', start)
-        if (start > 0 && end > start) return raw.substring(start, end)
+        return if (start > 0 && end > start) raw.substring(start, end) else null
     }
+    if (this is retrofit2.HttpException) {
+        runCatching { response()?.errorBody()?.string() }
+            .getOrNull()?.let { body -> extract(body)?.let { return it } }
+    }
+    val raw = message ?: return "Terjadi kesalahan. Coba lagi."
+    extract(raw)?.let { return it }
     val lower = raw.lowercase()
     if (lower.contains("failed to connect") ||
         lower.contains("unable to resolve host") ||
