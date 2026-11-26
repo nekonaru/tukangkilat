@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-11-26
+
+### Added
+
+- **Online backend option**: the app can connect to one shared Ktor server so orders placed on one device appear on another. Includes a root `Dockerfile`, backend distribution packaging and `docs/DEPLOY_ONLINE.md`.
+
+### Fixed
+
+- **Startup regression**: H2 in PostgreSQL mode exposes a system table named `users`. Schema detection now checks only the `public` schema, so a fresh install installs migrations correctly. Installs that were left with version markers but no schema repair themselves on the next launch. Detection lives in a JVM helper with a regression test.
+- **WebSocket address**: the WebSocket client now uses the server address configured on the login screen, including `wss` for HTTPS, and reconnects when that address changes.
+
 ## [2.12.0] - 2026-11-26
 
 ### Added
@@ -233,6 +244,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0
 [2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0
 [2.11.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.11.0
 [2.10.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.10.0
