@@ -330,6 +330,6 @@ private fun AdminMenuCard(
             Text(title, color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Text(subtitle, color = TKColor.Mist, fontSize = 12.sp)
         }
-        Icon(Icons.Filled.ChevronRight, null, tint = TKColor.InkLine)
+        Icon(Icons.Filled.ChevronRight, "Lanjut", tint = TKColor.InkLine)
     }
 }

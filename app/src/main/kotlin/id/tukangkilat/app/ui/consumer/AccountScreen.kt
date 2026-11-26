@@ -426,7 +426,7 @@ private fun SectionRow(icon: androidx.compose.ui.graphics.vector.ImageVector, la
             fontSize = 16.sp,
             modifier = Modifier.weight(1f)
         )
-        Icon(Icons.Filled.ChevronRight, null, tint = TKColor.InkLine)
+        Icon(Icons.Filled.ChevronRight, "Lanjut", tint = TKColor.InkLine)
     }
 }
 

@@ -394,7 +394,7 @@ fun OrderFormScreen(
                                 CircularProgressIndicator(color = TKColor.Orange, modifier = Modifier.size(24.dp))
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(Icons.Filled.AddAPhoto, null, tint = TKColor.Orange)
+                                    Icon(Icons.Filled.AddAPhoto, "Tambah foto", tint = TKColor.Orange)
                                     Text("Tambah", color = TKColor.Orange, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
@@ -474,7 +474,7 @@ fun OrderFormScreen(
                 onClick = { locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
                 enabled = !state.isLocating
             ) {
-                Icon(Icons.Filled.MyLocation, null, tint = TKColor.Orange)
+                Icon(Icons.Filled.MyLocation, "Gunakan lokasi saya", tint = TKColor.Orange)
                 Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     if (state.isLocating) "Mencari lokasi..." else "Gunakan lokasi saya",
@@ -549,7 +549,7 @@ private fun DateSelector(date: String, onDate: (String) -> Unit) {
             .padding(TKSpacing.Sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.CalendarMonth, null, tint = TKColor.White)
+        Icon(Icons.Filled.CalendarMonth, "Tanggal", tint = TKColor.White)
         Spacer(Modifier.width(12.dp))
         Text(label.replaceFirstChar { it.uppercase() }, color = TKColor.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
     }

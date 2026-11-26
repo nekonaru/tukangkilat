@@ -208,7 +208,7 @@ fun LoginScreen(
             if (state.error != null) {
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Error, null, tint = TKColor.Red, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Filled.Error, "Galat", tint = TKColor.Red, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(TKSpacing.Xs))
                     Text(state.error!!, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }

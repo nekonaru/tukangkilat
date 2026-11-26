@@ -143,7 +143,7 @@ fun OrdersScreen(
             shown.isEmpty() -> EmptyView(
                 title = if (state.tab == 0) "Belum ada pesanan aktif" else "Belum ada riwayat",
                 subtitle = if (state.tab == 0) "Pesanan yang menunggu pembayaran atau sedang berjalan akan tampil di sini." else "Pesanan yang selesai akan tampil di sini.",
-                icon = { Icon(Icons.Filled.ReceiptLong, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                icon = { Icon(Icons.Filled.ReceiptLong, "Struk", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
             )
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),

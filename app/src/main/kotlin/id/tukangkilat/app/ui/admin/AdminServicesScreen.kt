@@ -216,7 +216,7 @@ private fun ServiceRow(
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
             ) {
-                Icon(Icons.Filled.Edit, null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Edit, "Ubah", modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
                 Text("Ubah", fontSize = 13.sp)
             }

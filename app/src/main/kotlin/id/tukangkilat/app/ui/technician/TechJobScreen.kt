@@ -204,7 +204,7 @@ fun TechJobScreen(
                                 .padding(14.dp)
                         ) {
                             Row(verticalAlignment = Alignment.Top) {
-                                Icon(Icons.Filled.Place, null, tint = TKColor.Orange, modifier = Modifier.padding(top = 2.dp))
+                                Icon(Icons.Filled.Place, "Lokasi", tint = TKColor.Orange, modifier = Modifier.padding(top = 2.dp))
                                 Spacer(Modifier.width(TKSpacing.Xs))
                                 Text(order.addressFull, color = TKColor.White, fontSize = 14.sp)
                             }
@@ -231,7 +231,7 @@ fun TechJobScreen(
                             border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
                         ) {
-                            Icon(Icons.Filled.Navigation, null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Filled.Navigation, "Arah", modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(TKSpacing.Xs))
                             Text("Buka navigasi", fontWeight = FontWeight.SemiBold)
                         }

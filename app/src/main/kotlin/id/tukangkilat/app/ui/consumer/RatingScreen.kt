@@ -252,7 +252,7 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
                     .background(TKColor.GreenSoft)
                     .padding(TKSpacing.Sm)
             ) {
-                Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(36.dp))
+                Icon(Icons.Filled.CheckCircle, "Pilih", tint = TKColor.Green, modifier = Modifier.size(36.dp))
                 Spacer(Modifier.height(TKSpacing.Xs))
                 Text("Pesanan selesai", color = TKColor.GreenDeep, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 Spacer(Modifier.height(10.dp))
@@ -321,7 +321,7 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
             ) {
-                Icon(Icons.Filled.Send, null, modifier = Modifier.size(20.dp))
+                Icon(Icons.Filled.Send, "Kirim", modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(10.dp))
                 Text("Pesan lagi layanan ini", fontWeight = FontWeight.SemiBold)
             }
@@ -342,7 +342,7 @@ private fun ShareReceiptButton(order: OrderDto) {
         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
     ) {
-        Icon(Icons.Filled.Send, null, modifier = Modifier.size(20.dp))
+        Icon(Icons.Filled.Send, "Kirim", modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(10.dp))
         Text("Bagikan struk PDF", fontWeight = FontWeight.SemiBold)
     }

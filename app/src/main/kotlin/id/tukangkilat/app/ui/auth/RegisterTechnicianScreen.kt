@@ -224,7 +224,7 @@ fun RegisterTechnicianScreen(
                             .background(if (checked) TKColor.Orange else TKColor.InkLine),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (checked) Icon(Icons.Filled.Check, null, tint = TKColor.White, modifier = Modifier.size(16.dp))
+                        if (checked) Icon(Icons.Filled.Check, "Centang", tint = TKColor.White, modifier = Modifier.size(16.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(label, color = TKColor.White, fontWeight = FontWeight.Medium)
@@ -293,13 +293,13 @@ private fun PhotoUploadBox(onClick: () -> Unit, uploading: Boolean, done: Boolea
             CircularProgressIndicator(color = TKColor.Orange, modifier = Modifier.size(24.dp))
         } else if (done) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Check, null, tint = TKColor.GreenDeep)
+                Icon(Icons.Filled.Check, "Centang", tint = TKColor.GreenDeep)
                 Spacer(Modifier.width(TKSpacing.Xs))
                 Text("Foto terunggah", color = TKColor.GreenDeep, fontWeight = FontWeight.Bold)
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.CameraAlt, null, tint = TKColor.Orange)
+                Icon(Icons.Filled.CameraAlt, "Ambil foto", tint = TKColor.Orange)
                 Spacer(Modifier.width(TKSpacing.Xs))
                 Text(label, color = TKColor.White, fontWeight = FontWeight.Medium)
             }

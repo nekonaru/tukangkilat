@@ -117,7 +117,7 @@ fun DoneScreen(
                             .padding(TKSpacing.Sm)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Green, modifier = Modifier.size(28.dp))
+                            Icon(Icons.Filled.CheckCircle, "Pilih", tint = TKColor.Green, modifier = Modifier.size(28.dp))
                             Spacer(Modifier.width(10.dp))
                             Column {
                                 Text("Pekerjaan selesai!", color = TKColor.GreenDeep, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)

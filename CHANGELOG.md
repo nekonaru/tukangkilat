@@ -4,6 +4,15 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-11-26
+
+### Diubah
+
+- **Rombaan design system**: skema warna Material 3 terang dan gelap dari fondasi Figma, tipografi Plus Jakarta Sans, token jarak dan radius, serta ekstensi tema untuk warna success dan warning.
+- Komponen reusable dengan preview terang dan gelap: tombol, bidang isian, label status, kartu layanan/teknisi/pesanan, rincian harga, bintang penilaian, linimasa, gelemper chat, item notifikasi, tampilan keadaan, kartu tawaran, snackbar, dialog, lembar bawah, chip pilihan, skeleton, sakelar ketersediaan, FAB, bilah atas, dan navigasi bawah per peran.
+- Semua layar kini memakai token melalui nama UI lama, bilah navigasi per peran, serta kata "kamu" pada teks Bahasa Indonesia.
+- Ikon aksi memiliki contentDescription dan perubahan status pembayaran diumumkan ke layanan aksesibilitas.
+
 ## [2.14.0] - 2026-11-26
 
 ### Ditambahkan
@@ -255,6 +264,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0
 [2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0
 [2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0

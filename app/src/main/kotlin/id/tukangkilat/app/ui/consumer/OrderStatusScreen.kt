@@ -239,7 +239,7 @@ fun OrderStatusScreen(
                         // ETA
                         order.eta?.let { eta ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.Schedule, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Filled.Schedule, "Jadwal", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(TKSpacing.Xs))
                                 Column {
                                     Text("Tiba sekitar ${eta.arriveAt}", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -287,7 +287,7 @@ fun OrderStatusScreen(
                                         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Mist),
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Ink)
                                     ) {
-                                        Icon(Icons.Filled.Phone, null, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Filled.Phone, "Telepon", modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(TKSpacing.Xs))
                                         Text("Telepon", fontWeight = FontWeight.SemiBold)
                                     }
@@ -298,7 +298,7 @@ fun OrderStatusScreen(
                                         border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Mist),
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Ink)
                                     ) {
-                                        Icon(Icons.Filled.Chat, null, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Filled.Chat, "Chat", modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(TKSpacing.Xs))
                                         Text("Pesan", fontWeight = FontWeight.SemiBold)
                                     }
@@ -348,7 +348,7 @@ private fun InfoBanner(text: String) {
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.Info, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+        Icon(Icons.Filled.Info, "Informasi", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(10.dp))
         Text(text, color = TKColor.CreamText, fontSize = 13.sp)
     }

@@ -28,6 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -297,7 +301,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.TRANSFER,
                     title = "Transfer bank",
                     subtitle = "BCA · Nomor pembayaran otomatis",
-                    icon = { Icon(Icons.Filled.AccountBalance, null, tint = if (state.selectedMethod == PaymentMethod.TRANSFER) TKColor.Orange else TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.AccountBalance, "Transfer bank", tint = if (state.selectedMethod == PaymentMethod.TRANSFER) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.TRANSFER) }
                 )
                 Spacer(Modifier.height(10.dp))
@@ -305,7 +309,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.DOMPET_DIGITAL,
                     title = "Dompet digital",
                     subtitle = "GoPay, OVO, atau DANA",
-                    icon = { Icon(Icons.Filled.Wallet, null, tint = if (state.selectedMethod == PaymentMethod.DOMPET_DIGITAL) TKColor.Orange else TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.Wallet, "Dompet digital", tint = if (state.selectedMethod == PaymentMethod.DOMPET_DIGITAL) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.DOMPET_DIGITAL) }
                 )
                 Spacer(Modifier.height(10.dp))
@@ -313,7 +317,7 @@ private fun PaymentSelectContent(
                     selected = state.selectedMethod == PaymentMethod.TUNAI,
                     title = "Tunai",
                     subtitle = "Bayar setelah pekerjaan selesai",
-                    icon = { Icon(Icons.Filled.LocalAtm, null, tint = if (state.selectedMethod == PaymentMethod.TUNAI) TKColor.Orange else TKColor.Ink) },
+                    icon = { Icon(Icons.Filled.LocalAtm, "Pembayaran tunai", tint = if (state.selectedMethod == PaymentMethod.TUNAI) TKColor.Orange else TKColor.Ink) },
                     onClick = { onSelectMethod(PaymentMethod.TUNAI) }
                 )
                 Spacer(Modifier.height(14.dp))
@@ -422,7 +426,7 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
             Spacer(Modifier.height(18.dp))
             Icon(
                 Icons.Filled.AccountBalance,
-                null,
+                "Transfer bank",
                 tint = TKColor.Orange,
                 modifier = Modifier.size(56.dp)
             )
@@ -462,7 +466,7 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
             }
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.CalendarMonth, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.CalendarMonth, "Tanggal", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     "Sisa waktu: %02d:%02d".format(mm, ss),
@@ -472,6 +476,16 @@ private fun PaymentPendingContent(state: PaymentUiState, onPaid: () -> Unit, onB
                 )
             }
             Spacer(Modifier.height(20.dp))
+            Text(
+                "Status pembayaran: Menunggu konfirmasi",
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Status pembayaran: Menunggu konfirmasi"
+                },
+                color = TKColor.CreamText,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.height(8.dp))
             Text(
                 "Setelah transfer, status akan berubah otomatis. Halaman ini memantau pembayaran secara langsung.",
                 color = TKColor.Mist,
@@ -510,7 +524,7 @@ private fun PaymentFailedContent(
                     .background(TKColor.RedSoft),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Filled.CreditCardOff, null, tint = TKColor.Red, modifier = Modifier.size(52.dp))
+                Icon(Icons.Filled.CreditCardOff, "Pembayaran gagal", tint = TKColor.Red, modifier = Modifier.size(52.dp))
             }
             Spacer(Modifier.height(18.dp))
             Text("Pembayaran belum berhasil", color = TKColor.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)

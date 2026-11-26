@@ -148,7 +148,7 @@ fun AdminPromoScreen(
                     EmptyView(
                         title = "Belum ada promo",
                         subtitle = "Tekan tombol + untuk membuat kode promo pertama.",
-                        icon = { Icon(Icons.Filled.LocalActivity, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                        icon = { Icon(Icons.Filled.LocalActivity, "Promo", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                     )
                 } else {
                     LazyColumn(

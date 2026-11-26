@@ -214,7 +214,7 @@ private fun OffersTab(
         EmptyView(
             title = "Belum ada tawaran",
             subtitle = "Tawaran pekerjaan akan muncul otomatis di sini selama kamu online.",
-            icon = { Icon(Icons.Filled.TaskAlt, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+            icon = { Icon(Icons.Filled.TaskAlt, "Selesai", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
         )
         return
     }
@@ -369,7 +369,7 @@ private fun ActiveJobsTab(orders: List<OrderSummaryDto>, onOpenJob: (Long) -> Un
         EmptyView(
             title = "Belum ada pekerjaan terjadwal",
             subtitle = "Terima tawaran di tab Tawaran untuk mulai bekerja.",
-            icon = { Icon(Icons.Filled.TaskAlt, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+            icon = { Icon(Icons.Filled.TaskAlt, "Selesai", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
         )
         return
     }
@@ -390,7 +390,7 @@ private fun HistoryJobsTab(orders: List<OrderSummaryDto>, onOpenJob: (Long) -> U
         EmptyView(
             title = "Belum ada riwayat",
             subtitle = "Pekerjaan yang selesai akan tampil di sini.",
-            icon = { Icon(Icons.Filled.TaskAlt, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+            icon = { Icon(Icons.Filled.TaskAlt, "Selesai", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
         )
         return
     }

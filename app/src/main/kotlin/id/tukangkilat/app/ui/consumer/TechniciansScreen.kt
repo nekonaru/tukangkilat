@@ -210,7 +210,7 @@ private fun TechnicianCard(
             Text(item.skills.joinToString(" · ").ifBlank { "Belum ada keahlian" }, color = TKColor.Mist, fontSize = 11.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Filled.Star, null,
+                    Icons.Filled.Star, "Rating",
                     tint = TKColor.Orange,
                     modifier = Modifier.size(13.dp)
                 )

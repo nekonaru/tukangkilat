@@ -36,7 +36,7 @@ fun PendingVerificationScreen(onBack: () -> Unit) {
                 .background(TKColor.OrangeSoft),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.HourglassEmpty, null, tint = TKColor.Orange, modifier = Modifier.size(44.dp))
+            Icon(Icons.Filled.HourglassEmpty, "Menunggu", tint = TKColor.Orange, modifier = Modifier.size(44.dp))
         }
         Spacer(Modifier.height(24.dp))
         Text(

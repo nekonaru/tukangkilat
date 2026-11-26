@@ -195,7 +195,7 @@ fun SearchingScreen(
                         .padding(TKSpacing.Sm)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.ElectricBolt, null, tint = TKColor.Ink)
+                        Icon(Icons.Filled.ElectricBolt, "Listrik", tint = TKColor.Ink)
                         Spacer(Modifier.width(TKSpacing.Xs))
                         Column {
                             Text(order.serviceName, color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -218,7 +218,7 @@ fun SearchingScreen(
                     .padding(14.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Schedule, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.Schedule, "Jadwal", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(10.dp))
                     Column {
                         Text("Biasanya kurang dari 3 menit", color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 13.sp)
@@ -232,7 +232,7 @@ fun SearchingScreen(
             }
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Info, null, tint = TKColor.Mist, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Info, "Informasi", tint = TKColor.Mist, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     "Kami akan memberi kabar begitu teknisi ditemukan.",
@@ -305,7 +305,7 @@ private fun PulsingBolt() {
                 .background(TKColor.InkSoft),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.ElectricBolt, null, tint = TKColor.Orange, modifier = Modifier.size(34.dp))
+            Icon(Icons.Filled.ElectricBolt, "Listrik", tint = TKColor.Orange, modifier = Modifier.size(34.dp))
         }
     }
 }

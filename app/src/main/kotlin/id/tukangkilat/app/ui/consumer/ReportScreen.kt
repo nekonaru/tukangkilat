@@ -274,7 +274,7 @@ fun ReportScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             if (state.uploadingCount > 0) Icons.Filled.Check else Icons.Filled.AddAPhoto,
-                            null,
+                            "Tambah foto",
                             tint = TKColor.Orange,
                             modifier = Modifier.size(28.dp)
                         )
@@ -304,7 +304,7 @@ fun ReportScreen(
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.Info, null, tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.Info, "Informasi", tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(
                     "Tim kami akan menghubungi kamu untuk memastikan jadwal kunjungan ulang.",

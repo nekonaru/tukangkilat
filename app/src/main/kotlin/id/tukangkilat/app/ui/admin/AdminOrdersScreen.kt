@@ -164,7 +164,7 @@ fun AdminOrdersScreen(
                 state.orders.isEmpty() -> EmptyView(
                     title = "Tidak ada pesanan",
                     subtitle = "Tidak ada pesanan untuk filter ini.",
-                    icon = { Icon(Icons.Filled.ReceiptLong, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                    icon = { Icon(Icons.Filled.ReceiptLong, "Struk", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                 )
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),

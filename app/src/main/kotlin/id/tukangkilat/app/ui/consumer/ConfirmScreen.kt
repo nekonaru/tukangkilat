@@ -112,7 +112,7 @@ fun ConfirmScreen(
                             .background(TKColor.Cream),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.AssignmentTurnedIn, null, tint = TKColor.Orange, modifier = Modifier.size(56.dp))
+                        Icon(Icons.Filled.AssignmentTurnedIn, "Selesai", tint = TKColor.Orange, modifier = Modifier.size(56.dp))
                     }
                     Spacer(Modifier.height(20.dp))
                     Text(
@@ -155,7 +155,7 @@ fun ConfirmScreen(
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Info, null, tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Info, "Informasi", tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(10.dp))
                         Text(
                             "Belum beres? Laporkan masalah agar kami bantu atur kunjungan ulang.",

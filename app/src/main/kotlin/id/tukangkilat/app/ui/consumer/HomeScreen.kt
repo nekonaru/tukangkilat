@@ -192,7 +192,7 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Place, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Place, "Lokasi", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(
                             state.primaryAddress?.let { addr ->
@@ -216,7 +216,7 @@ fun HomeScreen(
                             .padding(horizontal = TKSpacing.Sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Search, null, tint = TKColor.White)
+                        Icon(Icons.Filled.Search, "Cari", tint = TKColor.White)
                         Spacer(Modifier.width(10.dp))
                         androidx.compose.foundation.text.BasicTextField(
                             value = state.query,
@@ -265,7 +265,7 @@ fun HomeScreen(
                             .padding(TKSpacing.Sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Search, null, tint = TKColor.Orange, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Filled.Search, "Cari", tint = TKColor.Orange, modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text("Cari teknisi terverifikasi", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)

@@ -134,7 +134,7 @@ fun AdminVerifyScreen(
                     EmptyView(
                         title = "Tidak ada antrean",
                         subtitle = "Semua pendaftaran tukang sudah diverifikasi.",
-                        icon = { Icon(Icons.Filled.VerifiedUser, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                        icon = { Icon(Icons.Filled.VerifiedUser, "Terverifikasi", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                     )
                 } else {
                     LazyColumn(

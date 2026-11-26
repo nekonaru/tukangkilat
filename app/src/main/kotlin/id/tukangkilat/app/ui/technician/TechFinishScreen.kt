@@ -233,7 +233,7 @@ fun TechFinishScreen(
                                         CircularProgressIndicator(color = TKColor.Orange, modifier = Modifier.size(24.dp))
                                     } else {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Icon(Icons.Filled.AddAPhoto, null, tint = TKColor.Orange)
+                                            Icon(Icons.Filled.AddAPhoto, "Tambah foto", tint = TKColor.Orange)
                                             Text("Tambah", color = TKColor.Orange, fontSize = 11.sp)
                                         }
                                     }
@@ -273,7 +273,7 @@ fun TechFinishScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (state.cashReceived) {
-                                    Icon(Icons.Filled.Check, null, tint = TKColor.White, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Filled.Check, "Centang", tint = TKColor.White, modifier = Modifier.size(18.dp))
                                 }
                             }
                             Spacer(Modifier.width(12.dp))

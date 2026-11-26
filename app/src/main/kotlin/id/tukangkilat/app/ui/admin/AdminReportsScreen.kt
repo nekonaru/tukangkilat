@@ -144,7 +144,7 @@ fun AdminReportsScreen(
                 state.reports.isEmpty() -> EmptyView(
                     title = "Tidak ada laporan",
                     subtitle = "Semua masalah sudah ditangani.",
-                    icon = { Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                    icon = { Icon(Icons.Filled.CheckCircle, "Pilih", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                 )
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
