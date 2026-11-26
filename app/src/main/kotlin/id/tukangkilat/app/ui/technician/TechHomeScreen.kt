@@ -36,6 +36,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import id.tukangkilat.app.data.repository.TechnicianRepository
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.data.ws.WsManager
+import id.tukangkilat.app.ui.components.TKTextButton
 import id.tukangkilat.app.ui.components.ModeTukangChip
 import id.tukangkilat.app.ui.components.SectionLabel
 import id.tukangkilat.app.ui.components.AvatarCircle
@@ -151,12 +152,38 @@ class TechHomeViewModel @Inject constructor(
     fun sendLocationNow(context: android.content.Context) {
         viewModelScope.launch {
             try {
-                val client = LocationServices.getFusedLocationProviderClient(context)
-                val location = client.lastLocation.await()
-                if (location != null) {
-                    technicianRepository.sendLocation(location.latitude, location.longitude)
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        context, android.Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    _state.value = _state.value.copy(snackbar = "Izin lokasi diperlukan untuk menerima tawaran")
+                    return@launch
                 }
-            } catch (_: Exception) {}
+                val client = LocationServices.getFusedLocationProviderClient(context)
+                val request = com.google.android.gms.location.LocationRequest.Builder(
+                    com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, 10_000L
+                ).setMinUpdateIntervalMillis(5_000L).build()
+                val fresh = kotlinx.coroutines.CompletableDeferred<android.location.Location?>()
+                val callback = object : com.google.android.gms.location.LocationCallback() {
+                    override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
+                        if (!fresh.isCompleted) fresh.complete(result.lastLocation)
+                    }
+                }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    client.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
+                }
+                val location = kotlinx.coroutines.withTimeoutOrNull(12_000L) { fresh.await() }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    client.removeLocationUpdates(callback)
+                }
+                val chosen = location ?: client.lastLocation.await()
+                if (chosen != null) {
+                    technicianRepository.sendLocation(chosen.latitude, chosen.longitude)
+                } else {
+                    _state.value = _state.value.copy(snackbar = "Lokasi belum tersedia. Coba lagi sebentar.")
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(snackbar = e.cleanApiError())
+            }
         }
     }
 
@@ -282,6 +309,7 @@ fun TechHomeScreen(
                                 SummaryCard("Pendapatan hari ini", Format.rupiah(state.todayEarnings), Modifier.weight(1f))
                                 SummaryCard("Tawaran", "${state.offerCount}", Modifier.weight(1f))
                             }
+                            TKTextButton("Lihat pendapatan", onGoEarnings)
                             Spacer(Modifier.height(TKSpacing.Sm))
                         }
 

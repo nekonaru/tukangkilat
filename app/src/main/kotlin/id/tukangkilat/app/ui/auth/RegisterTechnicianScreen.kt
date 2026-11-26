@@ -94,7 +94,7 @@ class RegisterTechnicianViewModel @Inject constructor(
                     if (which == "ktp") "ktp.jpg" else "selfie.jpg",
                     bytes.toRequestBody("image/jpeg".toMediaType())
                 )
-                val res = api.uploadPhoto(body)
+                val res = api.uploadRegistrationPhoto(body)
                 val url = res["url"] ?: throw IllegalStateException("Respon unggahan tidak valid")
                 if (which == "ktp") _state.value = _state.value.copy(uploadingKtp = false, ktpPhotoUrl = url)
                 else _state.value = _state.value.copy(uploadingSelfie = false, selfiePhotoUrl = url)

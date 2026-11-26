@@ -84,7 +84,12 @@ class OrdersViewModel @Inject constructor(
                     _state.value = _state.value.copy(orders = cached, isLoading = false)
                 }
                 val orders = orderRepository.myOrders()
-                _state.value = OrdersUiState(isLoading = false, orders = orders, tab = _state.value.tab)
+                _state.value = OrdersUiState(
+                    isLoading = false,
+                    orders = orders,
+                    tab = _state.value.tab,
+                    query = _state.value.query
+                )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }

@@ -1,6 +1,7 @@
 package id.tukangkilat.app
 
 import android.app.Application
+import coil.ImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import id.tukangkilat.app.data.local.LocalBackend
 import kotlinx.coroutines.CoroutineScope
@@ -9,9 +10,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @HiltAndroidApp
-class TukangKilatApplication : Application() {
+class TukangKilatApplication : Application(), coil.ImageLoaderFactory {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    @javax.inject.Inject lateinit var imageLoader: ImageLoader
+
+    override fun newImageLoader(): ImageLoader = imageLoader
 
     override fun onCreate() {
         super.onCreate()

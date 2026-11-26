@@ -10,8 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +30,7 @@ import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.components.ScreenHeader
 import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.theme.TKColor
+import id.tukangkilat.app.ui.theme.TKSpacing
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -45,9 +49,12 @@ class NotificationsViewModel @Inject constructor(
 @Composable
 fun NotificationsScreen(
     onBack: () -> Unit,
+    onOpenOrder: (Long) -> Unit,
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
-    val items by viewModel.repository.notifications.collectAsState()
+    val allItems by viewModel.repository.notifications.collectAsState()
+    var unreadOnly by remember { mutableStateOf(false) }
+    val items = if (unreadOnly) allItems.filter { !it.read } else allItems
 
     Column(
         modifier = Modifier
@@ -60,6 +67,11 @@ fun NotificationsScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            FilterChip(
+                selected = unreadOnly,
+                onClick = { unreadOnly = !unreadOnly },
+                label = { Text(if (unreadOnly) "Belum dibaca" else "Semua") }
+            )
             TextButton(onClick = { viewModel.markAllRead() }) {
                 Text("Tandai dibaca", color = TKColor.Orange)
             }
@@ -79,7 +91,7 @@ fun NotificationsScreen(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(items, key = { it.id }) { item ->
-                    NotificationCard(item)
+                    NotificationCard(item, onOpen = { notification -> notification.orderId?.let(onOpenOrder) })
                     Spacer(Modifier.height(10.dp))
                 }
             }
@@ -88,11 +100,16 @@ fun NotificationsScreen(
 }
 
 @Composable
-private fun NotificationCard(item: id.tukangkilat.app.data.repository.AppNotification) {
+private fun NotificationCard(
+    item: id.tukangkilat.app.data.repository.AppNotification,
+    onOpen: (id.tukangkilat.app.data.repository.AppNotification) -> Unit
+) {
     val time = SimpleDateFormat("dd MMM HH:mm", Locale.forLanguageTag("id")).format(Date(item.createdAt))
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = TKSpacing.MinTouch)
+            .clickable { onOpen(item) }
             .clip(RoundedCornerShape(14.dp))
             .background(if (item.read) TKColor.InkSoft else TKColor.Cream)
             .padding(14.dp),

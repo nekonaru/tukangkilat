@@ -30,6 +30,7 @@ fun main() {
     Db.migrate(config)
     Db.connect(config)
     Seed.seedIfEmpty(config)
+    Seed.ensureSystemUser()
 
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {
         module(config)
@@ -98,6 +99,19 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             post("/register-technician") {
                 val req = call.receive<RegisterTechnicianRequest>()
                 call.respond(HttpStatusCode.Created, authService.registerTechnician(req))
+            }
+            post("/register/photo") {
+                val multipart = call.receiveMultipart()
+                var saved: PhotoService.PhotoDto? = null
+                multipart.forEachPart { part ->
+                    if (part is PartData.FileItem) {
+                        val bytes = part.streamProvider().readBytes()
+                        saved = PhotoService.save(config.uploadDir, 0L, bytes, part.originalFileName ?: "photo")
+                    }
+                    part.dispose()
+                }
+                val photo = saved ?: throw BadRequestException("Tidak ada berkas yang diunggah")
+                call.respond(HttpStatusCode.Created, mapOf("url" to photo.url, "mime" to photo.mime))
             }
             post("/login") {
                 val clientIp = call.request.local.remoteHost ?: "unknown"

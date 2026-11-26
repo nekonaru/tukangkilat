@@ -69,7 +69,7 @@ class AdminVerifyViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val technicians = adminRepository.technicians("MENUNGGU_VERIFIKASI")
-                _state.value = AdminVerifyUiState(isLoading = false, technicians = technicians)
+                _state.value = _state.value.copy(isLoading = false, technicians = technicians, error = null)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }

@@ -1,6 +1,11 @@
 package id.tukangkilat.app.data.api
 
 import id.tukangkilat.app.data.local.ServerConfigManager
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import id.tukangkilat.app.data.local.SessionManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -47,35 +52,65 @@ class TokenAuthenticator @Inject constructor(
         .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val lock = Any()
+    private var pendingRefresh: CompletableDeferred<String?>? = null
+
     override fun authenticate(route: Route?, response: Response): Request? {
-        // only retry once per response chain
         if (response.priorResponse != null) return null
         val refresh = runBlocking { sessionManager.refreshToken() } ?: return null
-
-        return runBlocking {
-            try {
-                val body = """{"refreshToken":"$refresh"}"""
-                    .toRequestBody("application/json".toMediaType())
-                val refreshRequest = Request.Builder()
-                    .url("${serverConfig.current()}/auth/refresh")
-                    .post(body)
-                    .build()
-                bareClient.newCall(refreshRequest).execute().use { res ->
-                    if (!res.isSuccessful) {
-                        sessionManager.logout()
-                        return@runBlocking null
-                    }
-                    val text = res.body?.string() ?: return@runBlocking null
-                    val parsed = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
-                        .decodeFromString(id.tukangkilat.shared.LoginResponse.serializer(), text)
-                    sessionManager.updateTokens(parsed.accessToken, parsed.refreshToken)
-                    response.request.newBuilder()
-                        .header("Authorization", "Bearer ${parsed.accessToken}")
-                        .build()
+        val token = runBlocking {
+            val waiter: CompletableDeferred<String?>
+            val owner: Boolean
+            synchronized(lock) {
+                val existing = pendingRefresh
+                if (existing != null) {
+                    waiter = existing
+                    owner = false
+                } else {
+                    waiter = CompletableDeferred()
+                    pendingRefresh = waiter
+                    owner = true
                 }
-            } catch (e: Exception) {
+            }
+            if (owner) {
+                val result = performRefresh(refresh)
+                waiter.complete(result)
+                synchronized(lock) { pendingRefresh = null }
+                result
+            } else {
+                waiter.await()
+            }
+        } ?: return null
+        return response.request.newBuilder()
+            .header("Authorization", "Bearer $token")
+            .build()
+    }
+
+    private suspend fun performRefresh(refresh: String): String? = try {
+        val body = """{"refreshToken":"$refresh"}"""
+            .toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url("${serverConfig.current()}/auth/refresh")
+            .post(body)
+            .build()
+        bareClient.newCall(request).execute().use { res ->
+            if (res.code == 401) {
+                // Definitely invalid: clear once, even if several calls raced here.
+                sessionManager.logout()
                 null
+            } else if (!res.isSuccessful) {
+                // Transient server error: let the caller retry later.
+                null
+            } else {
+                val text = res.body?.string() ?: return@use null
+                val parsed = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                    .decodeFromString(id.tukangkilat.shared.LoginResponse.serializer(), text)
+                sessionManager.updateTokens(parsed.accessToken, parsed.refreshToken)
+                parsed.accessToken
             }
         }
+    } catch (e: Exception) {
+        null
     }
 }

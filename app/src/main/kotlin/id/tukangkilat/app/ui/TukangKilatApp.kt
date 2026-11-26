@@ -291,11 +291,17 @@ fun TukangKilatApp(
                 )
             }
             composable(Routes.C_TECHNICIANS) { TechniciansScreen(onBack = { navController.navigateUp() }) }
-            composable(Routes.NOTIFICATIONS) { NotificationsScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.NOTIFICATIONS) {
+                NotificationsScreen(
+                    onBack = { navController.navigateUp() },
+                    onOpenOrder = { orderId -> navController.navigate(Routes.status(orderId)) }
+                )
+            }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
                 ChatListScreen(
                     onOpenChat = { orderId -> navController.navigate(Routes.chat(orderId)) },
+                    onOpenNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onBack = { navController.navigateUp() }
                 )
             }
@@ -414,7 +420,6 @@ fun TukangKilatApp(
                     onServices = { navController.navigate(Routes.A_SERVICES) },
                     onPromo = { navController.navigate(Routes.A_PROMO) },
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
-                    onLoggedOut = {}
                 )
             }
             composable(Routes.A_VERIFY) { AdminVerifyScreen(onBack = { navController.navigateUp() }) }

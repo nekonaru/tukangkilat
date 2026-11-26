@@ -5,6 +5,9 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    @GET("/health")
+    suspend fun health(): Map<String, String>
+
     // ----- Auth -----
     @POST("/auth/register")
     suspend fun register(@Body req: RegisterRequest): LoginResponse
@@ -23,6 +26,10 @@ interface ApiService {
 
     @POST("/account/password")
     suspend fun changePassword(@Body req: ChangePasswordRequest): Map<String, String>
+
+    @Multipart
+    @POST("/auth/register/photo")
+    suspend fun uploadRegistrationPhoto(@Part file: okhttp3.MultipartBody.Part): Map<String, String>
 
     @Multipart
     @POST("/photos")

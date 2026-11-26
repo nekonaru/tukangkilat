@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-11-26
+
+### Added
+
+- **Server connection check and help**: Settings now has a one-tap `/health` probe and an expandable FAQ covering ordering, missing technicians and LAN setup.
+- **Notification filter**: the notification center can show all items or only unread ones.
+- Public registration photo upload so technician sign-up can complete before an account exists.
+
+### Fixed
+
+- Dead controls are wired: notification rows open their order, the chat bell opens notifications, the about row opens Settings, "Cari teknisi pengganti" and "Lihat pendapatan" now navigate, and "Tentang" is no longer inert.
+- Reschedule is disabled when the order failed to load, and the call button is hidden when no phone number exists.
+- Technician location now uses fresh fused updates while online instead of a possibly stale last fix, so dispatch can actually find them.
+- Photos now load with the bearer token and the configured server address through a shared Coil loader. Admin verification URLs are normalized so the `/photos/` prefix is not doubled.
+- Refresh is single-flight; concurrent 401s share one call and transient server errors no longer force logout.
+- Room cache rebuilds safely when upgrading from very old versions.
+- Searching and order status cancel old pollers and WebSocket collectors; the searching screen navigates only once.
+- Payment retry voids the previous pending payment, the countdown uses the real expiry timestamp, and admin snackbars and the orders search query survive refresh.
+- The map only rebuilds markers when their values change, the offer countdown is local to each card, and photo reads and geocoding moved off the main thread.
+
 ## [2.16.0] - 2026-11-26
 
 ### Added
@@ -284,6 +304,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.17.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.17.0
 [2.16.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.16.0
 [2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0

@@ -1,6 +1,7 @@
 package id.tukangkilat.app.data.di
 
 import android.content.Context
+import coil.ImageLoader
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -13,10 +14,12 @@ import id.tukangkilat.app.data.api.AuthInterceptor
 import id.tukangkilat.app.data.api.BaseUrlInterceptor
 import id.tukangkilat.app.data.api.TokenAuthenticator
 import id.tukangkilat.app.data.local.CatalogDao
+import id.tukangkilat.app.data.local.ServerConfigManager
 import id.tukangkilat.app.data.local.FavoriteDao
 import id.tukangkilat.app.data.local.NotificationDao
 import id.tukangkilat.app.data.local.OrderDao
 import id.tukangkilat.app.data.local.TukangKilatDatabase
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -58,6 +61,38 @@ object AppModule {
             .build()
     }
 
+    /** Coil loader that sends the bearer token and follows the configured server address. */
+    @Provides
+    @Singleton
+    fun provideImageLoader(
+        @ApplicationContext context: Context,
+        authInterceptor: AuthInterceptor,
+        serverConfig: ServerConfigManager
+    ): ImageLoader {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val url = request.url
+                if (url.host == "127.0.0.1" || url.host == "localhost") {
+                    val current = runBlocking { serverConfig.current() }
+                    val uri = java.net.URI(current)
+                    val rewritten = url.newBuilder()
+                        .scheme(uri.scheme)
+                        .host(uri.host)
+                        .port(if (uri.port == -1) url.port else uri.port)
+                        .build()
+                    chain.proceed(request.newBuilder().url(rewritten).build())
+                } else {
+                    chain.proceed(request)
+                }
+            }
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+        return ImageLoader.Builder(context).okHttpClient { client }.build()
+    }
+
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit =
@@ -76,7 +111,8 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TukangKilatDatabase =
         Room.databaseBuilder(context, TukangKilatDatabase::class.java, "tukangkilat.db")
-            .addMigrations(MIGRATION_3_4)
+            .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
+            .fallbackToDestructiveMigrationFrom(1, 2, 3)
             .build()
 
     @Provides
@@ -93,6 +129,12 @@ object AppModule {
 }
 
 /** Version 4 adds the persisted notification history without clearing favorites or orders. */
+private val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE cached_notifications ADD COLUMN orderId INTEGER")
+    }
+}
+
 private val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
     override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
         db.execSQL(

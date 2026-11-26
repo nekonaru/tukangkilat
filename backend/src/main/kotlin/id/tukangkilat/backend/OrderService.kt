@@ -281,6 +281,11 @@ object OrderService {
             if (row[OrdersTable.consumerId] != consumerId) throw ForbiddenException("Anda tidak punya akses ke pesanan ini")
             var status = OrderStatus.valueOf(row[OrdersTable.status])
             if (status == OrderStatus.PEMBAYARAN_GAGAL) {
+                // A failed attempt leaves a pending payment row. Void it so the user can retry
+                // with another method instead of waiting 30 minutes for expiry.
+                PaymentsTable.update({
+                    (PaymentsTable.orderId eq orderId) and (PaymentsTable.status eq PaymentStatus.MENUNGGU.name)
+                }) { it[PaymentsTable.status] = PaymentStatus.GAGAL.name }
                 transitionInTx(orderId, OrderStatus.MENUNGGU_PEMBAYARAN, consumerId, OrderStateMachine.Actor.KONSUMEN)
                 status = OrderStatus.MENUNGGU_PEMBAYARAN
             }

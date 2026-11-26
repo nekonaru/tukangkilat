@@ -14,7 +14,8 @@ data class CachedNotification(
     val title: String,
     val body: String,
     val createdAt: Long,
-    val read: Boolean
+    val read: Boolean,
+    val orderId: Long? = null
 )
 
 @Dao

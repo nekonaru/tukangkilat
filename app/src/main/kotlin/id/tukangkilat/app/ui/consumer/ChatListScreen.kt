@@ -56,10 +56,15 @@ class ChatListViewModel @Inject constructor(
 }
 
 @Composable
-fun ChatListScreen(onOpenChat: (Long) -> Unit, onBack: () -> Unit, viewModel: ChatListViewModel = hiltViewModel()) {
+fun ChatListScreen(
+    onOpenChat: (Long) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onBack: () -> Unit,
+    viewModel: ChatListViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
-        TKTopAppBar("Chat", onBack = onBack)
+        TKTopAppBar("Chat", onBack = onBack, onBell = onOpenNotifications)
         when {
             state.isLoading -> {
                 repeat(3) { SkeletonCard() }

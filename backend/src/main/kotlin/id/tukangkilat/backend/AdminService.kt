@@ -45,7 +45,7 @@ object AdminService {
                     phone = row[UsersTable.phone],
                     skills = row[TechnicianProfilesTable.skills].split(",").filter { it.isNotBlank() },
                     verificationStatus = row[TechnicianProfilesTable.verificationStatus],
-                    ktpPhotoUrl = row[TechnicianProfilesTable.ktpPhoto]?.let { "/photos/$it" },
+                    ktpPhotoUrl = row[TechnicianProfilesTable.ktpPhoto]?.let { "/photos/${it.substringAfterLast('/')}" },
                     selfiePhotoUrl = row[TechnicianProfilesTable.selfiePhoto]?.let { "/photos/$it" },
                     ratingAvg = row[TechnicianProfilesTable.ratingAvg],
                     jobsCount = row[TechnicianProfilesTable.jobsCount]

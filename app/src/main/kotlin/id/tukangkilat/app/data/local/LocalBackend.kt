@@ -109,6 +109,7 @@ object LocalBackend {
                 h2InMemory = false
             )
             Seed.seedIfEmpty(localConfig)
+            Seed.ensureSystemUser()
 
             server = embeddedServer(CIO, port = PORT, host = "127.0.0.1") {
                 module(localConfig)

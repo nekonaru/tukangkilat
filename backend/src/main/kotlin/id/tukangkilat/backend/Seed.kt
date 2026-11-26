@@ -12,6 +12,24 @@ object Seed {
 
     private val log = LoggerFactory.getLogger("Seed")
 
+    /** Ensure the placeholder uploader used by public registration photos exists. */
+    fun ensureSystemUser() {
+        transaction {
+            if (UsersTable.selectAll().where { UsersTable.id eq 0L }.any()) return@transaction
+            UsersTable.insert {
+                it[id] = 0L
+                it[username] = "system_registration"
+                it[passwordHash] = Passwords.hash(java.util.UUID.randomUUID().toString())
+                it[role] = Role.TUKANG.name
+                it[fullName] = "Pendaftaran"
+                it[phone] = "-"
+                it[status] = "DITANGGUHKAN"
+                it[failedLoginAttempts] = 0
+                it[createdAt] = OffsetDateTime.now()
+            }
+        }
+    }
+
     fun seedIfEmpty(config: AppConfig) {
         if (!config.seedDemoData) return
         transaction {
