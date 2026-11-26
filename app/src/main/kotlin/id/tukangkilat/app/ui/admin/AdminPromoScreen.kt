@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -146,11 +148,11 @@ fun AdminPromoScreen(
                     EmptyView(
                         title = "Belum ada promo",
                         subtitle = "Tekan tombol + untuk membuat kode promo pertama.",
-                        icon = { Icon(Icons.Filled.LocalActivity, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                        icon = { Icon(Icons.Filled.LocalActivity, "Promo", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                     )
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                         contentPadding = PaddingValues(vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
@@ -298,7 +300,7 @@ private fun PromoFormDialog(
                 )
                 Spacer(Modifier.height(10.dp))
                 TextFieldDark(validUntil, { validUntil = it; error = null }, placeholder = "Berlaku sampai (YYYY-MM-DD)")
-                error?.let { Spacer(Modifier.height(8.dp)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
+                error?.let { Spacer(Modifier.height(TKSpacing.Xs)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
             }
         }
     )

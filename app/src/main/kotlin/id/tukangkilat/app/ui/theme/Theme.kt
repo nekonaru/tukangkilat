@@ -1,31 +1,21 @@
 package id.tukangkilat.app.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-
-private val scheme = darkColorScheme(
-    primary = TKColor.Orange,
-    onPrimary = TKColor.White,
-    secondary = TKColor.Mist,
-    onSecondary = TKColor.Ink,
-    tertiary = TKColor.Orange,
-    background = TKColor.Ink,
-    onBackground = TKColor.White,
-    surface = TKColor.InkSoft,
-    onSurface = TKColor.White,
-    surfaceVariant = TKColor.InkCard,
-    onSurfaceVariant = TKColor.Mist,
-    outline = TKColor.InkLine,
-    error = TKColor.Red,
-    onError = TKColor.White
-)
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.isSystemInDarkTheme
 
 @Composable
 fun TukangKilatTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = scheme,
-        content = content
-    )
+    val darkTheme = isSystemInDarkTheme()
+    val colorScheme = if (darkTheme) DarkColors else LightColors
+    val extendedColors = if (darkTheme) DarkTukangKilatColors else LightTukangKilatColors
+    CompositionLocalProvider(LocalTukangKilatColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = TukangKilatTypography,
+            shapes = TukangKilatShapes,
+            content = content
+        )
+    }
 }

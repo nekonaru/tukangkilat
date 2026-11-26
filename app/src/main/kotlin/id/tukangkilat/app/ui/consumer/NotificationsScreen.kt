@@ -71,7 +71,7 @@ fun NotificationsScreen(
             EmptyView(
                 title = "Belum ada notifikasi",
                 subtitle = "Perubahan pesanan dan tawaran akan muncul di sini.",
-                icon = { androidx.compose.material3.Icon(Icons.Filled.Notifications, null, tint = TKColor.Mist) }
+                icon = { androidx.compose.material3.Icon(Icons.Filled.Notifications, "Notifikasi", tint = TKColor.Mist) }
             )
         } else {
             LazyColumn(
@@ -100,7 +100,7 @@ private fun NotificationCard(item: id.tukangkilat.app.data.repository.AppNotific
     ) {
         Icon(
             Icons.Filled.Notifications,
-            null,
+            "Notifikasi",
             tint = if (item.read) TKColor.Mist else TKColor.Orange,
             modifier = Modifier.size(28.dp)
         )

@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-11-26
+
+### Changed
+
+- **Design system overhaul**: light and dark Material 3 color schemes from the Figma foundation, Plus Jakarta Sans typography, spacing and radius tokens, and a theme extension for success and warning colors.
+- Reusable components with light and dark previews: buttons, fields, status chips, service/technician/order cards, price summary, rating stars, timeline, chat bubble, notification item, state views, job offer card, snackbar, dialogs, sheet, filter chip, skeleton, availability switch, FAB, top app bar and role-based navigation bar.
+- All screens now resolve legacy UI names through the new tokens, use the role-based navigation bar, and use Indonesian "kamu" wording.
+- Action icons have content descriptions and payment status changes are announced to accessibility services.
+
 ## [2.14.0] - 2026-11-26
 
 ### Added
@@ -255,6 +264,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[2.15.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.15.0
 [2.14.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.14.0
 [2.13.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.13.0
 [2.12.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.12.0

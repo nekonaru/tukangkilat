@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -172,19 +175,19 @@ fun ReportScreen(
                     color = TKColor.Mist,
                     fontSize = 13.sp
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(TKSpacing.Sm))
             }
 
             Text("Apa kendalanya?", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             IssueReason.entries.forEach { reason ->
                 val selected = reason == state.reason
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TKShape.Media)
                         .background(if (selected) TKColor.Cream else TKColor.Card)
-                        .then(if (selected) Modifier.border(1.dp, TKColor.Orange, RoundedCornerShape(12.dp)) else Modifier)
+                        .then(if (selected) Modifier.border(1.dp, TKColor.Orange, TKShape.Media) else Modifier)
                         .clickable { viewModel.onReason(reason) }
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -194,15 +197,15 @@ fun ReportScreen(
                         onClick = { viewModel.onReason(reason) },
                         colors = RadioButtonDefaults.colors(selectedColor = TKColor.Orange, unselectedColor = TKColor.CreamText)
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(TKSpacing.Xs))
                     Text(reason.label, color = TKColor.Ink, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
             }
 
             Spacer(Modifier.height(6.dp))
             Text("Keterangan masalah", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             TextFieldDark(
                 value = state.description,
                 onValueChange = viewModel::onDescription,
@@ -212,7 +215,7 @@ fun ReportScreen(
                 isError = state.error == "Keterangan masalah wajib diisi"
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Foto kondisi saat ini", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
                 TextButton(onClick = {
@@ -222,7 +225,7 @@ fun ReportScreen(
                     cameraLauncher.launch(uri)
                 }) { Text("Ambil foto", color = TKColor.Orange, fontSize = 12.sp) }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(TKSpacing.Xs))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(state.photos) { url ->
                     Box {
@@ -231,7 +234,7 @@ fun ReportScreen(
                             contentDescription = "Foto laporan",
                             modifier = Modifier
                                 .size(92.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(TKShape.Media)
                                 .background(TKColor.InkSoft)
                         )
                         IconButton(onClick = { viewModel.removePhoto(url) }, modifier = Modifier.align(Alignment.TopEnd)) {
@@ -242,15 +245,16 @@ fun ReportScreen(
             }
             if (state.photos.size < 3) {
                 Spacer(Modifier.height(10.dp))
+                val borderColor = TKColor.Orange
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(88.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(TKShape.Media)
                         .background(TKColor.InkSoft)
                         .drawBehind {
                             drawRoundRect(
-                                color = TKColor.Orange,
+                                color = borderColor,
                                 cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
                                 style = androidx.compose.ui.graphics.drawscope.Stroke(
                                     width = 1.5.dp.toPx(),
@@ -270,7 +274,7 @@ fun ReportScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             if (state.uploadingCount > 0) Icons.Filled.Check else Icons.Filled.AddAPhoto,
-                            null,
+                            "Tambah foto",
                             tint = TKColor.Orange,
                             modifier = Modifier.size(28.dp)
                         )
@@ -291,19 +295,19 @@ fun ReportScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(TKShape.Media)
                     .background(TKColor.GreenSoft)
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.Info, null, tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.Info, "Informasi", tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Tim kami akan menghubungi Anda untuk memastikan jadwal kunjungan ulang.",
+                    "Tim kami akan menghubungi kamu untuk memastikan jadwal kunjungan ulang.",
                     color = TKColor.GreenDeep,
                     fontSize = 12.sp
                 )
@@ -312,7 +316,7 @@ fun ReportScreen(
                 Spacer(Modifier.height(10.dp))
                 Text(it, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             if (state.isSubmitting) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = TKColor.Orange)

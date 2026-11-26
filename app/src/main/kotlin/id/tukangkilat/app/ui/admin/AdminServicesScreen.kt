@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -126,17 +129,17 @@ fun AdminServicesScreen(
                     .background(TKColor.Ink)
             ) {
                 ScreenHeader("Layanan", onBack = onBack)
-                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = TKSpacing.Sm)) {
                     Button(
                         onClick = { showCreate = true },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = TKSpacing.MinTouch),
                         colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = TKShape.Media
                     ) { Text("Layanan baru", color = TKColor.White, fontWeight = FontWeight.Bold) }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -213,7 +216,7 @@ private fun ServiceRow(
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
             ) {
-                Icon(Icons.Filled.Edit, null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Edit, "Ubah", modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
                 Text("Ubah", fontSize = 13.sp)
             }
@@ -244,9 +247,9 @@ private fun CreateServiceDialog(
         text = {
             Column {
                 TextFieldDark(name, { name = it }, placeholder = "Nama layanan")
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 TextFieldDark(basePrice, { basePrice = it }, placeholder = "Harga mulai (Rp)")
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TKSpacing.Xs))
                 TextFieldDark(visitFee, { visitFee = it }, placeholder = "Biaya kunjungan (Rp)")
                 error?.let { Text(it, color = TKColor.Red, fontSize = 12.sp) }
             }
@@ -313,7 +316,7 @@ private fun EditServiceDialog(
                     placeholder = "Biaya kunjungan (Rupiah)",
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
                 )
-                error?.let { Spacer(Modifier.height(8.dp)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
+                error?.let { Spacer(Modifier.height(TKSpacing.Xs)); Text(it, color = TKColor.Red, fontSize = 13.sp) }
             }
         }
     )

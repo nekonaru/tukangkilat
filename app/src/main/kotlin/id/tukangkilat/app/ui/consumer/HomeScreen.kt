@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import id.tukangkilat.app.ui.util.cleanApiError
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -189,7 +192,7 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Place, null, tint = TKColor.Orange, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Place, "Lokasi", tint = TKColor.Orange, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(
                             state.primaryAddress?.let { addr ->
@@ -210,10 +213,10 @@ fun HomeScreen(
                             .clip(RoundedCornerShape(26.dp))
                             .background(TKColor.Orange)
                             .clickable { }
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = TKSpacing.Sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Search, null, tint = TKColor.White)
+                        Icon(Icons.Filled.Search, "Cari", tint = TKColor.White)
                         Spacer(Modifier.width(10.dp))
                         androidx.compose.foundation.text.BasicTextField(
                             value = state.query,
@@ -255,14 +258,14 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, TKColor.InkLine, RoundedCornerShape(16.dp))
+                            .clip(TKShape.Card)
+                            .border(1.dp, TKColor.InkLine, TKShape.Card)
                             .background(TKColor.InkSoft)
                             .clickable(onClick = onFindTechnicians)
-                            .padding(16.dp),
+                            .padding(TKSpacing.Sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Search, null, tint = TKColor.Orange, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Filled.Search, "Cari", tint = TKColor.Orange, modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text("Cari teknisi terverifikasi", color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -291,18 +294,18 @@ private fun ServiceCard(service: ServiceDto, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, TKColor.InkLine, RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
+            .border(1.dp, TKColor.InkLine, TKShape.Card)
             .background(TKColor.InkSoft)
             .clickable(onClick = onClick, interactionSource = pressSource)
             .tkPressScale(pressSource)
-            .padding(16.dp),
+            .padding(TKSpacing.Sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .size(TKSpacing.MinTouch)
+                .clip(TKShape.Media)
                 .background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
@@ -323,17 +326,17 @@ private fun ActiveOrderCard(order: OrderSummaryDto, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.Cream)
             .clickable(onClick = onClick, interactionSource = remember { MutableInteractionSource() })
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row {
             Text(order.code, color = TKColor.Ink, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.weight(1f))
             Text(statusLabel(order.status), color = TKColor.Orange, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(TKSpacing.Xs))
         Text(order.serviceName, color = TKColor.Ink, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
         Spacer(Modifier.height(4.dp))
         Text("${order.scheduledDate} · ${order.slotLabel}", color = TKColor.CreamText, fontSize = 13.sp)

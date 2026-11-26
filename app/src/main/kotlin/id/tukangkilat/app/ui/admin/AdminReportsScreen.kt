@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -141,10 +144,10 @@ fun AdminReportsScreen(
                 state.reports.isEmpty() -> EmptyView(
                     title = "Tidak ada laporan",
                     subtitle = "Semua masalah sudah ditangani.",
-                    icon = { Icon(Icons.Filled.CheckCircle, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                    icon = { Icon(Icons.Filled.CheckCircle, "Pilih", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                 )
                 else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -170,9 +173,9 @@ private fun ReportCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.InkSoft)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row {
             Text(report.orderCode, color = TKColor.Mist, fontSize = 12.sp)
@@ -217,14 +220,14 @@ private fun ReportCard(
                 OutlinedButton(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = TKShape.Media,
                     border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.InkLine),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.White)
                 ) { Text("Tutup", fontWeight = FontWeight.Bold) }
                 Button(
                     onClick = onRevisit,
                     modifier = Modifier.weight(1.5f).height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = TKShape.Media,
                     colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
                 ) { Text("Jadwalkan kunjungan ulang", fontWeight = FontWeight.Bold) }
             }

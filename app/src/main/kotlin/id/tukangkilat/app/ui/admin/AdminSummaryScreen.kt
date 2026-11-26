@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Lifecycle
@@ -234,7 +237,7 @@ fun AdminSummaryScreen(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .clip(RoundedCornerShape(12.dp))
+                                            .clip(TKShape.Media)
                                             .background(TKColor.InkSoft)
                                             .padding(10.dp)
                                     ) {
@@ -310,13 +313,13 @@ private fun AdminMenuCard(
             .background(TKColor.InkSoft)
             .clickable(onClick = onClick, interactionSource = pressSource)
             .tkPressScale(pressSource)
-            .padding(16.dp),
+            .padding(TKSpacing.Sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(TKShape.Media)
                 .background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
@@ -327,6 +330,6 @@ private fun AdminMenuCard(
             Text(title, color = TKColor.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Text(subtitle, color = TKColor.Mist, fontSize = 12.sp)
         }
-        Icon(Icons.Filled.ChevronRight, null, tint = TKColor.InkLine)
+        Icon(Icons.Filled.ChevronRight, "Lanjut", tint = TKColor.InkLine)
     }
 }

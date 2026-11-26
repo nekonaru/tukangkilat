@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.auth
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -23,7 +25,7 @@ fun PendingVerificationScreen(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(TKColor.Ink)
-            .padding(32.dp),
+            .padding(TKSpacing.Lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -34,7 +36,7 @@ fun PendingVerificationScreen(onBack: () -> Unit) {
                 .background(TKColor.OrangeSoft),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.HourglassEmpty, null, tint = TKColor.Orange, modifier = Modifier.size(44.dp))
+            Icon(Icons.Filled.HourglassEmpty, "Menunggu", tint = TKColor.Orange, modifier = Modifier.size(44.dp))
         }
         Spacer(Modifier.height(24.dp))
         Text(
@@ -46,7 +48,7 @@ fun PendingVerificationScreen(onBack: () -> Unit) {
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "Pendaftaran tukang Anda sudah kami terima. Tim kami akan memeriksa data diri, KTP, dan selfie Anda sebelum akun bisa digunakan.",
+            "Pendaftaran tukang kamu sudah kami terima. Tim kami akan memeriksa data diri, KTP, dan selfie kamu sebelum akun bisa digunakan.",
             color = TKColor.Mist,
             fontSize = 14.sp,
             textAlign = TextAlign.Center

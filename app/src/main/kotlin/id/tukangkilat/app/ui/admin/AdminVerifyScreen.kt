@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.admin
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -131,11 +134,11 @@ fun AdminVerifyScreen(
                     EmptyView(
                         title = "Tidak ada antrean",
                         subtitle = "Semua pendaftaran tukang sudah diverifikasi.",
-                        icon = { Icon(Icons.Filled.VerifiedUser, null, tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
+                        icon = { Icon(Icons.Filled.VerifiedUser, "Terverifikasi", tint = TKColor.Mist, modifier = Modifier.size(44.dp)) }
                     )
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                         contentPadding = PaddingValues(vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -172,9 +175,9 @@ private fun VerificationCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(TKShape.Card)
             .background(TKColor.InkSoft)
-            .padding(16.dp)
+            .padding(TKSpacing.Sm)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AvatarCircle(tech.fullName, size = 52)
@@ -203,14 +206,14 @@ private fun VerificationCard(
             OutlinedButton(
                 onClick = onReject,
                 modifier = Modifier.weight(1f).height(46.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = TKShape.Media,
                 border = androidx.compose.foundation.BorderStroke(1.dp, TKColor.Red),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TKColor.Red)
             ) { Text("Tolak", fontWeight = FontWeight.Bold) }
             Button(
                 onClick = onApprove,
                 modifier = Modifier.weight(1f).height(46.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = TKShape.Media,
                 colors = ButtonDefaults.buttonColors(containerColor = TKColor.Orange)
             ) { Text("Setujui", fontWeight = FontWeight.Bold) }
         }
@@ -227,7 +230,7 @@ private fun VerificationPhoto(url: String, label: String) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(120.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(TKShape.Media)
                 .background(TKColor.Ink)
                 .clickable { zoom = true }
         )

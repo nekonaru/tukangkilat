@@ -1,5 +1,8 @@
 package id.tukangkilat.app.ui.consumer
 
+import id.tukangkilat.app.ui.theme.TKShape
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -109,7 +112,7 @@ fun ConfirmScreen(
                             .background(TKColor.Cream),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.AssignmentTurnedIn, null, tint = TKColor.Orange, modifier = Modifier.size(56.dp))
+                        Icon(Icons.Filled.AssignmentTurnedIn, "Selesai", tint = TKColor.Orange, modifier = Modifier.size(56.dp))
                     }
                     Spacer(Modifier.height(20.dp))
                     Text(
@@ -121,7 +124,7 @@ fun ConfirmScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "Coba gunakan ${order.serviceName.lowercase()} Anda. Pastikan semuanya berfungsi dengan baik sebelum konfirmasi.",
+                        "Coba gunakan ${order.serviceName.lowercase()} kamu. Pastikan semuanya berfungsi dengan baik sebelum konfirmasi.",
                         color = TKColor.Mist,
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
@@ -132,7 +135,7 @@ fun ConfirmScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
                             .background(TKColor.Card)
-                            .padding(16.dp)
+                            .padding(TKSpacing.Sm)
                     ) {
                         Text("Perbaikan Listrik".takeIf { order.serviceName.isEmpty() } ?: order.serviceName,
                             color = TKColor.Ink,
@@ -140,19 +143,19 @@ fun ConfirmScreen(
                             fontSize = 14.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(order.description, color = TKColor.CreamText, fontSize = 13.sp)
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(TKSpacing.Xs))
                         Text("${order.scheduledDate} · ${order.slotLabel}", color = TKColor.CreamText, fontSize = 12.sp)
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(TKShape.Media)
                             .background(TKColor.GreenSoft)
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Info, null, tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Info, "Informasi", tint = TKColor.GreenDeep, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(10.dp))
                         Text(
                             "Belum beres? Laporkan masalah agar kami bantu atur kunjungan ulang.",
@@ -160,7 +163,7 @@ fun ConfirmScreen(
                             fontSize = 12.sp
                         )
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
                     if (state.isSubmitting) {
                         CircularProgressIndicator(color = TKColor.Orange)
                     } else {

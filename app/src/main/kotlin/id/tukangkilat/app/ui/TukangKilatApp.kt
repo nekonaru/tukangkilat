@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -122,7 +124,7 @@ fun TukangKilatApp(
             modifier = Modifier.fillMaxSize().background(TKColor.Ink),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(TKSpacing.Md)) {
                 Image(
                     painter = painterResource(R.drawable.ic_brand),
                     contentDescription = null,
@@ -141,9 +143,9 @@ fun TukangKilatApp(
                     Text("Menyiapkan aplikasi...", color = TKColor.Mist, fontSize = 13.sp)
                 } else {
                     Text("Aplikasi gagal dimulai", color = TKColor.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(TKSpacing.Xs))
                     Text(startupError ?: "", color = TKColor.Mist, fontSize = 12.sp)
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(TKSpacing.Sm))
                     Button(onClick = { scope.launch { LocalBackend.retry(context.applicationContext) } }) {
                         Text("Coba lagi")
                     }

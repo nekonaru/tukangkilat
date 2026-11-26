@@ -1,5 +1,7 @@
 package id.tukangkilat.app.ui.auth
 
+import id.tukangkilat.app.ui.theme.TKSpacing
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -83,7 +85,7 @@ class LoginViewModel @Inject constructor(
     fun login(onRole: (Role) -> Unit) {
         val current = _state.value
         if (current.username.isBlank() || current.password.isBlank()) {
-            _state.value = current.copy(error = "Isi username dan password Anda")
+            _state.value = current.copy(error = "Isi username dan password kamu")
             return
         }
         _state.value = current.copy(isLoading = true, error = null, locked = false)
@@ -154,7 +156,7 @@ fun LoginScreen(
                     tint = TKColor.Mist,
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(TKSpacing.Xs))
                 Text(
                     "Ahlinya rumah, siap membantu",
                     color = TKColor.White,
@@ -164,7 +166,7 @@ fun LoginScreen(
             }
             Spacer(Modifier.height(6.dp))
             Text(
-                "Masuk untuk panggil teknisi tepercaya ke rumah Anda.",
+                "Masuk untuk panggil teknisi tepercaya ke rumah kamu.",
                 color = TKColor.Mist,
                 fontSize = 13.sp
             )
@@ -206,13 +208,13 @@ fun LoginScreen(
             if (state.error != null) {
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Error, null, tint = TKColor.Red, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.Filled.Error, "Galat", tint = TKColor.Red, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(TKSpacing.Xs))
                     Text(state.error!!, color = TKColor.Red, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(TKSpacing.Sm))
             if (state.isLoading) {
                 CircularProgressIndicator(color = TKColor.Orange)
             } else {
