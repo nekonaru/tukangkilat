@@ -98,8 +98,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "4.3.0",
-                "migrations" to "12"
+                "version" to "5.0.0",
+                "migrations" to "13"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -139,11 +139,25 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     throw RateLimitedException("Terlalu banyak percobaan masuk dari perangkat ini. Coba lagi sebentar lagi")
                 }
                 val req = call.receive<LoginRequest>()
-                call.respond(authService.login(req, jwt))
+                val response = authService.login(req, jwt)
+                val factor = TrustService.twoFactor(response.user.id)
+                if (factor.enabled) {
+                    val code = req.otp ?: throw BadRequestException("Kode OTP diperlukan")
+                    val expires = factor.otpExpires?.let { runCatching { OffsetDateTime.parse(it) }.getOrNull() }
+                    if (expires == null || expires.isBefore(OffsetDateTime.now()) || factor.otpCode != code.trim()) {
+                        throw BadRequestException("Kode OTP tidak valid")
+                    }
+                }
+                TrustService.recordSession(response.user.id, "Android", clientIp)
+                call.respond(response)
             }
             post("/refresh") {
                 val req = call.receive<RefreshRequest>()
-                call.respond(authService.refresh(req, jwt))
+                val response = authService.refresh(req, jwt)
+                if (TrustService.sessions(response.user.id).none { !it.revoked }) {
+                    throw ForbiddenException("Sesi sudah dicabut")
+                }
+                call.respond(response)
             }
             post("/logout") {
                 val req = call.receive<RefreshRequest>()
@@ -357,6 +371,97 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     val orderId = call.parameters["id"]!!.toLong()
                     val body = call.receive<SendMessageRequest>()
                     call.respond(HttpStatusCode.Created, sendMessage(orderId, call.authUser(), body))
+                }
+                // ---------- v5 trust ----------
+                get("/trust/devices") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.devices(call.authUser().id)) }
+                post("/trust/devices") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(HttpStatusCode.Created, TrustService.registerDevice(call.authUser().id, call.receive()))
+                }
+                put("/trust/devices/{id}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<Map<String, Boolean>>()
+                    TrustService.setDeviceTrust(call.authUser().id, call.parameters["id"]!!.toLong(), body["trusted"] ?: true)
+                    call.respond(mapOf("status" to "ok"))
+                }
+                delete("/trust/devices/{id}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.removeDevice(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(HttpStatusCode.NoContent)
+                }
+                get("/trust/sessions") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.sessions(call.authUser().id)) }
+                post("/trust/sessions") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<Map<String, String>>()
+                    call.respond(HttpStatusCode.Created, TrustService.recordSession(
+                        call.authUser().id, body["deviceName"] ?: "Perangkat", body["ipAddress"] ?: ""
+                    ))
+                }
+                post("/trust/sessions/{id}/revoke") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.revokeSession(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                get("/trust/consents") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.consents(call.authUser().id)) }
+                put("/trust/consents") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(TrustService.saveConsent(call.authUser().id, call.receive()))
+                }
+                get("/trust/blocks") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.blocks(call.authUser().id)) }
+                post("/trust/blocks") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(HttpStatusCode.Created, TrustService.block(call.authUser().id, call.receive<Map<String, Long>>()["userId"]!!))
+                }
+                delete("/trust/blocks/{id}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.unblock(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(HttpStatusCode.NoContent)
+                }
+                get("/trust/login-alerts") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.loginAlerts(call.authUser().id)) }
+                post("/trust/login-alerts/{id}/read") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.markAlertRead(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/trust/sos") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(HttpStatusCode.Created, TrustService.createSos(call.authUser().id, call.receive()))
+                }
+                get("/trust/sos") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.sosAlerts(call.authUser().id)) }
+                get("/trust/safe-visit/{orderId}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(TrustService.safeVisit(call.authUser().id, call.parameters["orderId"]!!.toLong()))
+                }
+                get("/trust/app-lock") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.appLock(call.authUser().id)) }
+                put("/trust/app-lock") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(TrustService.setPin(call.authUser().id, call.receive()))
+                }
+                post("/trust/app-lock/verify") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<VerifyPinRequest>()
+                    call.respond(mapOf("valid" to TrustService.verifyPin(call.authUser().id, body.pin)))
+                }
+                get("/trust/two-factor") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.twoFactor(call.authUser().id)) }
+                post("/trust/two-factor/request") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(TrustService.requestOtp(call.authUser().id))
+                }
+                post("/trust/two-factor/verify") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(TrustService.verifyOtp(call.authUser().id, call.receive<Map<String, String>>()["code"] ?: ""))
+                }
+                delete("/trust/two-factor") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.disableTwoFactor(call.authUser().id)
+                    call.respond(mapOf("status" to "ok"))
+                }
+                get("/trust/privacy") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.privacySnapshot(call.authUser().id)) }
+                get("/trust/privacy/export") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respondText(TrustService.exportData(call.authUser().id)) }
+                delete("/trust/privacy") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    TrustService.deleteLocalPrivacyData(call.authUser().id)
+                    call.respond(mapOf("status" to "ok"))
                 }
                 // ---------- v4 commerce (consumer) ----------
                 get("/categories") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.categories()) }
@@ -870,6 +975,43 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.respondText(EcosystemService.walletCsv(), ContentType("text", "csv").withCharset(Charsets.UTF_8))
             }
             // ---------- v4 platform ----------
+            // ---------- v5 trust (admin) ----------
+            get("/trust/sos") { call.requireRole(Role.ADMIN); call.respond(TrustService.adminSos(call.request.queryParameters["status"])) }
+            post("/trust/sos/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                TrustService.resolveSos(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/trust/subadmins") { call.requireRole(Role.ADMIN); call.respond(TrustService.subadmins()) }
+            post("/trust/subadmins") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, TrustService.saveSubadmin(call.receive()))
+            }
+            get("/trust/incidents") { call.requireRole(Role.ADMIN); call.respond(TrustService.incidents(call.request.queryParameters["status"])) }
+            post("/trust/incidents") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, TrustService.createIncident(call.authUser().id, call.receive()))
+            }
+            post("/trust/incidents/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, String>>()
+                TrustService.resolveIncident(call.authUser().id, call.parameters["id"]!!.toLong(), body["note"] ?: "")
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/trust/retention") { call.requireRole(Role.ADMIN); call.respond(TrustService.retentionPolicies()) }
+            put("/trust/retention/{code}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(TrustService.saveRetention(call.parameters["code"]!!, call.receive()))
+            }
+            get("/trust/backups") { call.requireRole(Role.ADMIN); call.respond(TrustService.backupJobs()) }
+            post("/trust/backups") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, TrustService.saveBackupJob(call.authUser().id, call.receive()))
+            }
+            post("/trust/backups/{id}/run") {
+                call.requireRole(Role.ADMIN)
+                call.respond(TrustService.runBackupJob(call.authUser().id, call.parameters["id"]!!.toLong()))
+            }
             get("/platform-summary") { call.requireRole(Role.ADMIN); call.respond(PlatformService.summary()) }
             get("/flags") { call.requireRole(Role.ADMIN); call.respond(PlatformService.flags()) }
             put("/flags/{key}") {

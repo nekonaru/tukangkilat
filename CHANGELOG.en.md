@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-11-27
+
+### Added
+
+- **Trust center**: trusted devices, active sessions with remote revoke, login alerts, consent controls and user blocks.
+- **App lock**: device PIN with attempt limiting and temporary lockout.
+- **Two-factor simulation**: one-time code generated locally with expiry.
+- **SOS alerts**: emergency signal from consumer or technician, with an admin resolution queue.
+- **Safe visit code**: generated verification code for a scheduled order.
+- **Privacy controls**: personal data snapshot, JSON export and removal of local privacy records.
+- **Admin trust**: SOS queue, incident management with runbook, subadmin roles, retention policies and backup jobs.
+- Migration V13 backs the new tables and is included in export/import.
+
 ## [4.3.0] - 2026-11-27
 
 ### Added
@@ -439,6 +452,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0
 [4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
 [4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
