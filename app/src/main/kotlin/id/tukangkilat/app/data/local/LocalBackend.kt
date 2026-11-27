@@ -49,7 +49,8 @@ object LocalBackend {
         10 to "V10__commerce.sql",
         11 to "V11__technician_ops.sql",
         12 to "V12__platform_admin.sql",
-        13 to "V13__trust_identity.sql"
+        13 to "V13__trust_identity.sql",
+        14 to "V14__marketplace.sql"
     )
 
     private var server: EmbeddedServer<*, *>? = null

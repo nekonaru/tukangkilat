@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 7
+    private const val VERSION = 8
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -41,7 +41,10 @@ object DatabaseTransfer {
         "sla_breaches", "admin_notes", "weekly_reports",
         "trusted_devices", "user_sessions", "consents", "user_blocks", "sos_alerts",
         "app_locks", "two_factors", "login_alerts", "subadmin_roles", "incidents",
-        "retention_policies", "backup_jobs"
+        "retention_policies", "backup_jobs",
+        "custom_bundles", "flash_sales", "group_buys", "job_bids", "gift_cards",
+        "point_shop_items", "point_redemptions", "tips", "wishlists", "price_alerts",
+        "price_history", "ledger_entries", "commission_rules"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -61,7 +64,9 @@ object DatabaseTransfer {
         "checklist_templates", "checklist_items", "refund_requests", "offline_queue",
         "tech_documents", "service_areas", "checkins", "job_materials", "tech_badges",
         "chat_templates", "leave_requests", "work_journals", "equipment_items", "content_pages", "scheduled_broadcasts", "review_reports", "sla_breaches",
-        "admin_notes", "weekly_reports"
+        "admin_notes", "weekly_reports", "custom_bundles", "flash_sales", "group_buys",
+        "job_bids", "gift_cards", "point_redemptions", "tips", "wishlists", "price_alerts",
+        "price_history", "ledger_entries"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

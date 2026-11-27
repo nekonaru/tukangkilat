@@ -4,6 +4,17 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Pasar dinamis**: paket buatan sendiri, flash sale, beli bersama, dan lelang pekerjaan dengan penerimaan oleh konsumen.
+- **Hadiah dan reward**: kartu hadiah yang masuk dompet, toko poin loyalitas, dan tip setelah pekerjaan selesai.
+- **Wishlist dan alert harga**: layanan tersimpan, harga target, dan pemicuan alert otomatis dari jadwal perawatan.
+- **Riwayat harga**: titik harga yang tercatat per layanan.
+- **Perdagangan admin**: ringkasan pasar, aturan komisi, buku besar, dan pembuatan flash sale.
+- Migrasi V14 mendukung tabel baru dan ikut dalam ekspor serta impor.
+
 ## [5.0.0] - 2026-11-27
 
 ### Ditambahkan
@@ -452,6 +463,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[5.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.1.0
 [5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0
 [4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
