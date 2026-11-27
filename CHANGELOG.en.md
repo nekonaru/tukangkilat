@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-11-27
+
+### Added
+
+- **Dynamic marketplace**: custom bundles, flash sales, group buying and job bidding with consumer acceptance.
+- **Gifting and rewards**: gift cards credited to the wallet, a loyalty point shop, and tips after completed work.
+- **Wishlist and price alerts**: saved services, target prices and automatic alert triggering from the maintenance tick.
+- **Price history**: recorded price points per service.
+- **Admin commerce**: market summary, commission rules, ledger entries and flash sale creation.
+- Migration V14 backs the new tables and is included in export/import.
+
 ## [5.0.0] - 2026-11-27
 
 ### Added
@@ -452,6 +463,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[5.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.1.0
 [5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0
 [4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0

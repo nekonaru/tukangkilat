@@ -155,6 +155,67 @@ interface ApiService {
 
     @DELETE("/consumer/trust/privacy")
     suspend fun deletePrivacyData(): Map<String, String>
+
+    // ----- v5 marketplace -----
+    @GET("/consumer/market/bundles")
+    suspend fun marketBundles(): List<CustomBundleDto>
+
+    @POST("/consumer/market/bundles")
+    suspend fun createBundle(@Body req: CreateBundleRequest): CustomBundleDto
+
+    @GET("/consumer/market/flash-sales")
+    suspend fun flashSales(): List<FlashSaleDto>
+
+    @GET("/consumer/market/group-buys")
+    suspend fun groupBuys(): List<GroupBuyDto>
+
+    @POST("/consumer/market/group-buys")
+    suspend fun createGroupBuy(@Body req: CreateGroupBuyRequest): GroupBuyDto
+
+    @POST("/consumer/market/group-buys/{id}/join")
+    suspend fun joinGroupBuy(@Path("id") id: Long): GroupBuyDto
+
+    @GET("/consumer/market/bids/{orderId}")
+    suspend fun consumerBids(@Path("orderId") orderId: Long): List<BidDto>
+
+    @POST("/consumer/market/bids/{bidId}/resolve")
+    suspend fun resolveBid(@Path("bidId") bidId: Long, @Body req: ResolveBidRequest): BidDto
+
+    @GET("/consumer/market/gift-cards")
+    suspend fun giftCards(): List<GiftCardDto>
+
+    @POST("/consumer/market/gift-cards")
+    suspend fun createGiftCard(@Body req: Map<String, Long>): GiftCardDto
+
+    @POST("/consumer/market/gift-cards/redeem")
+    suspend fun redeemGift(@Body req: RedeemGiftRequest): GiftCardDto
+
+    @GET("/consumer/market/point-items")
+    suspend fun pointItems(): List<PointItemDto>
+
+    @POST("/consumer/market/point-items/redeem")
+    suspend fun redeemPoint(@Body req: RedeemPointRequest): PointRedemptionDto
+
+    @POST("/consumer/market/tips")
+    suspend fun createTip(@Body req: CreateTipRequest): TipDto
+
+    @GET("/consumer/market/wishlist")
+    suspend fun wishlist(): List<WishlistDto>
+
+    @POST("/consumer/market/wishlist")
+    suspend fun addWishlist(@Body req: AddWishlistRequest): WishlistDto
+
+    @DELETE("/consumer/market/wishlist/{id}")
+    suspend fun removeWishlist(@Path("id") id: Long)
+
+    @GET("/consumer/market/price-alerts")
+    suspend fun priceAlerts(): List<PriceAlertDto>
+
+    @POST("/consumer/market/price-alerts")
+    suspend fun addPriceAlert(@Body req: AddPriceAlertRequest): PriceAlertDto
+
+    @GET("/consumer/market/price-history/{serviceId}")
+    suspend fun priceHistory(@Path("serviceId") serviceId: Long): List<PricePointDto>
     @GET("/consumer/categories")
     suspend fun categories(): List<ServiceCategoryDto>
 
@@ -525,6 +586,12 @@ interface ApiService {
     @PUT("/technician/equipment")
     suspend fun setEquipment(@Body req: SetEquipmentRequest): Map<String, String>
 
+
+    @GET("/technician/market/bids/{orderId}")
+    suspend fun technicianBids(@Path("orderId") orderId: Long): List<BidDto>
+
+    @POST("/technician/market/bids")
+    suspend fun placeBid(@Body req: PlaceBidRequest): BidDto
     @GET("/technician/review-details")
     suspend fun reviewDetails(): List<ReviewDetailDto>
 
@@ -644,6 +711,27 @@ interface ApiService {
 
 
     // ----- v4 platform -----
+
+    @GET("/admin/market/summary")
+    suspend fun marketSummary(): MarketSummaryDto
+
+    @GET("/admin/market/ledger")
+    suspend fun ledger(): List<LedgerEntryDto>
+
+    @POST("/admin/market/ledger")
+    suspend fun addLedger(@Body req: AddLedgerRequest): LedgerEntryDto
+
+    @GET("/admin/market/commission-rules")
+    suspend fun commissionRules(): List<CommissionRuleDto>
+
+    @PUT("/admin/market/commission-rules/{code}")
+    suspend fun saveCommission(@Path("code") code: String, @Body req: SaveCommissionRequest): CommissionRuleDto
+
+    @POST("/admin/market/flash-sales")
+    suspend fun createFlashSale(@Body req: Map<String, Int>): FlashSaleDto
+
+    @POST("/admin/market/price-history")
+    suspend fun recordPrice(@Body req: Map<String, Long>): Map<String, String>
     @GET("/admin/platform-summary")
     suspend fun platformSummary(): PlatformSummaryDto
 

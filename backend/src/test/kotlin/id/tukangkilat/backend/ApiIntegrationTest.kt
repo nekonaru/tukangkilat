@@ -1866,4 +1866,129 @@ class ApiIntegrationTest {
         assertTrue(json.decodeFromString<BackupJobDto>(run.bodyAsText()).lastRun != null)
     }
 
+
+    @Test
+    fun `marketplace bundles gifts wishlist and admin commerce work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+        val serviceIds = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).take(2).map { service -> service.id } }
+        assertTrue(serviceIds.size == 2)
+
+        val bundle = client.post("/consumer/market/bundles") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateBundleRequest.serializer(), CreateBundleRequest("Paket uji", serviceIds)))
+        }
+        assertEquals(HttpStatusCode.Created, bundle.status, bundle.bodyAsText())
+        assertTrue(json.decodeFromString<CustomBundleDto>(bundle.bodyAsText()).discount > 0)
+
+        client.post("/consumer/wallet/topup") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":200000}")
+        }
+        val gift = client.post("/consumer/market/gift-cards") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":25000}")
+        }
+        assertEquals(HttpStatusCode.Created, gift.status)
+        val code = json.decodeFromString<GiftCardDto>(gift.bodyAsText()).code
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Penerima Hadiah", "receiver51", "receiver5151", "081236666666"
+            )))
+        }
+        val receiver = client.loginToken("receiver51", "receiver5151")
+        val before = client.okGet("/consumer/wallet", receiver).bodyAsText()
+            .let { json.decodeFromString<WalletDto>(it).balance }
+        val redeemed = client.post("/consumer/market/gift-cards/redeem") {
+            bearer(receiver)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RedeemGiftRequest.serializer(), RedeemGiftRequest(code)))
+        }
+        assertEquals(HttpStatusCode.OK, redeemed.status)
+        val after = client.okGet("/consumer/wallet", receiver).bodyAsText()
+            .let { json.decodeFromString<WalletDto>(it).balance }
+        assertEquals(before + 25_000L, after)
+
+        val wish = client.post("/consumer/market/wishlist") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddWishlistRequest.serializer(), AddWishlistRequest(serviceIds.first(), 1_000_000)))
+        }
+        assertEquals(HttpStatusCode.Created, wish.status)
+        val alert = client.post("/consumer/market/price-alerts") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddPriceAlertRequest.serializer(), AddPriceAlertRequest(serviceIds.first(), 1_000_000)))
+        }
+        assertEquals(HttpStatusCode.Created, alert.status)
+
+        val sale = client.post("/admin/market/flash-sales") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"serviceId\":${serviceIds.first()},\"discountPercent\":20,\"quota\":10,\"hours\":24}")
+        }
+        assertEquals(HttpStatusCode.Created, sale.status)
+        assertTrue(client.okGet("/consumer/market/flash-sales", consumer).bodyAsText().contains("20"))
+
+        val ledger = client.post("/admin/market/ledger") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"account\":\"PENDAPATAN\",\"debit\":0,\"credit\":50000,\"reference\":\"Uji\"}")
+        }
+        assertEquals(HttpStatusCode.Created, ledger.status)
+        val rule = client.put("/admin/market/commission-rules/DEFAULT") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"serviceId\":null,\"percent\":15,\"priority\":0,\"isActive\":true}")
+        }
+        assertEquals(HttpStatusCode.OK, rule.status)
+        val summary = client.okGet("/admin/market/summary", admin).bodyAsText()
+            .let { json.decodeFromString<MarketSummaryDto>(it) }
+        assertTrue(summary.ledgerBalance >= 50_000L)
+    }
+
+    @Test
+    fun `bid requires order party and technician can bid`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val technician = client.loginToken("budi", "budi12345")
+        val outsider = client.loginToken("sari", "sari12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+        transaction {
+            OrdersTable.update({ OrdersTable.id eq orderId }) { it[status] = OrderStatus.MENCARI_TEKNISI.name }
+        }
+
+        val bid = client.post("/technician/market/bids") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(PlaceBidRequest.serializer(), PlaceBidRequest(orderId, 250_000, "Bisa hari ini")))
+        }
+        assertEquals(HttpStatusCode.Created, bid.status, bid.bodyAsText())
+        val bidId = json.decodeFromString<BidDto>(bid.bodyAsText()).id
+        val forbidden = client.post("/consumer/market/bids/$bidId/resolve") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ResolveBidRequest.serializer(), ResolveBidRequest(true)))
+        }
+        assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+        val accepted = client.post("/consumer/market/bids/$bidId/resolve") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ResolveBidRequest.serializer(), ResolveBidRequest(true)))
+        }
+        assertEquals(HttpStatusCode.OK, accepted.status)
+    }
+
 }

@@ -81,6 +81,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     EcosystemService.applyAutoSchedules()
                     PlatformService.processDueBroadcasts()
                     PlatformService.evaluateBreaches()
+                    MarketplaceService.evaluatePriceAlerts()
                     DispatchService.dispatchRound()
                     DispatchService.maintenanceRound()
                     EcosystemService.processDueSubscriptions()
@@ -98,8 +99,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "5.0.0",
-                "migrations" to "13"
+                "version" to "5.1.0",
+                "migrations" to "14"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -371,6 +372,69 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     val orderId = call.parameters["id"]!!.toLong()
                     val body = call.receive<SendMessageRequest>()
                     call.respond(HttpStatusCode.Created, sendMessage(orderId, call.authUser(), body))
+                }
+                // ---------- v5 marketplace ----------
+                get("/market/bids/{orderId}") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(MarketplaceService.bids(call.authUser().id, call.parameters["orderId"]!!.toLong()))
+                }
+                post("/market/bids/{bidId}/resolve") {
+                    call.requireRole(Role.KONSUMEN)
+                    val body = call.receive<ResolveBidRequest>()
+                    call.respond(MarketplaceService.resolveBid(call.authUser().id, call.parameters["bidId"]!!.toLong(), body.accept))
+                }
+                get("/market/bundles") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.bundles(call.authUser().id)) }
+                post("/market/bundles") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, MarketplaceService.createBundle(call.authUser().id, call.receive()))
+                }
+                get("/market/flash-sales") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.flashSales()) }
+                get("/market/group-buys") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.groupBuys()) }
+                post("/market/group-buys") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, MarketplaceService.createGroupBuy(call.authUser().id, call.receive()))
+                }
+                post("/market/group-buys/{id}/join") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(MarketplaceService.joinGroupBuy(call.parameters["id"]!!.toLong()))
+                }
+                get("/market/gift-cards") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.giftCards(call.authUser().id)) }
+                post("/market/gift-cards") {
+                    call.requireRole(Role.KONSUMEN)
+                    val body = call.receive<Map<String, Long>>()
+                    call.respond(HttpStatusCode.Created, MarketplaceService.createGiftCard(call.authUser().id, body["amount"] ?: 0))
+                }
+                post("/market/gift-cards/redeem") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(MarketplaceService.redeemGift(call.authUser().id, call.receive<RedeemGiftRequest>().code))
+                }
+                get("/market/point-items") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.pointItems()) }
+                post("/market/point-items/redeem") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(MarketplaceService.redeemPoint(call.authUser().id, call.receive<RedeemPointRequest>().itemCode))
+                }
+                post("/market/tips") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, MarketplaceService.createTip(call.authUser().id, call.receive()))
+                }
+                get("/market/wishlist") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.wishlists(call.authUser().id)) }
+                post("/market/wishlist") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, MarketplaceService.addWishlist(call.authUser().id, call.receive()))
+                }
+                delete("/market/wishlist/{id}") {
+                    call.requireRole(Role.KONSUMEN)
+                    MarketplaceService.removeWishlist(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(HttpStatusCode.NoContent)
+                }
+                get("/market/price-alerts") { call.requireRole(Role.KONSUMEN); call.respond(MarketplaceService.priceAlerts(call.authUser().id)) }
+                post("/market/price-alerts") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, MarketplaceService.addPriceAlert(call.authUser().id, call.receive()))
+                }
+                get("/market/price-history/{serviceId}") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(MarketplaceService.priceHistory(call.parameters["serviceId"]!!.toLong()))
                 }
                 // ---------- v5 trust ----------
                 get("/trust/devices") { call.requireRole(Role.KONSUMEN, Role.TUKANG); call.respond(TrustService.devices(call.authUser().id)) }
@@ -687,6 +751,15 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(TechnicianService.withdraw(call.authUser().id, call.receive()))
                 }
                 get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
+            // ---------- v5 marketplace (technician) ----------
+            get("/market/bids/{orderId}") {
+                call.requireRole(Role.TUKANG)
+                call.respond(MarketplaceService.bids(call.authUser().id, call.parameters["orderId"]!!.toLong()))
+            }
+            post("/market/bids") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, MarketplaceService.placeBid(call.authUser().id, call.receive()))
+            }
             // ---------- v4 technician operations ----------
             get("/documents") {
                 call.requireRole(Role.TUKANG)
@@ -1011,6 +1084,30 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             post("/trust/backups/{id}/run") {
                 call.requireRole(Role.ADMIN)
                 call.respond(TrustService.runBackupJob(call.authUser().id, call.parameters["id"]!!.toLong()))
+            }
+            get("/market/summary") { call.requireRole(Role.ADMIN); call.respond(MarketplaceService.summary()) }
+            get("/market/ledger") { call.requireRole(Role.ADMIN); call.respond(MarketplaceService.ledger()) }
+            post("/market/ledger") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, MarketplaceService.addLedger(call.receive()))
+            }
+            get("/market/commission-rules") { call.requireRole(Role.ADMIN); call.respond(MarketplaceService.commissionRules()) }
+            put("/market/commission-rules/{code}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(MarketplaceService.saveCommission(call.parameters["code"]!!, call.receive()))
+            }
+            post("/market/flash-sales") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, Int>>()
+                val serviceId = body["serviceId"] ?: throw BadRequestException("serviceId wajib")
+                call.respond(HttpStatusCode.Created, MarketplaceService.createFlashSale(
+                    serviceId.toLong(), body["discountPercent"] ?: 10, body["quota"] ?: 10, body["hours"] ?: 24
+                ))
+            }
+            post("/market/price-history") {
+                call.requireRole(Role.ADMIN)
+                MarketplaceService.recordPrice(call.receive<Map<String, Long>>()["serviceId"]!!)
+                call.respond(mapOf("status" to "ok"))
             }
             get("/platform-summary") { call.requireRole(Role.ADMIN); call.respond(PlatformService.summary()) }
             get("/flags") { call.requireRole(Role.ADMIN); call.respond(PlatformService.flags()) }
