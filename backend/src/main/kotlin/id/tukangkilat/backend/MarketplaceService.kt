@@ -22,8 +22,9 @@ object MarketplaceService {
     }
 
     fun createBundle(userId: Long, req: CreateBundleRequest): CustomBundleDto = transaction {
-        if (req.name.isBlank() || req.serviceIds.size !in 2..5) throw BadRequestException("Pilih 2 sampai 5 layanan")
+        if (req.name.isBlank()) throw BadRequestException("Nama paket wajib")
         val ids = req.serviceIds.distinct()
+        if (ids.size !in 2..5) throw BadRequestException("Pilih 2 sampai 5 layanan")
         val rows = ServicesTable.selectAll().where { ServicesTable.id inList ids }.toList()
         if (rows.size != ids.size) throw BadRequestException("Ada layanan yang tidak ditemukan")
         val subtotal = rows.sumOf { it[ServicesTable.basePrice] + it[ServicesTable.visitFee] }
@@ -113,7 +114,9 @@ object MarketplaceService {
 
     // ---------- Bids ----------
 
-    fun bids(orderId: Long): List<BidDto> = transaction {
+    fun bids(consumerId: Long, orderId: Long): List<BidDto> = transaction {
+        val order = OrderQueries.loadOrderRow(orderId)
+        if (order[OrdersTable.consumerId] != consumerId) throw ForbiddenException("Bukan pesanan Anda")
         JobBidsTable.selectAll().where { JobBidsTable.orderId eq orderId }
             .orderBy(JobBidsTable.price to SortOrder.ASC).map(::bidDto)
     }
@@ -162,18 +165,17 @@ object MarketplaceService {
             JobBidsTable.update({
                 (JobBidsTable.orderId eq bid[JobBidsTable.orderId]) and (JobBidsTable.id neq bidId)
             }) { it[status] = "DITOLAK" }
+            if (OrderStatus.valueOf(order[OrdersTable.status]) != OrderStatus.MENCARI_TEKNISI) {
+                throw ConflictException("Status pesanan sudah berubah")
+            }
             OrdersTable.update({ OrdersTable.id eq bid[JobBidsTable.orderId] }) {
                 it[technicianId] = bid[JobBidsTable.technicianId]
-                it[total] = bid[JobBidsTable.price]
-                it[status] = OrderStatus.TEKNISI_DITEMUKAN.name
                 it[updatedAt] = OffsetDateTime.now()
             }
-            OrderEventsTable.insert {
-                it[orderId] = bid[JobBidsTable.orderId]
-                it[status] = OrderStatus.TEKNISI_DITEMUKAN.name
-                it[actorId] = consumerId
-                it[createdAt] = OffsetDateTime.now()
-            }
+            OrderService.transitionInTx(
+                bid[JobBidsTable.orderId], OrderStatus.TEKNISI_DITEMUKAN, consumerId,
+                OrderStateMachine.Actor.SYSTEM
+            )
         } else {
             JobBidsTable.update({ JobBidsTable.id eq bidId }) { it[status] = "DITOLAK" }
         }
@@ -195,7 +197,12 @@ object MarketplaceService {
 
     fun createGiftCard(userId: Long, amount: Long): GiftCardDto = transaction {
         if (amount <= 0) throw BadRequestException("Nominal harus lebih dari 0")
-        val code = "GIFT" + System.currentTimeMillis().toString().takeLast(8)
+        val wallet = WalletsTable.selectAll().where { WalletsTable.userId eq userId }.singleOrNull()
+            ?: throw BadRequestException("Saldo dompet tidak tersedia")
+        if (wallet[WalletsTable.balance] < amount) throw BadRequestException("Saldo tidak cukup")
+        val code = "GIFT" + java.security.SecureRandom().let { random ->
+            (1..12).joinToString("") { (random.nextInt(36)).let { n -> if (n < 10) n.toString() else ('A'.code + n - 10).toChar().toString() } }
+        }
         val id = GiftCardsTable.insert {
             it[this.code] = code
             it[senderId] = userId
@@ -203,6 +210,17 @@ object MarketplaceService {
             it[status] = "AKTIF"
             it[createdAt] = OffsetDateTime.now()
         } get GiftCardsTable.id
+        WalletsTable.update({ WalletsTable.userId eq userId }) {
+            it[balance] = wallet[WalletsTable.balance] - amount
+            it[updatedAt] = OffsetDateTime.now()
+        }
+        WalletTransactionsTable.insert {
+            it[WalletTransactionsTable.userId] = userId
+            it[WalletTransactionsTable.amount] = -amount
+            it[type] = "HADIAH_KELUAR"
+            it[reference] = code
+            it[createdAt] = OffsetDateTime.now()
+        }
         giftDto(GiftCardsTable.selectAll().where { GiftCardsTable.id eq id }.single())
     }
 
@@ -211,19 +229,18 @@ object MarketplaceService {
             (GiftCardsTable.code eq code.trim().uppercase()) and (GiftCardsTable.status eq "AKTIF")
         }.singleOrNull() ?: throw BadRequestException("Kartu hadiah tidak valid")
         if (card[GiftCardsTable.senderId] == userId) throw BadRequestException("Tidak bisa memakai kartu sendiri")
-        val wallet = WalletsTable.selectAll().where { WalletsTable.userId eq userId }.singleOrNull()
-        if (wallet != null) {
-            WalletsTable.update({ WalletsTable.userId eq userId }) {
-                it[balance] = wallet[WalletsTable.balance] + card[GiftCardsTable.amount]
-                it[updatedAt] = OffsetDateTime.now()
-            }
-            WalletTransactionsTable.insert {
-                it[this.userId] = userId
-                it[amount] = card[GiftCardsTable.amount]
-                it[type] = "HADIAH"
-                it[reference] = card[GiftCardsTable.code]
-                it[createdAt] = OffsetDateTime.now()
-            }
+        EcosystemService.ensureWallet(userId)
+        val wallet = WalletsTable.selectAll().where { WalletsTable.userId eq userId }.single()
+        WalletsTable.update({ WalletsTable.userId eq userId }) {
+            it[balance] = wallet[WalletsTable.balance] + card[GiftCardsTable.amount]
+            it[updatedAt] = OffsetDateTime.now()
+        }
+        WalletTransactionsTable.insert {
+            it[this.userId] = userId
+            it[amount] = card[GiftCardsTable.amount]
+            it[type] = "HADIAH"
+            it[reference] = card[GiftCardsTable.code]
+            it[createdAt] = OffsetDateTime.now()
         }
         GiftCardsTable.update({ GiftCardsTable.id eq card[GiftCardsTable.id] }) {
             it[receiverId] = userId
@@ -283,6 +300,9 @@ object MarketplaceService {
         if (req.amount <= 0) throw BadRequestException("Nominal tip harus lebih dari 0")
         val order = OrderQueries.loadOrderRow(req.orderId)
         if (order[OrdersTable.consumerId] != userId) throw ForbiddenException("Bukan pesanan Anda")
+        if (OrderStatus.valueOf(order[OrdersTable.status]) != OrderStatus.SELESAI) {
+            throw BadRequestException("Tip hanya untuk pesanan selesai")
+        }
         val technicianId = order[OrdersTable.technicianId] ?: throw BadRequestException("Belum ada teknisi")
         if (TipsTable.selectAll().where { TipsTable.orderId eq req.orderId }.any()) throw ConflictException("Tip sudah diberikan")
         val id = TipsTable.insert {

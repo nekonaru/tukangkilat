@@ -55,7 +55,7 @@ class MarketViewModel @Inject constructor(private val api: ApiService) : ViewMod
                     tab = current.tab, notice = current.notice,
                     serviceId = current.serviceId, targetPrice = current.targetPrice,
                     giftAmount = current.giftAmount, giftCode = current.giftCode, bundleName = current.bundleName,
-                    bidOrderId = current.bidOrderId,
+                    bidOrderId = current.bidOrderId, bids = current.bids,
                     sales = runCatching { api.flashSales() }.getOrDefault(emptyList()),
                     groups = runCatching { api.groupBuys() }.getOrDefault(emptyList()),
                     bundles = runCatching { api.marketBundles() }.getOrDefault(emptyList()),
@@ -182,6 +182,12 @@ fun MarketplaceScreen(onBack: () -> Unit, viewModel: MarketViewModel = hiltViewM
             }
             when (state.tab) {
                 0 -> LazyColumn(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
+                    items(state.bundles, key = { it.id }) { bundle ->
+                        TKCard {
+                            Text(bundle.name, fontWeight = FontWeight.Bold)
+                            Text("Diskon Rp${bundle.discount} · total Rp${bundle.totalPrice}")
+                        }
+                    }
                     items(state.sales, key = { it.id }) { sale ->
                         TKCard {
                             Text("Layanan ${sale.serviceId} · diskon ${sale.discountPercent}%", fontWeight = FontWeight.Bold)

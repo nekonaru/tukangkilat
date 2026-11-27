@@ -11,7 +11,7 @@ import java.time.ZoneId
 /** Services for the v3 ecosystem: wallet, loyalty, subscriptions and technician workbench. */
 object EcosystemService {
 
-    private fun ensureWallet(userId: Long) {
+    internal fun ensureWallet(userId: Long) {
         if (WalletsTable.selectAll().where { WalletsTable.userId eq userId }.any()) return
         WalletsTable.insert { it[this.userId] = userId; it[balance] = 0L; it[updatedAt] = OffsetDateTime.now() }
     }

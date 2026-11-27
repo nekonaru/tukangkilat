@@ -1884,6 +1884,11 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.Created, bundle.status, bundle.bodyAsText())
         assertTrue(json.decodeFromString<CustomBundleDto>(bundle.bodyAsText()).discount > 0)
 
+        client.post("/consumer/wallet/topup") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":200000}")
+        }
         val gift = client.post("/consumer/market/gift-cards") {
             bearer(consumer)
             contentType(ContentType.Application.Json)

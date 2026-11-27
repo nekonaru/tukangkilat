@@ -51,6 +51,9 @@ data class OpsUiState(
     val materialCost: String = "0",
     val checkinLat: String = "",
     val checkinLng: String = "",
+    val bidOrderId: String = "",
+    val bidPrice: String = "",
+    val bidNote: String = "",
     val notice: String? = null
 )
 
@@ -76,6 +79,7 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
                     materialQty = current.materialQty,
                     materialCost = current.materialCost,
                     checkinLat = current.checkinLat, checkinLng = current.checkinLng,
+                    bidOrderId = current.bidOrderId, bidPrice = current.bidPrice, bidNote = current.bidNote,
                     rule = runCatching { api.autoAccept() }.getOrNull(),
                     route = runCatching { api.route() }.getOrDefault(emptyList()),
                     equipment = runCatching { api.equipment() }.getOrDefault(emptyList()),
@@ -107,6 +111,9 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
             "leaveEnd" -> _state.value.copy(leaveEnd = value)
             "checkinLat" -> _state.value.copy(checkinLat = value)
             "checkinLng" -> _state.value.copy(checkinLng = value)
+            "bidOrderId" -> _state.value.copy(bidOrderId = value)
+            "bidPrice" -> _state.value.copy(bidPrice = value)
+            "bidNote" -> _state.value.copy(bidNote = value)
             else -> _state.value
         }
     }
@@ -228,6 +235,23 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
         }
     }
 
+    fun placeBid() {
+        val s = _state.value
+        val orderId = s.bidOrderId.toLongOrNull()
+        val price = s.bidPrice.toLongOrNull()
+        if (orderId == null || price == null || price <= 0) {
+            _state.value = s.copy(notice = "Isi ID pesanan dan harga")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                api.placeBid(PlaceBidRequest(orderId, price, s.bidNote))
+                _state.value = _state.value.copy(notice = "Penawaran dikirim", bidPrice = "", bidNote = "")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -246,7 +270,7 @@ fun OpsScreen(onBack: () -> Unit, viewModel: OpsViewModel = hiltViewModel()) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ScrollableTabRow(selectedTabIndex = state.tab) {
-                listOf("Dokumen", "Wilayah", "Otomatis", "Rute", "Alat", "Jurnal", "Chat", "Libur", "Prestasi").forEachIndexed { i, title ->
+                listOf("Dokumen", "Wilayah", "Otomatis", "Rute", "Alat", "Jurnal", "Chat", "Libur", "Prestasi", "Lelang").forEachIndexed { i, title ->
                     Tab(selected = state.tab == i, onClick = { viewModel.tab(i) }, text = { Text(title) })
                 }
             }
@@ -355,6 +379,12 @@ fun OpsScreen(onBack: () -> Unit, viewModel: OpsViewModel = hiltViewModel()) {
                             Text("${leave.startDate} sampai ${leave.endDate} · ${leave.status}", modifier = Modifier.padding(vertical = 4.dp))
                         }
                     }
+                }
+                9 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
+                    TKOutlinedField(state.bidOrderId, { viewModel.field("bidOrderId", it) }, label = "ID pesanan")
+                    TKOutlinedField(state.bidPrice, { viewModel.field("bidPrice", it) }, label = "Harga penawaran")
+                    TKOutlinedField(state.bidNote, { viewModel.field("bidNote", it) }, label = "Catatan")
+                    TKButton("Kirim penawaran", viewModel::placeBid, variant = TKButtonVariant.Tonal)
                 }
                 else -> LazyColumn(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     items(state.badges, key = { it.id }) { badge ->

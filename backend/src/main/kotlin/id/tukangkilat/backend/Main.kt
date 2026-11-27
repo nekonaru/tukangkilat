@@ -99,8 +99,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "5.0.0",
-                "migrations" to "13"
+                "version" to "5.1.0",
+                "migrations" to "14"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -376,7 +376,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 // ---------- v5 marketplace ----------
                 get("/market/bids/{orderId}") {
                     call.requireRole(Role.KONSUMEN)
-                    call.respond(MarketplaceService.bids(call.parameters["orderId"]!!.toLong()))
+                    call.respond(MarketplaceService.bids(call.authUser().id, call.parameters["orderId"]!!.toLong()))
                 }
                 post("/market/bids/{bidId}/resolve") {
                     call.requireRole(Role.KONSUMEN)
@@ -754,7 +754,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             // ---------- v5 marketplace (technician) ----------
             get("/market/bids/{orderId}") {
                 call.requireRole(Role.TUKANG)
-                call.respond(MarketplaceService.bids(call.parameters["orderId"]!!.toLong()))
+                call.respond(MarketplaceService.bids(call.authUser().id, call.parameters["orderId"]!!.toLong()))
             }
             post("/market/bids") {
                 call.requireRole(Role.TUKANG)
