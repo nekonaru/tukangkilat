@@ -94,6 +94,14 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
 
     routing {
         get("/health") { call.respond(mapOf("status" to "ok")) }
+        get("/server-info") {
+            call.respond(mapOf(
+                "status" to "ok",
+                "mode" to if (config.h2InMemory) "embedded" else "lan",
+                "version" to "4.3.0",
+                "migrations" to "12"
+            ))
+        }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
         get("/content/{code}") { call.respond(PlatformService.publicContent(call.parameters["code"]!!)) }
         get("/flags") {

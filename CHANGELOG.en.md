@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-11-27
+
+### Added
+
+- **Deep links**: `tukangkilat://order/{id}`, `tukangkilat://chat/{peer}` and `tukangkilat://promo/{code}` open the matching screen directly.
+- **Server info endpoint**: public status, mode, version and migration count shown in Settings.
+- **Server-backed FAQ**: Settings can load the editable FAQ page from the backend.
+- **Final consolidation**: all v4 catalog, commerce, technician, platform and quality waves are now released.
+
 ## [4.2.0] - 2026-11-27
 
 ### Added
@@ -430,6 +439,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0
 [4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
 [4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
 [4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0

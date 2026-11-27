@@ -34,6 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.NavDeepLink
 import id.tukangkilat.app.R
 import id.tukangkilat.app.data.local.LocalBackend
 import id.tukangkilat.app.ui.components.rememberReduceMotion
@@ -297,7 +298,8 @@ fun TukangKilatApp(
             }
             composable(
                 Routes.C_DIRECT_CHAT,
-                arguments = listOf(navArgument("peerId") { type = NavType.LongType })
+                arguments = listOf(navArgument("peerId") { type = NavType.LongType }),
+                deepLinks = listOf(NavDeepLink.Builder().setUriPattern("tukangkilat://chat/{peerId}").build())
             ) { entry ->
                 DirectChatScreen(
                     peerId = entry.arguments!!.getLong("peerId"),
@@ -334,7 +336,14 @@ fun TukangKilatApp(
                 )
             }
             composable(Routes.C_COMMERCE) { CommerceScreen(onBack = { navController.navigateUp() }) }
-            composable(Routes.WALLET) { WalletScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.WALLET, deepLinks = listOf(
+                NavDeepLink.Builder().setUriPattern("tukangkilat://promo/{code}").build()
+            )) { entry ->
+                WalletScreen(
+                    onBack = { navController.navigateUp() },
+                    promoCode = entry.arguments?.getString("code")
+                )
+            }
             composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.T_OPS) { OpsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
@@ -348,7 +357,10 @@ fun TukangKilatApp(
                     onBack = { navController.navigateUp() }
                 )
             }
-            composable(Routes.C_STATUS, arguments = listOf(navArgument("orderId") { type = NavType.LongType })) { entry ->
+            composable(Routes.C_STATUS,
+                arguments = listOf(navArgument("orderId") { type = NavType.LongType }),
+                deepLinks = listOf(NavDeepLink.Builder().setUriPattern("tukangkilat://order/{orderId}").build())
+            ) { entry ->
                 val orderId = entry.arguments!!.getLong("orderId")
                 OrderStatusScreen(
                     orderId = orderId,

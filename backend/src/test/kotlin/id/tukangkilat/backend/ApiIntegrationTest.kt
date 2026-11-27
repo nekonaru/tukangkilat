@@ -1750,4 +1750,15 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.OK, resolved.status)
     }
 
+
+    @Test
+    fun `server info endpoint is public`() = testApplication {
+        setupApp()
+        val response = client.get("/server-info")
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("status"))
+        assertTrue(body.contains("migrations"))
+    }
+
 }
