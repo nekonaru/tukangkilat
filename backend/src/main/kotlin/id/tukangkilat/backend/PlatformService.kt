@@ -68,10 +68,11 @@ object PlatformService {
 
     fun saveContent(req: SaveContentRequest): ContentPageDto = transaction {
         if (req.code.isBlank() || req.title.isBlank()) throw BadRequestException("Kode dan judul wajib")
-        val existing = ContentPagesTable.selectAll().where { ContentPagesTable.code eq req.code }.singleOrNull()
+        val normalizedCode = req.code.trim().take(64)
+        val existing = ContentPagesTable.selectAll().where { ContentPagesTable.code eq normalizedCode }.singleOrNull()
         val id = if (existing == null) {
             ContentPagesTable.insert {
-                it[code] = req.code.trim().take(64)
+                it[code] = normalizedCode
                 it[title] = req.title.trim().take(120)
                 it[body] = req.body
                 it[isActive] = req.isActive
@@ -115,24 +116,32 @@ object PlatformService {
         broadcasts().first { it.id == id }
     }
 
-    fun processDueBroadcasts(): Int {
+    suspend fun processDueBroadcasts(): Int {
         val due = transaction {
             ScheduledBroadcastsTable.selectAll().where {
                 (ScheduledBroadcastsTable.status eq "MENUNGGU") and
                     (ScheduledBroadcastsTable.sendAt lessEq OffsetDateTime.now())
             }.toList()
         }
-        due.forEach { row ->
-            transaction {
+        for (row in due) {
+            val targetRole = row[ScheduledBroadcastsTable.targetRole]
+            val recipients = transaction {
                 ScheduledBroadcastsTable.update({ ScheduledBroadcastsTable.id eq row[ScheduledBroadcastsTable.id] }) {
                     it[status] = "TERKIRIM"
                 }
                 AnnouncementsTable.insert {
                     it[adminId] = row[ScheduledBroadcastsTable.createdBy]
                     it[title] = row[ScheduledBroadcastsTable.title]
-                    it[body] = row[ScheduledBroadcastsTable.body]
+                    it[body] = if (targetRole.isBlank()) row[ScheduledBroadcastsTable.body]
+                    else "${row[ScheduledBroadcastsTable.body]} (untuk $targetRole)"
                     it[createdAt] = OffsetDateTime.now()
                 }
+                UsersTable.selectAll().where {
+                    if (targetRole.isBlank()) UsersTable.status neq "NONAKTIF" else UsersTable.role eq targetRole
+                }.map { it[UsersTable.id] }
+            }
+            for (recipientId in recipients) {
+                WsHub.sendTo(recipientId, WsEvent(WsEventType.CHAT_MESSAGE, null))
             }
         }
         return due.size
@@ -141,6 +150,10 @@ object PlatformService {
     // ---------- Review moderation ----------
 
     fun reportReview(userId: Long, orderId: Long, req: ReportReviewRequest) = transaction {
+        val order = OrderQueries.loadOrderRow(orderId)
+        if (order[OrdersTable.consumerId] != userId && order[OrdersTable.technicianId] != userId) {
+            throw ForbiddenException("Anda bukan peserta pesanan ini")
+        }
         if (!RatingsTable.selectAll().where { RatingsTable.orderId eq orderId }.any()) {
             throw NotFoundException("Ulasan tidak ditemukan")
         }
@@ -193,23 +206,24 @@ object PlatformService {
 
     fun saveSlaPolicy(code: String, req: SaveSlaPolicyRequest): SlaPolicyDto = transaction {
         if (req.minutes !in 5..1440 || req.compensation < 0) throw BadRequestException("Kebijakan SLA tidak valid")
-        val exists = SlaPoliciesTable.selectAll().where { SlaPoliciesTable.code eq code }.any()
+        val normalizedCode = code.trim().take(32)
+        val exists = SlaPoliciesTable.selectAll().where { SlaPoliciesTable.code eq normalizedCode }.any()
         if (exists) {
-            SlaPoliciesTable.update({ SlaPoliciesTable.code eq code }) {
+            SlaPoliciesTable.update({ SlaPoliciesTable.code eq normalizedCode }) {
                 it[minutes] = req.minutes
                 it[compensation] = req.compensation
                 it[isActive] = req.isActive
             }
         } else {
             SlaPoliciesTable.insert {
-                it[SlaPoliciesTable.code] = code.take(32)
+                it[SlaPoliciesTable.code] = normalizedCode
                 it[minutes] = req.minutes
                 it[compensation] = req.compensation
                 it[isActive] = req.isActive
             }
         }
-        val row = SlaPoliciesTable.selectAll().where { SlaPoliciesTable.code eq code }.single()
-        SlaPolicyDto(code, row[SlaPoliciesTable.minutes], row[SlaPoliciesTable.compensation], row[SlaPoliciesTable.isActive])
+        val row = SlaPoliciesTable.selectAll().where { SlaPoliciesTable.code eq normalizedCode }.single()
+        SlaPolicyDto(normalizedCode, row[SlaPoliciesTable.minutes], row[SlaPoliciesTable.compensation], row[SlaPoliciesTable.isActive])
     }
 
     fun breaches(): List<SlaBreachDto> = transaction {
@@ -257,7 +271,7 @@ object PlatformService {
         return created
     }
 
-    fun compensateBreach(id: Long): SlaBreachDto = transaction {
+    fun compensateBreach(adminId: Long, id: Long): SlaBreachDto = transaction {
         val row = SlaBreachesTable.selectAll().where { SlaBreachesTable.id eq id }
             .singleOrNull() ?: throw NotFoundException("Pelanggaran tidak ditemukan")
         if (row[SlaBreachesTable.compensated]) throw ConflictException("Sudah dikompensasi")
@@ -280,6 +294,7 @@ object PlatformService {
             }
         }
         SlaBreachesTable.update({ SlaBreachesTable.id eq id }) { it[compensated] = true }
+        EcosystemService.log(adminId, "COMPENSATE_SLA", id.toString())
         breaches().first { it.id == id }
     }
 
@@ -349,7 +364,7 @@ object PlatformService {
             openDisputes = DisputesTable.selectAll().where { DisputesTable.decision eq "MENUNGGU" }.count().toInt(),
             slaBreaches = SlaBreachesTable.selectAll().where { SlaBreachesTable.compensated eq false }.count().toInt(),
             flaggedReviews = ReviewReportsTable.selectAll().where { ReviewReportsTable.status eq "OPEN" }.count().toInt(),
-            backupVersion = "4"
+            backupVersion = "6"
         )
     }
 }

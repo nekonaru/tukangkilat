@@ -893,7 +893,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             get("/sla-breaches") { call.requireRole(Role.ADMIN); call.respond(PlatformService.breaches()) }
             post("/sla-breaches/{id}/compensate") {
                 call.requireRole(Role.ADMIN)
-                call.respond(PlatformService.compensateBreach(call.parameters["id"]!!.toLong()))
+                call.respond(PlatformService.compensateBreach(call.authUser().id, call.parameters["id"]!!.toLong()))
             }
             post("/notes") {
                 call.requireRole(Role.ADMIN)

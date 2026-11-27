@@ -1719,6 +1719,20 @@ class ApiIntegrationTest {
                 it[createdAt] = OffsetDateTime.now()
             }
         }
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Outsider", "outsider42", "outsider4242", "081237776666"
+            )))
+        }
+        val outsider = client.loginToken("outsider42", "outsider4242")
+        val forbidden = client.post("/consumer/reviews/$orderId/report") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportReviewRequest.serializer(), ReportReviewRequest("Tidak pantas")))
+        }
+        assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+
         val report = client.post("/consumer/reviews/$orderId/report") {
             bearer(consumer)
             contentType(ContentType.Application.Json)

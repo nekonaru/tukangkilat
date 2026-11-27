@@ -57,8 +57,7 @@ object DatabaseTransfer {
         "promo_campaigns", "vouchers", "referrals", "installment_plans", "signatures",
         "checklist_templates", "checklist_items", "refund_requests", "offline_queue",
         "tech_documents", "service_areas", "checkins", "job_materials", "tech_badges",
-        "chat_templates", "leave_requests", "work_journals", "equipment_items", "feature_flags",
-        "content_pages", "scheduled_broadcasts", "review_reports", "sla_policies", "sla_breaches",
+        "chat_templates", "leave_requests", "work_journals", "equipment_items", "content_pages", "scheduled_broadcasts", "review_reports", "sla_breaches",
         "admin_notes", "weekly_reports"
     )
 
