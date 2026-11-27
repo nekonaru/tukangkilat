@@ -25,13 +25,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.repository.NotificationRepository
+import id.tukangkilat.shared.AnnouncementDto
+import kotlinx.coroutines.flow.MutableStateFlow
 import id.tukangkilat.app.ui.components.EmptyView
 import id.tukangkilat.app.ui.components.ScreenHeader
 import id.tukangkilat.app.ui.components.tkScreenEnter
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.theme.TKSpacing
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,8 +44,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
-    val repository: NotificationRepository
+    val repository: NotificationRepository,
+    private val api: ApiService
 ) : ViewModel() {
+    private val _announcements = MutableStateFlow<List<AnnouncementDto>>(emptyList())
+    val announcements = _announcements.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            runCatching { api.publicAnnouncements() }.onSuccess { _announcements.value = it }
+        }
+    }
+
     fun markAllRead() = viewModelScope.launch { repository.markAllRead() }
     fun clear() = viewModelScope.launch { repository.clear() }
 }
@@ -53,6 +67,7 @@ fun NotificationsScreen(
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val allItems by viewModel.repository.notifications.collectAsState()
+    val announcements by viewModel.announcements.collectAsState()
     var unreadOnly by remember { mutableStateOf(false) }
     val items = if (unreadOnly) allItems.filter { !it.read } else allItems
 
@@ -90,6 +105,15 @@ fun NotificationsScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
+                items(announcements, key = { "a${it.id}" }) { announcement ->
+                    Column(
+                        Modifier.fillMaxWidth().background(TKColor.Cream, RoundedCornerShape(14.dp)).padding(14.dp)
+                    ) {
+                        Text(announcement.title, color = TKColor.CreamText, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(announcement.body, color = TKColor.CreamText, fontSize = 12.sp)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
                 items(items, key = { it.id }) { item ->
                     NotificationCard(item, onOpen = { notification -> notification.orderId?.let(onOpenOrder) })
                     Spacer(Modifier.height(10.dp))

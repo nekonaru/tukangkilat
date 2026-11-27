@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -192,6 +193,7 @@ class AccountViewModel @Inject constructor(
 fun AccountScreen(
     onNotifications: () -> Unit,
     onSettings: () -> Unit = {},
+    onWallet: () -> Unit = {},
     onBrowseTechnicians: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
@@ -250,6 +252,7 @@ fun AccountScreen(
                     Spacer(Modifier.height(TKSpacing.Sm))
                 }
                 item {
+                    SectionRow(Icons.Filled.AccountBalanceWallet, "Dompet & langganan", onClick = onWallet)
                     SectionLabel("Akun")
                     SectionRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }

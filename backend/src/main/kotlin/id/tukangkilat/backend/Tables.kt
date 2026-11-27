@@ -28,6 +28,105 @@ object ProposalsTable : Table("proposals") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object WalletsTable : Table("wallets") {
+    val userId = long("user_id")
+    val balance = long("balance")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object WalletTransactionsTable : Table("wallet_transactions") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id")
+    val amount = long("amount")
+    val type = varchar("type", 16)
+    val reference = varchar("reference", 64)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object LoyaltyTable : Table("loyalty_points") {
+    val userId = long("user_id")
+    val points = integer("points")
+    val lifetime = integer("lifetime")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object SubscriptionsTable : Table("subscriptions") {
+    val id = long("id").autoIncrement()
+    val consumerId = long("consumer_id")
+    val serviceId = long("service_id")
+    val addressId = long("address_id")
+    val intervalDays = integer("interval_days")
+    val nextDate = date("next_date")
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AvailabilityBlocksTable : Table("availability_blocks") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id")
+    val blockDate = date("block_date")
+    val slotLabel = varchar("slot_label", 32)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object PortfoliosTable : Table("technician_portfolios") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id")
+    val photoUrl = varchar("photo_url", 512)
+    val caption = varchar("caption", 255)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object PayoutAccountsTable : Table("payout_accounts") {
+    val technicianId = long("technician_id")
+    val bank = varchar("bank", 64)
+    val accountNo = varchar("account_no", 64)
+    val accountName = varchar("account_name", 120)
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(technicianId)
+}
+
+object DisputesTable : Table("disputes") {
+    val id = long("id").autoIncrement()
+    val reportId = long("report_id")
+    val orderId = long("order_id")
+    val amount = long("amount")
+    val decision = varchar("decision", 16)
+    val adminId = long("admin_id").nullable()
+    val note = text("note")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AuditLogsTable : Table("audit_logs") {
+    val id = long("id").autoIncrement()
+    val adminId = long("admin_id")
+    val action = varchar("action", 64)
+    val target = varchar("target", 64)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AnnouncementsTable : Table("announcements") {
+    val id = long("id").autoIncrement()
+    val adminId = long("admin_id")
+    val title = varchar("title", 120)
+    val body = text("body")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object SystemConfigTable : Table("system_config") {
+    val key = varchar("config_key", 64)
+    val value = varchar("config_value", 255)
+    override val primaryKey = PrimaryKey(key)
+}
+
 object UsersTable : Table("users") {
     val id = long("id").autoIncrement()
     val username = varchar("username", 64).uniqueIndex()

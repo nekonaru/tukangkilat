@@ -971,4 +971,77 @@ class ApiIntegrationTest {
         assertTrue(detail.contains("150000"), "negotiated price must be stored on the order")
     }
 
+
+    @Test
+    fun `wallet topup loyalty and subscription work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val before = client.okGet("/consumer/wallet", consumer).bodyAsText()
+            .let { json.decodeFromString<WalletDto>(it).balance }
+        val after = client.post("/consumer/wallet/topup") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(TopUpRequest.serializer(), TopUpRequest(50_000L)))
+        }.bodyAsText().let { json.decodeFromString<WalletDto>(it).balance }
+        assertTrue(after == before + 50_000L)
+        val points = client.okGet("/consumer/loyalty", consumer).bodyAsText()
+            .let { json.decodeFromString<LoyaltyDto>(it) }
+        assertTrue(points.points >= 0)
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val created = client.post("/consumer/subscriptions") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateSubscriptionRequest.serializer(),
+                CreateSubscriptionRequest(serviceId, addressId, 30, java.time.LocalDate.now().plusDays(1).toString())
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status)
+    }
+
+    @Test
+    fun `technician workbench endpoints work`() = testApplication {
+        setupApp()
+        val technician = client.loginToken("budi", "budi12345")
+        val block = client.post("/technician/availability") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateAvailabilityBlockRequest.serializer(),
+                CreateAvailabilityBlockRequest(java.time.LocalDate.now().plusDays(2).toString(), "09.00")
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, block.status)
+        val stats = client.okGet("/technician/stats", technician).bodyAsText()
+            .let { json.decodeFromString<TechnicianStatsDto>(it) }
+        assertTrue(stats.totalOffers >= 0)
+    }
+
+    @Test
+    fun `admin announcements and config work`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val created = client.post("/admin/announcements") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateAnnouncementRequest.serializer(),
+                CreateAnnouncementRequest("Pengumuman uji", "Isi pengumuman")
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, created.status)
+        val public = client.get("/announcements")
+        assertEquals(HttpStatusCode.OK, public.status)
+        assertTrue(public.bodyAsText().contains("Pengumuman uji"))
+        val config = client.put("/admin/config/dispatch_radius") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"value\":\"12\"}")
+        }
+        assertEquals(HttpStatusCode.OK, config.status)
+    }
+
 }

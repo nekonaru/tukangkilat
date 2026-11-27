@@ -65,6 +65,9 @@ object Routes {
     const val T_DIRECT_PEERS = "technician/chats"
     const val NOTIFICATIONS = "notifications"
     const val SETTINGS = "settings"
+    const val WALLET = "wallet"
+    const val T_WORKBENCH = "technician/workbench"
+    const val A_CONTROL = "admin/control"
     const val C_ORDER_NEW = "consumer/new"
     const val C_STATUS = "consumer/order/{orderId}/status"
     const val C_PAYMENT = "consumer/order/{orderId}/payment"
@@ -276,7 +279,8 @@ fun TukangKilatApp(
                 AccountScreen(
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onBrowseTechnicians = { navController.navigate(Routes.C_TECHNICIANS) },
-                    onSettings = { navController.navigate(Routes.SETTINGS) }
+                    onSettings = { navController.navigate(Routes.SETTINGS) },
+                    onWallet = { navController.navigate(Routes.WALLET) }
                 )
             }
             composable(Routes.C_TECHNICIANS) {
@@ -317,6 +321,9 @@ fun TukangKilatApp(
                     onOpenOrder = { orderId -> navController.navigate(Routes.status(orderId)) }
                 )
             }
+            composable(Routes.WALLET) { WalletScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
                 ChatListScreen(
@@ -403,7 +410,8 @@ fun TukangKilatApp(
                 TechHomeScreen(
                     onOpenJob = { orderId -> navController.navigate(Routes.techJob(orderId)) },
                     onGoEarnings = { navController.navigate(Routes.T_EARNINGS) },
-                    onOpenChats = { navController.navigate(Routes.T_DIRECT_PEERS) }
+                    onOpenChats = { navController.navigate(Routes.T_DIRECT_PEERS) },
+                    onWorkbench = { navController.navigate(Routes.T_WORKBENCH) }
                 )
             }
             composable(Routes.T_JOBS) {
@@ -442,6 +450,7 @@ fun TukangKilatApp(
                     onServices = { navController.navigate(Routes.A_SERVICES) },
                     onPromo = { navController.navigate(Routes.A_PROMO) },
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
+                    onControl = { navController.navigate(Routes.A_CONTROL) },
                 )
             }
             composable(Routes.A_VERIFY) { AdminVerifyScreen(onBack = { navController.navigateUp() }) }

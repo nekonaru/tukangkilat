@@ -4,6 +4,21 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Dompet dan poin konsumen**: top up simulasi, riwayat saldo, poin loyalitas, dan penukaran poin.
+- **Langganan layanan**: paket berulang dengan interval, tanggal mulai, jadwal berikutnya, dan pembatalan. Langganan yang jatuh tempo membuat pesanan otomatis dari jadwal perawatan.
+- **Ruang kerja teknisi**: blokir jadwal, portofolio foto, statistik performa, dan rekening pencairan. Dispatcher melewati teknisi yang diblokir pada tanggal tersebut.
+- **Pusat kendali admin**: penyelesaian sengketa dengan refund simulasi, log audit, pengumuman yang tampil untuk semua pengguna, konfigurasi sistem yang bisa diubah, dan papan peringkat teknisi.
+- Migrasi V6, V7, dan V8 mendukung fitur baru dan ikut dalam ekspor serta impor database.
+
+### Diubah
+
+- Pengumuman tampil di pusat notifikasi.
+- Layar baru mengikuti design system dan animasi masuk yang sudah ada.
+
 ## [2.21.0] - 2026-11-26
 
 ### Ditambahkan
@@ -353,6 +368,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0
 [2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0
 [2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
 [2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0
