@@ -197,6 +197,7 @@ fun TechHomeScreen(
     onOpenChats: () -> Unit = {},
     onWorkbench: () -> Unit = {},
     onOperations: () -> Unit = {},
+    onEconomy: () -> Unit = {},
     viewModel: TechHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -316,6 +317,7 @@ fun TechHomeScreen(
                             TKTextButton("Percakapan konsumen", onOpenChats)
                             TKTextButton("Ruang kerja teknisi", onWorkbench)
                             TKTextButton("Operasional teknisi", onOperations)
+                            TKTextButton("Ekonomi teknisi", onEconomy)
                             Spacer(Modifier.height(TKSpacing.Sm))
                         }
 

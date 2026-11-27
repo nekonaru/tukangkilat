@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 8
+    private const val VERSION = 9
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -44,7 +44,10 @@ object DatabaseTransfer {
         "retention_policies", "backup_jobs",
         "custom_bundles", "flash_sales", "group_buys", "job_bids", "gift_cards",
         "point_shop_items", "point_redemptions", "tips", "wishlists", "price_alerts",
-        "price_history", "ledger_entries", "commission_rules"
+        "price_history", "ledger_entries", "commission_rules",
+        "reputation_scores", "certifications", "courses", "enrollments", "gear_items", "teams",
+        "team_helpers", "availability_heatmap", "work_permits", "earnings_forecasts",
+        "tax_simulations", "payout_schedules", "quality_scores", "storefronts"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -66,7 +69,8 @@ object DatabaseTransfer {
         "chat_templates", "leave_requests", "work_journals", "equipment_items", "content_pages", "scheduled_broadcasts", "review_reports", "sla_breaches",
         "admin_notes", "weekly_reports", "custom_bundles", "flash_sales", "group_buys",
         "job_bids", "gift_cards", "point_redemptions", "tips", "wishlists", "price_alerts",
-        "price_history", "ledger_entries"
+        "price_history", "ledger_entries", "certifications", "enrollments", "gear_items",
+        "teams", "team_helpers", "work_permits", "tax_simulations", "quality_scores"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

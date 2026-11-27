@@ -587,6 +587,79 @@ interface ApiService {
     suspend fun setEquipment(@Body req: SetEquipmentRequest): Map<String, String>
 
 
+
+    // ----- v5 technician economy -----
+    @GET("/technician/economy/reputation")
+    suspend fun reputation(): ReputationDto
+
+    @GET("/technician/economy/certifications")
+    suspend fun certifications(): List<CertificationDto>
+
+    @POST("/technician/economy/certifications/{code}/complete")
+    suspend fun completeCertification(@Path("code") code: String, @Body req: CompleteCertRequest): CertificationDto
+
+    @GET("/technician/economy/courses")
+    suspend fun courses(): List<CourseDto>
+
+    @GET("/technician/economy/enrollments")
+    suspend fun enrollments(): List<EnrollmentDto>
+
+    @POST("/technician/economy/courses/{code}/enroll")
+    suspend fun enroll(@Path("code") code: String): EnrollmentDto
+
+    @POST("/technician/economy/courses/{code}/complete")
+    suspend fun completeCourse(@Path("code") code: String): EnrollmentDto
+
+    @GET("/technician/economy/gear")
+    suspend fun gear(): List<GearDto>
+
+    @POST("/technician/economy/gear/{id}/buy")
+    suspend fun buyGear(@Path("id") id: Long): GearDto
+
+    @GET("/technician/economy/teams")
+    suspend fun teams(): List<TeamDto>
+
+    @POST("/technician/economy/teams")
+    suspend fun createTeam(@Body req: CreateTeamRequest): TeamDto
+
+    @GET("/technician/economy/helpers")
+    suspend fun helpers(): List<HelperDto>
+
+    @POST("/technician/economy/helpers")
+    suspend fun addHelper(@Body req: AddHelperRequest): HelperDto
+
+    @GET("/technician/economy/heatmap")
+    suspend fun heatmap(): List<HeatmapDto>
+
+    @PUT("/technician/economy/heatmap")
+    suspend fun saveHeatmap(@Body req: SaveHeatmapRequest): HeatmapDto
+
+    @POST("/technician/economy/permits/{orderId}")
+    suspend fun issuePermit(@Path("orderId") orderId: Long): WorkPermitDto
+
+    @POST("/technician/economy/forecast")
+    suspend fun forecast(@Body req: Map<String, String>): ForecastDto
+
+    @POST("/technician/economy/tax")
+    suspend fun simulateTax(@Body req: SimulateTaxRequest): TaxDto
+
+    @GET("/technician/economy/payout-schedule")
+    suspend fun payoutSchedule(): PayoutScheduleDto
+
+    @PUT("/technician/economy/payout-schedule")
+    suspend fun savePayoutSchedule(@Body req: SavePayoutScheduleRequest): Map<String, String>
+
+    @GET("/technician/economy/quality")
+    suspend fun qualityScores(): List<QualityDto>
+
+    @POST("/technician/economy/quality")
+    suspend fun saveQuality(@Body req: SaveQualityRequest): QualityDto
+
+    @GET("/technician/economy/storefront")
+    suspend fun storefront(): StorefrontDto
+
+    @PUT("/technician/economy/storefront")
+    suspend fun saveStorefront(@Body req: SaveStorefrontRequest): Map<String, String>
     @GET("/technician/market/bids/{orderId}")
     suspend fun technicianBids(@Path("orderId") orderId: Long): List<BidDto>
 
