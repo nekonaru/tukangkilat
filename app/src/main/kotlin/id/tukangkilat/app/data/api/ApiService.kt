@@ -63,6 +63,89 @@ interface ApiService {
     @GET("/consumer/services")
     suspend fun services(): List<ServiceDto>
 
+    // ----- v4 commerce -----
+    @GET("/consumer/categories")
+    suspend fun categories(): List<ServiceCategoryDto>
+
+    @GET("/consumer/bundles")
+    suspend fun bundles(): List<ServiceBundleDto>
+
+    @GET("/consumer/search")
+    suspend fun searchServices(
+        @Query("q") query: String? = null,
+        @Query("skill") skill: String? = null,
+        @Query("categoryId") categoryId: Long? = null,
+        @Query("maxPrice") maxPrice: Long? = null,
+        @Query("minRating") minRating: Double? = null,
+        @Query("sort") sort: String? = null
+    ): List<ServiceSearchDto>
+
+    @POST("/consumer/estimate")
+    suspend fun estimate(@Body req: EstimateRequest): EstimateDto
+
+    @GET("/consumer/vouchers")
+    suspend fun vouchers(): List<VoucherDto>
+
+    @GET("/consumer/referrals")
+    suspend fun referrals(): List<ReferralDto>
+
+    @POST("/consumer/referrals/redeem")
+    suspend fun redeemReferral(@Body req: RedeemReferralRequest): ReferralDto
+
+    @GET("/consumer/installments")
+    suspend fun installments(): List<InstallmentDto>
+
+    @POST("/consumer/installments")
+    suspend fun createInstallment(@Body req: CreateInstallmentRequest): InstallmentDto
+
+    @POST("/consumer/installments/{id}/pay")
+    suspend fun payInstallment(@Path("id") id: Long): InstallmentDto
+
+    @GET("/consumer/tiers")
+    suspend fun tiers(): List<TierDto>
+
+    @GET("/consumer/wallet/settings")
+    suspend fun walletSettings(): WalletSettingsDto
+
+    @PUT("/consumer/wallet/settings")
+    suspend fun saveWalletSettings(@Body req: SaveWalletSettingsRequest): Map<String, String>
+
+    @POST("/consumer/wallet/pay/{orderId}")
+    suspend fun payWithWallet(@Path("orderId") orderId: Long): WalletPaymentResultDto
+
+    @POST("/consumer/subscriptions/{id}/pause")
+    suspend fun pauseSubscription(@Path("id") id: Long): Map<String, String>
+
+    @POST("/consumer/subscriptions/{id}/resume")
+    suspend fun resumeSubscription(@Path("id") id: Long): Map<String, String>
+
+    @POST("/consumer/subscriptions/{id}/skip")
+    suspend fun skipSubscription(@Path("id") id: Long): Map<String, String>
+
+    @POST("/consumer/reviews/{orderId}/vote")
+    suspend fun voteReview(@Path("orderId") orderId: Long, @Body req: ReviewVoteRequest): Map<String, String>
+
+    @GET("/consumer/refunds")
+    suspend fun refunds(): List<RefundRequestDto>
+
+    @POST("/consumer/refunds")
+    suspend fun createRefund(@Query("orderId") orderId: Long, @Body req: CreateRefundRequest): RefundRequestDto
+
+    @GET("/consumer/preferences")
+    suspend fun preferences(): PreferencesDto
+
+    @PUT("/consumer/preferences")
+    suspend fun savePreferences(@Body req: SavePreferencesRequest): Map<String, String>
+
+    @GET("/consumer/offline-queue")
+    suspend fun offlineQueue(): List<OfflineActionDto>
+
+    @POST("/consumer/offline-queue")
+    suspend fun enqueueOffline(@Body req: QueueActionRequest): OfflineActionDto
+
+    @DELETE("/consumer/offline-queue")
+    suspend fun clearOfflineQueue()
+
     @GET("/consumer/technicians")
     suspend fun technicians(
         @Query("skill") skill: String? = null,
@@ -148,6 +231,22 @@ interface ApiService {
 
     @POST("/consumer/orders/{id}/messages")
     suspend fun sendMessage(@Path("id") id: Long, @Body req: SendMessageRequest): MessageDto
+
+    @POST("/orders/{id}/signature")
+    suspend fun saveSignature(@Path("id") id: Long, @Body req: SignatureRequest): SignatureDto
+
+    @GET("/orders/{id}/signatures")
+    suspend fun signatures(@Path("id") id: Long): List<SignatureDto>
+
+    @GET("/orders/{id}/checklist")
+    suspend fun checklist(@Path("id") id: Long): List<ChecklistItemDto>
+
+    @POST("/orders/{id}/checklist/{itemId}")
+    suspend fun updateChecklist(
+        @Path("id") id: Long,
+        @Path("itemId") itemId: Long,
+        @Body req: UpdateChecklistRequest
+    ): ChecklistItemDto
 
     // ----- Technician -----
     @GET("/technician/availability")
@@ -258,6 +357,12 @@ interface ApiService {
     @GET("/technician/reviews")
     suspend fun technicianReviews(): List<ReviewDto>
 
+    @GET("/technician/review-details")
+    suspend fun reviewDetails(): List<ReviewDetailDto>
+
+    @POST("/technician/reviews/{orderId}/reply")
+    suspend fun replyReview(@Path("orderId") orderId: Long, @Body req: ReviewReplyRequest): ReviewDetailDto
+
     @GET("/technician/withdrawals")
     suspend fun withdrawals(): List<WithdrawalDto>
 
@@ -295,6 +400,15 @@ interface ApiService {
     @GET("/admin/leaders")
     suspend fun leaders(): List<TechnicianLeaderDto>
 
+
+    @GET("/admin/refunds")
+    suspend fun adminRefunds(): List<RefundRequestDto>
+
+    @POST("/admin/refunds/{id}/resolve")
+    suspend fun resolveRefund(@Path("id") id: Long, @Body req: ResolveRefundRequest): RefundRequestDto
+
+    @POST("/admin/vouchers/issue")
+    suspend fun issueVoucher(@Body req: Map<String, Long>): VoucherDto
     @GET("/admin/message-reports")
     suspend fun messageReports(): List<MessageReportDto>
 

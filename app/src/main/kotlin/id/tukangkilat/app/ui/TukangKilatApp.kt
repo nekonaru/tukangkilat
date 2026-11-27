@@ -68,6 +68,8 @@ object Routes {
     const val WALLET = "wallet"
     const val T_WORKBENCH = "technician/workbench"
     const val A_CONTROL = "admin/control"
+    const val C_CATALOG = "consumer/catalog"
+    const val C_COMMERCE = "consumer/commerce"
     const val C_ORDER_NEW = "consumer/new"
     const val C_STATUS = "consumer/order/{orderId}/status"
     const val C_PAYMENT = "consumer/order/{orderId}/payment"
@@ -256,7 +258,9 @@ fun TukangKilatApp(
                 HomeScreen(
                     onOrder = { serviceId -> navController.navigate("${Routes.C_ORDER_NEW}?serviceId=$serviceId") },
                     onActiveOrder = { orderId, status -> navController.navigate(statusRouteFor(status, orderId)) },
-                    onFindTechnicians = { navController.navigate(Routes.C_TECHNICIANS) }
+                    onFindTechnicians = { navController.navigate(Routes.C_TECHNICIANS) },
+                    onCatalog = { navController.navigate(Routes.C_CATALOG) },
+                    onCommerce = { navController.navigate(Routes.C_COMMERCE) }
                 )
             }
             composable(
@@ -321,6 +325,13 @@ fun TukangKilatApp(
                     onOpenOrder = { orderId -> navController.navigate(Routes.status(orderId)) }
                 )
             }
+            composable(Routes.C_CATALOG) {
+                CatalogScreen(
+                    onBack = { navController.navigateUp() },
+                    onOpenService = { serviceId -> navController.navigate("${Routes.C_ORDER_NEW}?serviceId=$serviceId") }
+                )
+            }
+            composable(Routes.C_COMMERCE) { CommerceScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.WALLET) { WalletScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }

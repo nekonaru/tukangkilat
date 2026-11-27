@@ -315,11 +315,114 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
                     call.respond(listMessages(call.parameters["id"]!!.toLong(), call.authUser()))
                 }
+                // ---------- v4 order extras ----------
+                post("/orders/{id}/signature") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<SignatureRequest>()
+                    call.respond(CommerceService.saveSignature(call.authUser().id, call.parameters["id"]!!.toLong(), body.role, body.dataUrl))
+                }
+                get("/orders/{id}/signatures") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.signatures(call.parameters["id"]!!.toLong()))
+                }
+                get("/orders/{id}/checklist") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.checklist(call.parameters["id"]!!.toLong()))
+                }
+                post("/orders/{id}/checklist/{itemId}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.updateChecklistItem(
+                        call.parameters["id"]!!.toLong(), call.parameters["itemId"]!!.toLong(), call.receive()
+                    ))
+                }
                 post("/orders/{id}/messages") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
                     val orderId = call.parameters["id"]!!.toLong()
                     val body = call.receive<SendMessageRequest>()
                     call.respond(HttpStatusCode.Created, sendMessage(orderId, call.authUser(), body))
+                }
+                // ---------- v4 commerce (consumer) ----------
+                get("/categories") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.categories()) }
+                get("/bundles") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.bundles()) }
+                get("/search") {
+                    call.requireRole(Role.KONSUMEN)
+                    val q = call.request.queryParameters
+                    call.respond(CommerceService.search(
+                        q["q"], q["skill"], q["categoryId"]?.toLongOrNull(),
+                        q["maxPrice"]?.toLongOrNull(), q["minRating"]?.toDoubleOrNull(), q["sort"]
+                    ))
+                }
+                post("/estimate") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(CommerceService.estimate(call.authUser().id, call.receive()))
+                }
+                get("/vouchers") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.vouchers(call.authUser().id)) }
+                get("/referrals") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.referrals(call.authUser().id)) }
+                post("/referrals/redeem") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(CommerceService.redeemReferral(call.authUser().id, call.receive<RedeemReferralRequest>().code))
+                }
+                get("/installments") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.installments(call.authUser().id)) }
+                post("/installments") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, CommerceService.createInstallment(call.authUser().id, call.receive()))
+                }
+                post("/installments/{id}/pay") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(CommerceService.payInstallment(call.authUser().id, call.parameters["id"]!!.toLong()))
+                }
+                get("/tiers") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.tiers(call.authUser().id)) }
+                get("/wallet/settings") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.walletSettings(call.authUser().id)) }
+                put("/wallet/settings") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.saveWalletSettings(call.authUser().id, call.receive())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/wallet/pay/{orderId}") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(CommerceService.payWithWallet(call.authUser().id, call.parameters["orderId"]!!.toLong()))
+                }
+                post("/subscriptions/{id}/pause") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.pauseSubscription(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/subscriptions/{id}/resume") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.resumeSubscription(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/subscriptions/{id}/skip") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.skipSubscription(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/reviews/{orderId}/vote") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.voteReview(call.authUser().id, call.parameters["orderId"]!!.toLong(), call.receive<ReviewVoteRequest>().helpful)
+                    call.respond(mapOf("status" to "ok"))
+                }
+                get("/refunds") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.refunds(call.authUser().id)) }
+                post("/refunds") {
+                    call.requireRole(Role.KONSUMEN)
+                    val orderId = call.request.queryParameters["orderId"]!!.toLong()
+                    call.respond(HttpStatusCode.Created, CommerceService.createRefund(call.authUser().id, orderId, call.receive()))
+                }
+                get("/preferences") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.preferences(call.authUser().id)) }
+                put("/preferences") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.savePreferences(call.authUser().id, call.receive())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                get("/offline-queue") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.queue(call.authUser().id)) }
+                post("/offline-queue") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, CommerceService.enqueue(call.authUser().id, call.receive()))
+                }
+                delete("/offline-queue") {
+                    call.requireRole(Role.KONSUMEN)
+                    CommerceService.clearQueue(call.authUser().id)
+                    call.respond(HttpStatusCode.NoContent)
                 }
             }
         }
@@ -455,6 +558,15 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(TechnicianService.withdraw(call.authUser().id, call.receive()))
                 }
                 get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
+            // ---------- v4 commerce (technician) ----------
+            get("/review-details") {
+                call.requireRole(Role.TUKANG)
+                call.respond(CommerceService.reviewDetails(call.authUser().id))
+            }
+            post("/reviews/{orderId}/reply") {
+                call.requireRole(Role.TUKANG)
+                call.respond(CommerceService.replyReview(call.authUser().id, call.parameters["orderId"]!!.toLong(), call.receive<ReviewReplyRequest>().reply))
+            }
                 get("/orders/{id}/messages") {
                     call.requireRole(Role.TUKANG)
                     call.respond(listMessages(call.parameters["id"]!!.toLong(), call.authUser()))
@@ -511,6 +623,21 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             get("/leaders") {
                 call.requireRole(Role.ADMIN)
                 call.respond(EcosystemService.leaders())
+            }
+            get("/refunds") {
+                call.requireRole(Role.ADMIN)
+                call.respond(CommerceService.adminRefunds())
+            }
+            post("/refunds/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                call.respond(CommerceService.resolveRefund(call.authUser().id, call.parameters["id"]!!.toLong(), call.receive()))
+            }
+            post("/vouchers/issue") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, Long>>()
+                val consumerId = body["consumerId"] ?: throw BadRequestException("consumerId wajib")
+                val amount = body["amount"] ?: throw BadRequestException("amount wajib")
+                call.respond(HttpStatusCode.Created, CommerceService.issueVoucher(consumerId, amount))
             }
             get("/message-reports") {
                 call.requireRole(Role.ADMIN)
@@ -601,6 +728,31 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.requireRole(Role.ADMIN)
                     AdminService.simulatePaymentFail(call.parameters["orderId"]!!.toLong(), call.authUser().id)
                     call.respond(mapOf("status" to "ok"))
+                }
+            }
+        }
+
+        // ---------- Shared order extras (consumer and technician) ----------
+        authenticate("auth-jwt") {
+            route("/orders") {
+                post("/{id}/signature") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<SignatureRequest>()
+                    call.respond(CommerceService.saveSignature(call.authUser().id, call.parameters["id"]!!.toLong(), body.role, body.dataUrl))
+                }
+                get("/{id}/signatures") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.signatures(call.parameters["id"]!!.toLong()))
+                }
+                get("/{id}/checklist") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.checklist(call.parameters["id"]!!.toLong()))
+                }
+                post("/{id}/checklist/{itemId}") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(CommerceService.updateChecklistItem(
+                        call.parameters["id"]!!.toLong(), call.parameters["itemId"]!!.toLong(), call.receive()
+                    ))
                 }
             }
         }
