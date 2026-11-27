@@ -79,6 +79,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             while (true) {
                 try {
                     EcosystemService.applyAutoSchedules()
+                    PlatformService.processDueBroadcasts()
+                    PlatformService.evaluateBreaches()
                     DispatchService.dispatchRound()
                     DispatchService.maintenanceRound()
                     EcosystemService.processDueSubscriptions()
@@ -93,6 +95,11 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
     routing {
         get("/health") { call.respond(mapOf("status" to "ok")) }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
+        get("/content/{code}") { call.respond(PlatformService.publicContent(call.parameters["code"]!!)) }
+        get("/flags") {
+            val role = call.request.queryParameters["role"] ?: "KONSUMEN"
+            call.respond(PlatformService.publicFlags(role))
+        }
 
         // ---------- Auth (public) ----------
         route("/auth") {
@@ -397,6 +404,13 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 post("/subscriptions/{id}/skip") {
                     call.requireRole(Role.KONSUMEN)
                     CommerceService.skipSubscription(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/reviews/{orderId}/report") {
+                    call.requireRole(Role.KONSUMEN)
+                    PlatformService.reportReview(
+                        call.authUser().id, call.parameters["orderId"]!!.toLong(), call.receive()
+                    )
                     call.respond(mapOf("status" to "ok"))
                 }
                 post("/reviews/{orderId}/vote") {
@@ -846,6 +860,49 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.requireRole(Role.ADMIN)
                 call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"dompet.csv\"")
                 call.respondText(EcosystemService.walletCsv(), ContentType("text", "csv").withCharset(Charsets.UTF_8))
+            }
+            // ---------- v4 platform ----------
+            get("/platform-summary") { call.requireRole(Role.ADMIN); call.respond(PlatformService.summary()) }
+            get("/flags") { call.requireRole(Role.ADMIN); call.respond(PlatformService.flags()) }
+            put("/flags/{key}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformService.setFlag(call.parameters["key"]!!, call.receive()))
+            }
+            get("/content") { call.requireRole(Role.ADMIN); call.respond(PlatformService.content()) }
+            put("/content") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformService.saveContent(call.receive()))
+            }
+            get("/broadcasts") { call.requireRole(Role.ADMIN); call.respond(PlatformService.broadcasts()) }
+            post("/broadcasts") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, PlatformService.createBroadcast(call.authUser().id, call.receive()))
+            }
+            get("/review-reports") { call.requireRole(Role.ADMIN); call.respond(PlatformService.reviewReports()) }
+            post("/review-reports/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<ResolveReviewReportRequest>()
+                PlatformService.resolveReviewReport(call.authUser().id, call.parameters["id"]!!.toLong(), body.hideReview)
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/sla-policies") { call.requireRole(Role.ADMIN); call.respond(PlatformService.slaPolicies()) }
+            put("/sla-policies/{code}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformService.saveSlaPolicy(call.parameters["code"]!!, call.receive()))
+            }
+            get("/sla-breaches") { call.requireRole(Role.ADMIN); call.respond(PlatformService.breaches()) }
+            post("/sla-breaches/{id}/compensate") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformService.compensateBreach(call.parameters["id"]!!.toLong()))
+            }
+            post("/notes") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, PlatformService.addNote(call.authUser().id, call.receive()))
+            }
+            get("/weekly-reports") { call.requireRole(Role.ADMIN); call.respond(PlatformService.weeklyReports()) }
+            post("/weekly-reports/generate") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformService.generateWeeklyReport())
             }
             get("/summary") { call.requireRole(Role.ADMIN); call.respond(AdminService.summary()) }
                 get("/technicians") {

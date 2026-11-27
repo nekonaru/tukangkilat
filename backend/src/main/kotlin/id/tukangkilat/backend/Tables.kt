@@ -320,6 +320,87 @@ object EquipmentItemsTable : Table("equipment_items") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object FeatureFlagsTable : Table("feature_flags") {
+    val key = varchar("flag_key", 64)
+    val enabled = bool("enabled")
+    val targetRole = varchar("target_role", 16)
+    val note = varchar("note", 255)
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(key)
+}
+
+object ContentPagesTable : Table("content_pages") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 64)
+    val title = varchar("title", 120)
+    val body = text("body")
+    val isActive = bool("is_active")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ScheduledBroadcastsTable : Table("scheduled_broadcasts") {
+    val id = long("id").autoIncrement()
+    val title = varchar("title", 120)
+    val body = text("body")
+    val targetRole = varchar("target_role", 16)
+    val sendAt = safeTimestampWithTimeZone("send_at")
+    val status = varchar("status", 16)
+    val createdBy = long("created_by").references(UsersTable.id)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ReviewReportsTable : Table("review_reports") {
+    val id = long("id").autoIncrement()
+    val reviewOrderId = long("review_order_id").references(RatingsTable.orderId)
+    val reporterId = long("reporter_id").references(UsersTable.id)
+    val reason = varchar("reason", 255)
+    val status = varchar("status", 16)
+    val resolvedBy = long("resolved_by").references(UsersTable.id).nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object SlaPoliciesTable : Table("sla_policies") {
+    val code = varchar("code", 32)
+    val minutes = integer("minutes")
+    val compensation = long("compensation")
+    val isActive = bool("is_active")
+    override val primaryKey = PrimaryKey(code)
+}
+
+object SlaBreachesTable : Table("sla_breaches") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val policyCode = varchar("policy_code", 32).references(SlaPoliciesTable.code)
+    val minutesLate = integer("minutes_late")
+    val compensated = bool("compensated")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AdminNotesTable : Table("admin_notes") {
+    val id = long("id").autoIncrement()
+    val adminId = long("admin_id").references(UsersTable.id)
+    val targetType = varchar("target_type", 32)
+    val targetId = long("target_id")
+    val note = text("note")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object WeeklyReportsTable : Table("weekly_reports") {
+    val id = long("id").autoIncrement()
+    val weekStart = date("week_start")
+    val orders = integer("orders")
+    val revenue = long("revenue")
+    val newUsers = integer("new_users")
+    val disputes = integer("disputes")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object ProposalsTable : Table("proposals") {
     val id = long("id").autoIncrement()
     val consumerId = long("consumer_id")

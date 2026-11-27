@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-11-27
+
+### Added
+
+- **Platform summary**: users, orders, revenue, open disputes, SLA breaches and flagged reviews in one view.
+- **Feature flags**: per-role switches readable by the app through a public endpoint.
+- **Content pages**: editable FAQ and information pages with a public read endpoint.
+- **Scheduled broadcasts**: role-targeted announcements queued for a future time and published automatically.
+- **Review moderation**: consumers can report a review; admins can hide it or reject the report.
+- **SLA policies and breaches**: configurable targets, automatic breach detection and simulated wallet compensation.
+- **Admin notes and weekly reports**: internal notes and generated weekly summaries.
+- Migration V12 backs the new tables and is included in export/import.
+
 ## [4.1.0] - 2026-11-27
 
 ### Added
@@ -417,6 +430,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
 [4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
 [4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0

@@ -8,6 +8,12 @@ interface ApiService {
     @GET("/announcements")
     suspend fun publicAnnouncements(): List<AnnouncementDto>
 
+    @GET("/content/{code}")
+    suspend fun publicContent(@Path("code") code: String): ContentDto
+
+    @GET("/flags")
+    suspend fun publicFlags(@Query("role") role: String): List<FeatureFlagDto>
+
     @GET("/health")
     suspend fun health(): Map<String, String>
 
@@ -122,6 +128,9 @@ interface ApiService {
     @POST("/consumer/subscriptions/{id}/skip")
     suspend fun skipSubscription(@Path("id") id: Long): Map<String, String>
 
+
+    @POST("/consumer/reviews/{orderId}/report")
+    suspend fun reportReview(@Path("orderId") orderId: Long, @Body req: ReportReviewRequest): Map<String, String>
     @POST("/consumer/reviews/{orderId}/vote")
     suspend fun voteReview(@Path("orderId") orderId: Long, @Body req: ReviewVoteRequest): Map<String, String>
 
@@ -511,6 +520,55 @@ interface ApiService {
     @GET("/admin/export/wallet")
     suspend fun exportWallet(): okhttp3.ResponseBody
 
+
+    // ----- v4 platform -----
+    @GET("/admin/platform-summary")
+    suspend fun platformSummary(): PlatformSummaryDto
+
+    @GET("/admin/flags")
+    suspend fun featureFlags(): List<FeatureFlagDto>
+
+    @PUT("/admin/flags/{key}")
+    suspend fun setFeatureFlag(@Path("key") key: String, @Body req: SaveFeatureFlagRequest): FeatureFlagDto
+
+    @GET("/admin/content")
+    suspend fun adminContent(): List<ContentPageDto>
+
+    @PUT("/admin/content")
+    suspend fun saveContent(@Body req: SaveContentRequest): ContentPageDto
+
+    @GET("/admin/broadcasts")
+    suspend fun broadcasts(): List<BroadcastDto>
+
+    @POST("/admin/broadcasts")
+    suspend fun createBroadcast(@Body req: CreateBroadcastRequest): BroadcastDto
+
+    @GET("/admin/review-reports")
+    suspend fun reviewReports(): List<ReviewReportDto>
+
+    @POST("/admin/review-reports/{id}/resolve")
+    suspend fun resolveReviewReport(@Path("id") id: Long, @Body req: ResolveReviewReportRequest): Map<String, String>
+
+    @GET("/admin/sla-policies")
+    suspend fun slaPolicies(): List<SlaPolicyDto>
+
+    @PUT("/admin/sla-policies/{code}")
+    suspend fun saveSlaPolicy(@Path("code") code: String, @Body req: SaveSlaPolicyRequest): SlaPolicyDto
+
+    @GET("/admin/sla-breaches")
+    suspend fun slaBreaches(): List<SlaBreachDto>
+
+    @POST("/admin/sla-breaches/{id}/compensate")
+    suspend fun compensateBreach(@Path("id") id: Long): SlaBreachDto
+
+    @POST("/admin/notes")
+    suspend fun addAdminNote(@Body req: AddAdminNoteRequest): AdminNoteDto
+
+    @GET("/admin/weekly-reports")
+    suspend fun weeklyReports(): List<WeeklyReportDto>
+
+    @POST("/admin/weekly-reports/generate")
+    suspend fun generateWeeklyReport(): WeeklyReportDto
     @GET("/admin/analytics")
     suspend fun adminAnalytics(): AdminAnalyticsDto
 

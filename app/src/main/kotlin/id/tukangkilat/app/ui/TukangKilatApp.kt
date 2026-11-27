@@ -69,6 +69,7 @@ object Routes {
     const val T_WORKBENCH = "technician/workbench"
     const val T_OPS = "technician/operations"
     const val A_CONTROL = "admin/control"
+    const val A_PLATFORM = "admin/platform"
     const val C_CATALOG = "consumer/catalog"
     const val C_COMMERCE = "consumer/commerce"
     const val C_ORDER_NEW = "consumer/new"
@@ -337,6 +338,7 @@ fun TukangKilatApp(
             composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.T_OPS) { OpsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.A_PLATFORM) { AdminPlatformScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
                 ChatListScreen(
@@ -465,6 +467,7 @@ fun TukangKilatApp(
                     onPromo = { navController.navigate(Routes.A_PROMO) },
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onControl = { navController.navigate(Routes.A_CONTROL) },
+                    onPlatform = { navController.navigate(Routes.A_PLATFORM) },
                 )
             }
             composable(Routes.A_VERIFY) { AdminVerifyScreen(onBack = { navController.navigateUp() }) }
