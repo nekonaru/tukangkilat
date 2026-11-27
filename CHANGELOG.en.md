@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-11-27
+
+### Added
+
+- **Service catalog**: searchable catalog with skill filters, price and rating filters, sorting, categories and service bundles.
+- **Price estimator**: computes service fee, visit fee, peak-hour surge, bundle discount, promo, voucher and membership discount before ordering.
+- **Wallet payments**: pay orders from wallet balance with cashback, daily limit and automatic top up.
+- **Loyalty tiers**: Silver, Gold and Platinum with discounts, priority and free visit benefits.
+- **Vouchers and referrals**: admin-issued vouchers, referral codes and reward points for both parties.
+- **Installments**: simulated 3 and 6 month plans with monthly payment tracking.
+- **Subscription controls**: pause, resume and skip the next billing date.
+- **Review interactions**: helpful votes and technician replies on reviews.
+- **Order extras**: digital signature pad, per-step work checklist with photo proof, and refund requests with admin resolution.
+- **Preferences backend**: theme, language, font scale, reduced motion and quiet hours stored per user, plus an offline action queue.
+- Migration V10 backs all new tables and is included in export/import.
+
 ## [3.1.0] - 2026-11-27
 
 ### Added
@@ -386,6 +402,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0
 [3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0
 [2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0

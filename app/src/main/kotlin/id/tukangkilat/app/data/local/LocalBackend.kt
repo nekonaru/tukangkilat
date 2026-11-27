@@ -45,7 +45,8 @@ object LocalBackend {
         6 to "V6__wallet_loyalty_subscriptions.sql",
         7 to "V7__technician_workbench.sql",
         8 to "V8__admin_control.sql",
-        9 to "V9__platform_polish.sql"
+        9 to "V9__platform_polish.sql",
+        10 to "V10__commerce.sql"
     )
 
     private var server: EmbeddedServer<*, *>? = null

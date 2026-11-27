@@ -4,6 +4,22 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Katalog layanan**: pencarian, filter keahlian, harga, rating, urutan, kategori, dan paket bundling.
+- **Estimasi harga**: menghitung biaya jasa, kunjungan, surge jam sibuk, diskon paket, promo, voucher, dan diskon member sebelum memesan.
+- **Pembayaran dompet**: bayar pesanan dari saldo dengan cashback, batas harian, dan top up otomatis.
+- **Tier loyalitas**: Silver, Gold, dan Platinum dengan diskon, prioritas, dan gratis kunjungan.
+- **Voucher dan referral**: voucher dari admin, kode referral, dan poin reward untuk kedua pihak.
+- **Cicilan**: paket 3 dan 6 bulan simulasi dengan catatan pembayaran.
+- **Kontrol langganan**: jeda, lanjut, dan lewati tanggal berikutnya.
+- **Interaksi ulasan**: vote membantu dan balasan teknisi.
+- **Tambahan pesanan**: tanda tangan digital, checklist pekerjaan bertahap dengan foto bukti, dan pengajuan refund dengan keputusan admin.
+- **Preferensi pengguna**: tema, bahasa, ukuran teks, pengurangan animasi, jam tenang, dan antrean aksi offline tersimpan per pengguna.
+- Migrasi V10 mendukung semua tabel baru dan ikut dalam ekspor serta impor.
+
 ## [3.1.0] - 2026-11-27
 
 ### Ditambahkan
@@ -386,6 +402,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0
 [3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0
 [2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0

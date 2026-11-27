@@ -201,11 +201,21 @@ object OrderService {
             throw ConflictException("Slot $slotLabel sudah penuh untuk tanggal tersebut")
         }
 
-        val serviceFee = service[ServicesTable.basePrice]
-        val visitFee = service[ServicesTable.visitFee]
+        var serviceFee = service[ServicesTable.basePrice]
+        var visitFee = service[ServicesTable.visitFee]
 
-        // promo
+        // v4 pricing: surge, bundle, membership and voucher.
         var discount = 0L
+        if (req.bundleId != null || !req.voucherCode.isNullOrBlank()) {
+            val pricing = CommerceService.applyOrderPricing(
+                consumerId, service[ServicesTable.id], req.bundleId, req.voucherCode
+            )
+            serviceFee = pricing.serviceFee
+            visitFee = pricing.visitFee
+            discount = pricing.discount
+        }
+
+        // legacy promo code
         val promoCode = req.promoCode?.trim()?.uppercase()?.ifBlank { null }
         var promoQuotaRemaining: Int? = null
         if (promoCode != null) {

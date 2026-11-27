@@ -45,6 +45,177 @@ object MessageReportsTable : Table("message_reports") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object ServiceCategoriesTable : Table("service_categories") {
+    val id = long("id").autoIncrement()
+    val name = varchar("name", 80)
+    val icon = varchar("icon", 64)
+    val sortOrder = integer("sort_order")
+    val isActive = bool("is_active")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ServiceBundlesTable : Table("service_bundles") {
+    val id = long("id").autoIncrement()
+    val name = varchar("name", 120)
+    val description = text("description")
+    val serviceIds = varchar("service_ids", 255)
+    val discountPercent = integer("discount_percent")
+    val isActive = bool("is_active")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object PromoCampaignsTable : Table("promo_campaigns") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 64)
+    val discountType = varchar("discount_type", 16)
+    val discountValue = long("discount_value")
+    val minTotal = long("min_total")
+    val maxDiscount = long("max_discount")
+    val quota = integer("quota")
+    val used = integer("used")
+    val startsAt = safeTimestampWithTimeZone("starts_at").nullable()
+    val endsAt = safeTimestampWithTimeZone("ends_at").nullable()
+    val isActive = bool("is_active")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object VouchersTable : Table("vouchers") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 64)
+    val consumerId = long("consumer_id").references(UsersTable.id)
+    val amount = long("amount")
+    val status = varchar("status", 16)
+    val expiresAt = safeTimestampWithTimeZone("expires_at").nullable()
+    val usedAt = safeTimestampWithTimeZone("used_at").nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ReferralsTable : Table("referrals") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 32)
+    val consumerId = long("consumer_id").references(UsersTable.id)
+    val invitedUserId = long("invited_user_id").references(UsersTable.id).nullable()
+    val points = integer("points")
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object InstallmentPlansTable : Table("installment_plans") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val consumerId = long("consumer_id").references(UsersTable.id)
+    val months = integer("months")
+    val total = long("total")
+    val monthly = long("monthly")
+    val paidMonths = integer("paid_months")
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object MembershipTiersTable : Table("membership_tiers") {
+    val code = varchar("code", 16)
+    val minLifetimePoints = integer("min_lifetime_points")
+    val discountPercent = integer("discount_percent")
+    val priorityWeight = integer("priority_weight")
+    val freeVisit = bool("free_visit")
+    val benefits = varchar("benefits", 255)
+    override val primaryKey = PrimaryKey(code)
+}
+
+object WalletSettingsTable : Table("wallet_settings") {
+    val userId = long("user_id").references(UsersTable.id)
+    val autoTopupEnabled = bool("auto_topup_enabled")
+    val autoTopupAmount = long("auto_topup_amount")
+    val autoTopupThreshold = long("auto_topup_threshold")
+    val dailyLimit = long("daily_limit")
+    val cashbackPercent = integer("cashback_percent")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object ReviewVotesTable : Table("review_votes") {
+    val reviewOrderId = long("review_order_id").references(RatingsTable.orderId)
+    val userId = long("user_id").references(UsersTable.id)
+    val helpful = bool("helpful")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(reviewOrderId, userId)
+}
+
+object TechnicianRepliesTable : Table("technician_replies") {
+    val reviewOrderId = long("review_order_id").references(RatingsTable.orderId)
+    val reply = text("reply")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(reviewOrderId)
+}
+
+object SignaturesTable : Table("signatures") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val signerId = long("signer_id").references(UsersTable.id)
+    val role = varchar("role", 16)
+    val dataUrl = varchar("data_url", 512)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ChecklistTemplatesTable : Table("checklist_templates") {
+    val id = long("id").autoIncrement()
+    val serviceId = long("service_id").references(ServicesTable.id)
+    val title = varchar("title", 120)
+    val stepOrder = integer("step_order")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ChecklistItemsTable : Table("checklist_items") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val templateId = long("template_id").references(ChecklistTemplatesTable.id)
+    val done = bool("done")
+    val photoUrl = varchar("photo_url", 512)
+    val note = varchar("note", 255)
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object RefundRequestsTable : Table("refund_requests") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val consumerId = long("consumer_id").references(UsersTable.id)
+    val amount = long("amount")
+    val reason = text("reason")
+    val status = varchar("status", 16)
+    val note = varchar("note", 255)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val resolvedAt = safeTimestampWithTimeZone("resolved_at").nullable()
+    override val primaryKey = PrimaryKey(id)
+}
+
+object UserPreferencesTable : Table("user_preferences") {
+    val userId = long("user_id").references(UsersTable.id)
+    val theme = varchar("theme", 16)
+    val language = varchar("language", 8)
+    val fontScale = integer("font_scale")
+    val reducedMotion = bool("reduced_motion")
+    val quietStart = varchar("quiet_start", 5)
+    val quietEnd = varchar("quiet_end", 5)
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object OfflineQueueTable : Table("offline_queue") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val path = varchar("path", 255)
+    val payload = text("payload")
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object ProposalsTable : Table("proposals") {
     val id = long("id").autoIncrement()
     val consumerId = long("consumer_id")
@@ -209,6 +380,9 @@ object ServicesTable : Table("services") {
     val skill = varchar("skill", 32)
     val basePrice = long("base_price")
     val visitFee = long("visit_fee")
+    val categoryId = long("category_id").references(ServiceCategoriesTable.id).nullable()
+    val durationMinutes = integer("duration_minutes").default(60)
+    val surgeEligible = bool("surge_eligible").default(false)
     val isActive = bool("is_active").default(true)
     override val primaryKey = PrimaryKey(id)
 }

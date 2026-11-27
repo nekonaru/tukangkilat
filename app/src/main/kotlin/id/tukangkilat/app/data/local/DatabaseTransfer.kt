@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 3
+    private const val VERSION = 4
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -25,13 +25,16 @@ object DatabaseTransfer {
 
     /** Parent tables come before child tables so a reverse-order delete satisfies foreign keys. */
     private val TABLES = listOf(
-        "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
+        "service_categories", "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
         "promo_codes", "photos", "orders", "order_photos", "order_events",
         "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals",
         "direct_messages", "proposals", "wallets", "wallet_transactions", "loyalty_points",
         "subscriptions", "availability_blocks", "technician_portfolios", "payout_accounts",
         "disputes", "audit_logs", "announcements", "system_config", "review_photos",
-        "auto_online_schedules", "message_reports"
+        "auto_online_schedules", "message_reports", "service_bundles", "promo_campaigns",
+        "vouchers", "referrals", "installment_plans", "membership_tiers", "wallet_settings",
+        "review_votes", "technician_replies", "signatures", "checklist_templates",
+        "checklist_items", "refund_requests", "user_preferences", "offline_queue"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -46,7 +49,9 @@ object DatabaseTransfer {
         "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals",
         "direct_messages", "proposals", "wallet_transactions", "subscriptions", "availability_blocks",
         "technician_portfolios", "disputes", "audit_logs", "announcements", "review_photos",
-        "auto_online_schedules", "message_reports"
+        "auto_online_schedules", "message_reports", "service_categories", "service_bundles",
+        "promo_campaigns", "vouchers", "referrals", "installment_plans", "signatures",
+        "checklist_templates", "checklist_items", "refund_requests", "offline_queue"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

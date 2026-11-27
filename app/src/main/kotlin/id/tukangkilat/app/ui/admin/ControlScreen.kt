@@ -42,7 +42,9 @@ data class ControlUiState(
     val note: String = "",
     val title: String = "",
     val body: String = "",
-    val notice: String? = null
+    val notice: String? = null,
+    val voucherConsumer: String = "",
+    val voucherAmount: String = ""
 )
 
 @HiltViewModel
@@ -146,6 +148,31 @@ class ControlViewModel @Inject constructor(private val api: ApiService) : ViewMo
         }
     }
 
+    fun onVoucher(field: String, value: String) {
+        _state.value = when (field) {
+            "consumer" -> _state.value.copy(voucherConsumer = value)
+            "amount" -> _state.value.copy(voucherAmount = value)
+            else -> _state.value
+        }
+    }
+
+    fun issueVoucher() {
+        val s = _state.value
+        val consumer = s.voucherConsumer.toLongOrNull()
+        val amount = s.voucherAmount.toLongOrNull()
+        if (consumer == null || amount == null || amount <= 0) {
+            _state.value = s.copy(notice = "Isi pengguna dan nominal dengan benar")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                api.issueVoucher(mapOf("consumerId" to consumer, "amount" to amount))
+                _state.value = _state.value.copy(notice = "Voucher diterbitkan", voucherConsumer = "", voucherAmount = "")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -164,7 +191,7 @@ fun ControlScreen(onBack: () -> Unit, viewModel: ControlViewModel = hiltViewMode
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ScrollableTabRow(selectedTabIndex = state.tab) {
-                listOf("Sengketa", "Peringkat", "Audit", "Siaran", "Konfigurasi", "Laporan", "Ekspor").forEachIndexed { i, title ->
+                listOf("Sengketa", "Peringkat", "Audit", "Siaran", "Konfigurasi", "Laporan", "Ekspor", "Voucher").forEachIndexed { i, title ->
                     Tab(selected = state.tab == i, onClick = { viewModel.tab(i) }, text = { Text(title) })
                 }
             }
@@ -229,10 +256,16 @@ fun ControlScreen(onBack: () -> Unit, viewModel: ControlViewModel = hiltViewMode
                         }
                     }
                 }
-                else -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm), verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                state.tab == 6 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm), verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
                     TKButton("Ekspor pesanan (CSV)", { viewModel.exportCsv(context, "orders") })
                     TKButton("Ekspor dompet (CSV)", { viewModel.exportCsv(context, "wallet") }, variant = TKButtonVariant.Tonal)
                     Text("Berkas dibuka lewat aplikasi pembagian yang tersedia.", style = MaterialTheme.typography.bodySmall)
+                }
+                else -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm), verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                    Text("Terbitkan voucher untuk konsumen.", style = MaterialTheme.typography.bodySmall)
+                    TKOutlinedField(state.voucherConsumer, { viewModel.onVoucher("consumer", it) }, label = "ID konsumen")
+                    TKOutlinedField(state.voucherAmount, { viewModel.onVoucher("amount", it) }, label = "Nominal voucher")
+                    TKButton("Terbitkan voucher", viewModel::issueVoucher, variant = TKButtonVariant.Tonal)
                 }
             }
         }

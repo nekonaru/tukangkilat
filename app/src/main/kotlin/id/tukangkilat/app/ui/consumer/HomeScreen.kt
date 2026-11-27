@@ -162,6 +162,8 @@ fun HomeScreen(
     onOrder: (Long) -> Unit,
     onActiveOrder: (Long, OrderStatus) -> Unit,
     onFindTechnicians: () -> Unit,
+    onCatalog: () -> Unit = {},
+    onCommerce: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -259,6 +261,24 @@ fun HomeScreen(
                     }
                 }
 
+                item {
+                    SectionLabel("Layanan")
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(TKShape.Card)
+                            .border(1.dp, TKColor.InkLine, TKShape.Card)
+                            .background(TKColor.InkSoft).clickable(onClick = onCatalog)
+                            .padding(TKSpacing.Sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) { Text("Katalog layanan, paket, dan estimasi harga", color = TKColor.White) }
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(TKShape.Card)
+                            .border(1.dp, TKColor.InkLine, TKShape.Card)
+                            .background(TKColor.InkSoft).clickable(onClick = onCommerce)
+                            .padding(TKSpacing.Sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) { Text("Dompet, poin, voucher, dan cicilan", color = TKColor.White) }
+                }
                 item {
                     SectionLabel("Teknisi")
                     Row(

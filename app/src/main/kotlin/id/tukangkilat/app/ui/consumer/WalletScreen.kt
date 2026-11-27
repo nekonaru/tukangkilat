@@ -93,6 +93,20 @@ class WalletViewModel @Inject constructor(private val api: ApiService) : ViewMod
         }
     }
 
+    fun subscriptionAction(id: Long, action: String) {
+        viewModelScope.launch {
+            try {
+                when (action) {
+                    "pause" -> api.pauseSubscription(id)
+                    "resume" -> api.resumeSubscription(id)
+                    "skip" -> api.skipSubscription(id)
+                }
+                _state.value = _state.value.copy(notice = "Langganan diperbarui")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -157,6 +171,12 @@ fun WalletScreen(onBack: () -> Unit, viewModel: WalletViewModel = hiltViewModel(
                             Column(Modifier.weight(1f)) {
                                 Text(sub.serviceName, style = MaterialTheme.typography.titleSmall)
                                 Text("Tiap ${sub.intervalDays} hari · ${sub.nextDate} · ${sub.status}", style = MaterialTheme.typography.bodySmall)
+                            }
+                            if (sub.status == "AKTIF") {
+                                TextButton(onClick = { viewModel.subscriptionAction(sub.id, "pause") }) { Text("Jeda") }
+                                TextButton(onClick = { viewModel.subscriptionAction(sub.id, "skip") }) { Text("Lewati") }
+                            } else if (sub.status == "DIJEDA") {
+                                TextButton(onClick = { viewModel.subscriptionAction(sub.id, "resume") }) { Text("Lanjut") }
                             }
                             TextButton(onClick = { viewModel.cancelSubscription(sub.id) }) { Text("Hentikan") }
                         }

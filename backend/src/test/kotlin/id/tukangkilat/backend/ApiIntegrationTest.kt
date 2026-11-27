@@ -1145,4 +1145,378 @@ class ApiIntegrationTest {
         assertTrue(walletCsv.contains("pengguna_id"))
     }
 
+
+    private suspend fun HttpClient.createTestOrder(token: String, serviceId: Long, addressId: Long, slotId: Long): Long {
+        val tomorrow = java.time.LocalDate.now().plusDays(3).toString()
+        val res = post("/consumer/orders") {
+            bearer(token)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateOrderRequest.serializer(), CreateOrderRequest(
+                serviceId = serviceId,
+                description = "Pesanan uji v4",
+                addressId = addressId,
+                scheduledDate = tomorrow,
+                slotId = slotId
+            )))
+        }
+        assertEquals(HttpStatusCode.Created, res.status, res.bodyAsText())
+        return json.decodeFromString<OrderDto>(res.bodyAsText()).id
+    }
+
+    @Test
+    fun `catalog search estimate tiers and vouchers work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+
+        val services = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it) }
+        assertTrue(services.isNotEmpty())
+        val search = client.okGet("/consumer/search?q=${services.first().name}&sort=price", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceSearchDto>>(it) }
+        assertTrue(search.isNotEmpty())
+
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val estimate = client.post("/consumer/estimate") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(EstimateRequest.serializer(), EstimateRequest(
+                services.first().id, addressId, java.time.LocalDate.now().plusDays(3).toString(), slotId
+            )))
+        }
+        assertEquals(HttpStatusCode.OK, estimate.status, estimate.bodyAsText())
+        val priced = json.decodeFromString<EstimateDto>(estimate.bodyAsText())
+        assertTrue(priced.total > 0)
+
+        val tiers = client.okGet("/consumer/tiers", consumer).bodyAsText()
+            .let { json.decodeFromString<List<TierDto>>(it) }
+        assertEquals(3, tiers.size)
+        assertTrue(tiers.any { it.current && it.code == "SILVER" })
+
+        val consumerId = transaction {
+            UsersTable.selectAll().where { UsersTable.username eq "rina" }.single()[UsersTable.id]
+        }
+        val voucher = client.post("/admin/vouchers/issue") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"consumerId\":$consumerId,\"amount\":20000}")
+        }
+        assertEquals(HttpStatusCode.Created, voucher.status)
+        val vouchers = client.okGet("/consumer/vouchers", consumer).bodyAsText()
+            .let { json.decodeFromString<List<VoucherDto>>(it) }
+        assertTrue(vouchers.any { it.amount == 20_000L })
+
+        val referral = client.okGet("/consumer/referrals", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ReferralDto>>(it).first() }
+        val registered = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Teman Rina", "rina2", "rina212345", "081234567891"
+            )))
+        }
+        assertEquals(HttpStatusCode.Created, registered.status, registered.bodyAsText())
+        val friend = client.loginToken("rina2", "rina212345")
+        val redeemed = client.post("/consumer/referrals/redeem") {
+            bearer(friend)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RedeemReferralRequest.serializer(), RedeemReferralRequest(referral.code)))
+        }
+        assertTrue(redeemed.status == HttpStatusCode.OK || redeemed.status == HttpStatusCode.Conflict)
+    }
+
+    @Test
+    fun `wallet payment subscription controls and installments work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+
+        client.post("/consumer/wallet/topup") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":2000000}")
+        }
+        val paid = client.post("/consumer/wallet/pay/$orderId") { bearer(consumer) }
+        assertEquals(HttpStatusCode.OK, paid.status, paid.bodyAsText())
+        val result = json.decodeFromString<WalletPaymentResultDto>(paid.bodyAsText())
+        assertTrue(result.balance < 2_000_000)
+
+        val settings = client.put("/consumer/wallet/settings") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"autoTopupEnabled\":true,\"autoTopupAmount\":100000,\"autoTopupThreshold\":50000,\"dailyLimit\":500000,\"cashbackPercent\":5}")
+        }
+        assertEquals(HttpStatusCode.OK, settings.status)
+        val saved = client.okGet("/consumer/wallet/settings", consumer).bodyAsText()
+            .let { json.decodeFromString<WalletSettingsDto>(it) }
+        assertTrue(saved.autoTopupEnabled)
+
+        transaction {
+            OrdersTable.update({ OrdersTable.id eq orderId }) { it[total] = 1_200_000L }
+        }
+        val installment = client.post("/consumer/installments") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateInstallmentRequest.serializer(), CreateInstallmentRequest(orderId, 3)))
+        }
+        assertEquals(HttpStatusCode.Created, installment.status, installment.bodyAsText())
+        val plan = json.decodeFromString<InstallmentDto>(installment.bodyAsText())
+        assertEquals(400_000L, plan.monthly)
+
+        val subscription = client.post("/consumer/subscriptions") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateSubscriptionRequest.serializer(),
+                CreateSubscriptionRequest(serviceId, addressId, 30, java.time.LocalDate.now().plusDays(1).toString())
+            ))
+        }
+        val subId = json.decodeFromString<SubscriptionDto>(subscription.bodyAsText()).id
+        client.post("/consumer/subscriptions/$subId/pause") { bearer(consumer) }
+        val paused = client.okGet("/consumer/subscriptions", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SubscriptionDto>>(it).first { it.id == subId } }
+        assertEquals("DIJEDA", paused.status)
+        client.post("/consumer/subscriptions/$subId/resume") { bearer(consumer) }
+        client.post("/consumer/subscriptions/$subId/skip") { bearer(consumer) }
+    }
+
+    @Test
+    fun `signatures checklist reviews and refunds work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val technician = client.loginToken("budi", "budi12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+        val techId = transaction {
+            val id = UsersTable.selectAll().where { UsersTable.username eq "budi" }.single()[UsersTable.id]
+            OrdersTable.update({ OrdersTable.id eq orderId }) { it[OrdersTable.technicianId] = id }
+            RatingsTable.insert {
+                it[RatingsTable.orderId] = orderId
+                it[stars] = 5
+                it[tags] = ""
+                it[comment] = "Ulasan uji v4"
+                it[createdAt] = OffsetDateTime.now()
+            }
+            id
+        }
+
+        val vote = client.post("/consumer/reviews/$orderId/vote") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"helpful\":true}")
+        }
+        assertEquals(HttpStatusCode.OK, vote.status)
+        val reply = client.post("/technician/reviews/$orderId/reply") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody("{\"reply\":\"Terima kasih\"}")
+        }
+        assertEquals(HttpStatusCode.OK, reply.status, reply.bodyAsText())
+        val details = client.okGet("/technician/review-details", technician).bodyAsText()
+            .let { json.decodeFromString<List<ReviewDetailDto>>(it) }
+        assertTrue(details.any { it.orderId == orderId && it.helpfulCount == 1 && it.reply == "Terima kasih" })
+
+        val signature = client.post("/orders/$orderId/signature") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"role\":\"KONSUMEN\",\"dataUrl\":\"data:image/png;base64,AAAA\"}")
+        }
+        assertEquals(HttpStatusCode.OK, signature.status)
+        val signatures = client.okGet("/orders/$orderId/signatures", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SignatureDto>>(it) }
+        assertTrue(signatures.any { it.role == "KONSUMEN" })
+
+        val steps = client.okGet("/orders/$orderId/checklist", technician).bodyAsText()
+            .let { json.decodeFromString<List<ChecklistItemDto>>(it) }
+        assertEquals(3, steps.size)
+        val updated = client.post("/orders/$orderId/checklist/${steps.first().id}") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody("{\"done\":true,\"photoUrl\":\"/photos/x\",\"note\":\"Selesai\"}")
+        }
+        assertEquals(HttpStatusCode.OK, updated.status, updated.bodyAsText())
+
+        val refund = client.post("/consumer/refunds?orderId=$orderId") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":10000,\"reason\":\"Tidak sesuai\"}")
+        }
+        assertEquals(HttpStatusCode.Created, refund.status, refund.bodyAsText())
+        val refundId = json.decodeFromString<RefundRequestDto>(refund.bodyAsText()).id
+        val admin = client.loginToken("admin", "admin12345")
+        val resolved = client.post("/admin/refunds/$refundId/resolve") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"approve\":true,\"amount\":10000,\"note\":\"Disetujui\"}")
+        }
+        assertEquals(HttpStatusCode.OK, resolved.status, resolved.bodyAsText())
+    }
+
+
+    @Test
+    fun `v4 pricing applies to order and consumes voucher`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+        val consumerId = transaction {
+            UsersTable.selectAll().where { UsersTable.username eq "rina" }.single()[UsersTable.id]
+        }
+        val voucher = client.post("/admin/vouchers/issue") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"consumerId\":$consumerId,\"amount\":25000}")
+        }.bodyAsText().let { json.decodeFromString<VoucherDto>(it) }
+
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val service = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first() }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+
+        val discounted = client.post("/consumer/orders") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateOrderRequest.serializer(), CreateOrderRequest(
+                serviceId = serviceId,
+                description = "Pesanan voucher v4",
+                addressId = addressId,
+                scheduledDate = java.time.LocalDate.now().plusDays(4).toString(),
+                slotId = slotId,
+                voucherCode = voucher.code
+            )))
+        }
+        assertEquals(HttpStatusCode.Created, discounted.status, discounted.bodyAsText())
+        val order = json.decodeFromString<OrderDto>(discounted.bodyAsText())
+        assertEquals(service.basePrice + service.visitFee - 25_000L, order.total)
+        val used = client.okGet("/consumer/vouchers", consumer).bodyAsText()
+            .let { json.decodeFromString<List<VoucherDto>>(it).first { it.id == voucher.id } }
+        assertEquals("DIPAKAI", used.status)
+        assertTrue(orderId > 0)
+    }
+
+    @Test
+    fun `order extras enforce party and signature role`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val outsider = client.loginToken("sari", "sari12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+
+        val forbidden = client.get("/orders/$orderId/checklist") { bearer(outsider) }
+        assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+        val forbiddenSign = client.post("/orders/$orderId/signature") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody("{\"role\":\"KONSUMEN\",\"dataUrl\":\"data:image/png;base64,AAAA\"}")
+        }
+        assertEquals(HttpStatusCode.Forbidden, forbiddenSign.status)
+
+        val techId = transaction {
+            val id = UsersTable.selectAll().where { UsersTable.username eq "budi" }.single()[UsersTable.id]
+            OrdersTable.update({ OrdersTable.id eq orderId }) { it[technicianId] = id }
+            id
+        }
+        val technician = client.loginToken("budi", "budi12345")
+        val signed = client.post("/orders/$orderId/signature") {
+            bearer(technician)
+            contentType(ContentType.Application.Json)
+            setBody("{\"role\":\"KONSUMEN\",\"dataUrl\":\"data:image/png;base64,AAAA\"}")
+        }
+        assertEquals(HttpStatusCode.OK, signed.status, signed.bodyAsText())
+        assertEquals("TUKANG", json.decodeFromString<SignatureDto>(signed.bodyAsText()).role)
+        assertTrue(techId > 0)
+    }
+
+    @Test
+    fun `referral cannot be reused and refund credits wallet`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val rina = client.loginToken("rina", "rina12345")
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Rina Dua", "rina3", "rina312345", "081298888888"
+            )))
+        }
+        val rina3 = client.loginToken("rina3", "rina312345")
+        val rinaId = transaction {
+            UsersTable.selectAll().where { UsersTable.username eq "rina" }.single()[UsersTable.id]
+        }
+        client.post("/admin/vouchers/issue") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"consumerId\":$rinaId,\"amount\":10000}")
+        }
+        val codes = listOf(
+            client.okGet("/consumer/referrals", rina).bodyAsText()
+                .let { json.decodeFromString<List<ReferralDto>>(it).first().code },
+            client.okGet("/consumer/referrals", rina3).bodyAsText()
+                .let { json.decodeFromString<List<ReferralDto>>(it).first().code }
+        )
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Pemakai Referral", "refuser", "refuser1234", "081299999999"
+            )))
+        }
+        val friend = client.loginToken("refuser", "refuser1234")
+        val first = client.post("/consumer/referrals/redeem") {
+            bearer(friend)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RedeemReferralRequest.serializer(), RedeemReferralRequest(codes[0])))
+        }
+        assertEquals(HttpStatusCode.OK, first.status, first.bodyAsText())
+        val second = client.post("/consumer/referrals/redeem") {
+            bearer(friend)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RedeemReferralRequest.serializer(), RedeemReferralRequest(codes[1])))
+        }
+        assertEquals(HttpStatusCode.Conflict, second.status)
+
+        val before = client.okGet("/consumer/wallet", rina).bodyAsText()
+            .let { json.decodeFromString<WalletDto>(it).balance }
+        val serviceId = client.okGet("/consumer/services", rina).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", rina).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", rina).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(rina, serviceId, addressId, slotId)
+        val refund = client.post("/consumer/refunds?orderId=$orderId") {
+            bearer(rina)
+            contentType(ContentType.Application.Json)
+            setBody("{\"amount\":10000,\"reason\":\"Uji refund\"}")
+        }.bodyAsText().let { json.decodeFromString<RefundRequestDto>(it) }
+        client.post("/admin/refunds/${refund.id}/resolve") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"approve\":true,\"amount\":10000,\"note\":\"Disetujui\"}")
+        }
+        val after = client.okGet("/consumer/wallet", rina).bodyAsText()
+            .let { json.decodeFromString<WalletDto>(it).balance }
+        assertEquals(before + 10_000L, after)
+    }
+
 }
