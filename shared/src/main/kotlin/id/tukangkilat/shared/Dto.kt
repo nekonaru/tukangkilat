@@ -36,7 +36,8 @@ data class RegisterTechnicianRequest(
 @Serializable
 data class LoginRequest(
     val username: String,
-    val password: String
+    val password: String,
+    val otp: String? = null
 )
 
 @Serializable

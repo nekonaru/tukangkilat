@@ -177,7 +177,11 @@ object DatabaseTransfer {
                 }
                 conn.commit()
                 // H2 implicitly commits DDL, so identity resets must run after the data commit.
-                val restarts = tablesToRestore.filter { it in AUTO_ID_TABLES }.map { table ->
+                val identityTables = AUTO_ID_TABLES + setOf(
+                    "trusted_devices", "user_sessions", "sos_alerts", "login_alerts",
+                    "subadmin_roles", "incidents", "backup_jobs"
+                )
+                val restarts = tablesToRestore.filter { it in identityTables }.map { table ->
                     val rows = snapshot.tables[table].orEmpty()
                     val max = rows.mapNotNull { it["id"]?.toLongOrNull() }.maxOrNull() ?: 0
                     "ALTER TABLE $table ALTER COLUMN id RESTART WITH ${max + 1}"

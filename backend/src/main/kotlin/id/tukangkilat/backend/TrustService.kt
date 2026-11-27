@@ -123,12 +123,13 @@ object TrustService {
 
     fun saveConsent(userId: Long, req: SaveConsentRequest) = transaction {
         if (req.kind.isBlank() || req.kind.length > 32) throw BadRequestException("Jenis persetujuan tidak valid")
+        val normalizedKind = req.kind.trim().take(32)
         val exists = ConsentsTable.selectAll().where {
-            (ConsentsTable.userId eq userId) and (ConsentsTable.kind eq req.kind)
+            (ConsentsTable.userId eq userId) and (ConsentsTable.kind eq normalizedKind)
         }.any()
         if (exists) {
             ConsentsTable.update({
-                (ConsentsTable.userId eq userId) and (ConsentsTable.kind eq req.kind)
+                (ConsentsTable.userId eq userId) and (ConsentsTable.kind eq normalizedKind)
             }) {
                 it[granted] = req.granted
                 it[updatedAt] = OffsetDateTime.now()
@@ -136,12 +137,12 @@ object TrustService {
         } else {
             ConsentsTable.insert {
                 it[this.userId] = userId
-                it[kind] = req.kind.trim().take(32)
+                it[kind] = normalizedKind
                 it[granted] = req.granted
                 it[updatedAt] = OffsetDateTime.now()
             }
         }
-        consents(userId).first { it.kind == req.kind.trim() }
+        consents(userId).first { it.kind == normalizedKind }
     }
 
     fun blocks(userId: Long): List<BlockDto> = transaction {
@@ -185,9 +186,10 @@ object TrustService {
     }
 
     fun markAlertRead(userId: Long, id: Long) = transaction {
-        LoginAlertsTable.update({
+        val updated = LoginAlertsTable.update({
             (LoginAlertsTable.id eq id) and (LoginAlertsTable.userId eq userId)
         }) { it[isRead] = true }
+        if (updated == 0) throw NotFoundException("Notifikasi tidak ditemukan")
     }
 
     // ---------- SOS ----------
@@ -246,10 +248,9 @@ object TrustService {
             throw ForbiddenException("Bukan pesanan Anda")
         }
         val code = "AMAN" + order[OrdersTable.code].takeLast(4).filter { it.isDigit() }.take(3).padEnd(3, '0')
-        val verified = SignaturesTable.selectAll().where {
-            (SignaturesTable.orderId eq orderId) and (SignaturesTable.signerId eq userId)
-        }.any()
-        SafeVisitDto(orderId, code, verified, verified)
+        val roles = SignaturesTable.selectAll().where { SignaturesTable.orderId eq orderId }
+            .map { it[SignaturesTable.role] }
+        SafeVisitDto(orderId, code, "KONSUMEN" in roles, "TUKANG" in roles || "TEKNISI" in roles)
     }
 
     // ---------- App lock and two factor ----------
@@ -288,6 +289,7 @@ object TrustService {
             ?: throw BadRequestException("PIN belum diatur")
         row[AppLocksTable.lockedUntil]?.let {
             if (it.isAfter(OffsetDateTime.now())) throw ConflictException("App lock sedang dikunci sementara")
+            AppLocksTable.update({ AppLocksTable.userId eq userId }) { it[failedCount] = 0 }
         }
         if (row[AppLocksTable.pinHash] != hashPin(userId, pin)) {
             val failed = row[AppLocksTable.failedCount] + 1
@@ -378,6 +380,8 @@ object TrustService {
     }
 
     fun exportData(userId: Long): String = transaction {
+        val myOrderIds: List<Long> = OrdersTable.select(OrdersTable.id)
+            .where { OrdersTable.consumerId eq userId }.map { it[OrdersTable.id] }
         val snapshot = mapOf(
             "user" to UsersTable.selectAll().where { UsersTable.id eq userId }.map { row ->
                 mapOf("id" to row[UsersTable.id].toString(), "username" to row[UsersTable.username],
@@ -385,7 +389,14 @@ object TrustService {
             },
             "addresses" to AddressesTable.selectAll().where { AddressesTable.userId eq userId }
                 .map { mapOf("label" to it[AddressesTable.label], "address" to it[AddressesTable.fullAddress]) },
-            "consents" to consents(userId).map { mapOf(it.kind to it.granted.toString()) }
+            "consents" to consents(userId).map { mapOf(it.kind to it.granted.toString()) },
+            "orders" to myOrderIds.map { it.toString() },
+            "messages" to DirectMessagesTable.selectAll().where { DirectMessagesTable.consumerId eq userId }
+                .map { mapOf("id" to it[DirectMessagesTable.id].toString(), "body" to it[DirectMessagesTable.body]) },
+            "wallet" to WalletTransactionsTable.selectAll()
+                .where { WalletTransactionsTable.userId eq userId }
+                .map { mapOf("amount" to it[WalletTransactionsTable.amount].toString(), "type" to it[WalletTransactionsTable.type]) },
+            "devices" to devices(userId).map { mapOf("name" to it.deviceName, "id" to it.deviceId) }
         )
         json.encodeToString(snapshot)
     }
@@ -395,6 +406,8 @@ object TrustService {
         UserBlocksTable.deleteWhere { with(SqlExpressionBuilder) { UserBlocksTable.userId eq userId } }
         TrustedDevicesTable.deleteWhere { with(SqlExpressionBuilder) { TrustedDevicesTable.userId eq userId } }
         LoginAlertsTable.deleteWhere { with(SqlExpressionBuilder) { LoginAlertsTable.userId eq userId } }
+        UserSessionsTable.deleteWhere { with(SqlExpressionBuilder) { UserSessionsTable.userId eq userId } }
+        SosAlertsTable.deleteWhere { with(SqlExpressionBuilder) { SosAlertsTable.userId eq userId } }
         AppLocksTable.deleteWhere { with(SqlExpressionBuilder) { AppLocksTable.userId eq userId } }
         TwoFactorsTable.deleteWhere { with(SqlExpressionBuilder) { TwoFactorsTable.userId eq userId } }
     }
@@ -437,7 +450,7 @@ object TrustService {
     fun createIncident(adminId: Long, req: CreateIncidentRequest): IncidentDto = transaction {
         if (req.title.isBlank()) throw BadRequestException("Judul wajib diisi")
         if (req.severity !in listOf("LOW", "MEDIUM", "HIGH", "CRITICAL")) throw BadRequestException("Tingkat tidak valid")
-        val code = "INC" + System.currentTimeMillis().toString().takeLast(8)
+        val code = "INC" + System.currentTimeMillis().toString().takeLast(8) + (0..99).random().toString().padStart(2, '0')
         val id = IncidentsTable.insert {
             it[this.code] = code
             it[title] = req.title.trim().take(120)
@@ -472,9 +485,10 @@ object TrustService {
 
     fun saveRetention(code: String, req: SaveRetentionRequest): RetentionDto = transaction {
         if (req.days !in 1..3650) throw BadRequestException("Hari harus 1 sampai 3650")
-        val exists = RetentionPoliciesTable.selectAll().where { RetentionPoliciesTable.code eq code }.any()
+        val normalizedCode = code.trim().take(48)
+        val exists = RetentionPoliciesTable.selectAll().where { RetentionPoliciesTable.code eq normalizedCode }.any()
         if (exists) {
-            RetentionPoliciesTable.update({ RetentionPoliciesTable.code eq code }) {
+            RetentionPoliciesTable.update({ RetentionPoliciesTable.code eq normalizedCode }) {
                 it[policyTable] = req.tableName.trim().take(64)
                 it[days] = req.days
                 it[enabled] = req.enabled
@@ -482,14 +496,14 @@ object TrustService {
             }
         } else {
             RetentionPoliciesTable.insert {
-                it[this.code] = code.trim().take(48)
+                it[this.code] = normalizedCode
                 it[policyTable] = req.tableName.trim().take(64)
                 it[days] = req.days
                 it[enabled] = req.enabled
                 it[updatedAt] = OffsetDateTime.now()
             }
         }
-        retentionPolicies().first { it.code == code.trim().take(48) }
+        retentionPolicies().first { it.code == normalizedCode }
     }
 
     fun backupJobs(): List<BackupJobDto> = transaction {

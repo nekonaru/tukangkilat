@@ -98,8 +98,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "4.3.0",
-                "migrations" to "12"
+                "version" to "5.0.0",
+                "migrations" to "13"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -139,11 +139,25 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     throw RateLimitedException("Terlalu banyak percobaan masuk dari perangkat ini. Coba lagi sebentar lagi")
                 }
                 val req = call.receive<LoginRequest>()
-                call.respond(authService.login(req, jwt))
+                val response = authService.login(req, jwt)
+                val factor = TrustService.twoFactor(response.user.id)
+                if (factor.enabled) {
+                    val code = req.otp ?: throw BadRequestException("Kode OTP diperlukan")
+                    val expires = factor.otpExpires?.let { runCatching { OffsetDateTime.parse(it) }.getOrNull() }
+                    if (expires == null || expires.isBefore(OffsetDateTime.now()) || factor.otpCode != code.trim()) {
+                        throw BadRequestException("Kode OTP tidak valid")
+                    }
+                }
+                TrustService.recordSession(response.user.id, "Android", clientIp)
+                call.respond(response)
             }
             post("/refresh") {
                 val req = call.receive<RefreshRequest>()
-                call.respond(authService.refresh(req, jwt))
+                val response = authService.refresh(req, jwt)
+                if (TrustService.sessions(response.user.id).none { !it.revoked }) {
+                    throw ForbiddenException("Sesi sudah dicabut")
+                }
+                call.respond(response)
             }
             post("/logout") {
                 val req = call.receive<RefreshRequest>()

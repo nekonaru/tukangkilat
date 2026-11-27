@@ -40,6 +40,8 @@ data class TrustUiState(
     val otp: String = "",
     val blockId: String = "",
     val sosNote: String = "",
+    val visitOrderId: String = "",
+    val exportedText: String = "",
     val notice: String? = null
 )
 
@@ -55,6 +57,7 @@ class TrustViewModel @Inject constructor(private val api: ApiService) : ViewMode
                 _state.value = TrustUiState(
                     tab = current.tab, notice = current.notice,
                     pin = current.pin, otp = current.otp, blockId = current.blockId, sosNote = current.sosNote,
+                    visitOrderId = current.visitOrderId,
                     devices = runCatching { api.trustedDevices() }.getOrDefault(emptyList()),
                     sessions = runCatching { api.sessions() }.getOrDefault(emptyList()),
                     consents = runCatching { api.consents() }.getOrDefault(emptyList()),
@@ -80,6 +83,7 @@ class TrustViewModel @Inject constructor(private val api: ApiService) : ViewMode
             "otp" -> _state.value.copy(otp = value)
             "blockId" -> _state.value.copy(blockId = value)
             "sosNote" -> _state.value.copy(sosNote = value)
+            "visitOrderId" -> _state.value.copy(visitOrderId = value)
             else -> _state.value
         }
     }
@@ -175,6 +179,63 @@ class TrustViewModel @Inject constructor(private val api: ApiService) : ViewMode
         }
     }
 
+    fun toggleDeviceTrust(id: Long, trusted: Boolean) {
+        viewModelScope.launch {
+            try {
+                api.setDeviceTrust(id, mapOf("trusted" to !trusted))
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun removeDevice(id: Long) {
+        viewModelScope.launch {
+            try { api.removeDevice(id); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun revoke(id: Long) {
+        viewModelScope.launch {
+            try { api.revokeSession(id); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun readAlert(id: Long) {
+        viewModelScope.launch {
+            try { api.markAlertRead(id); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun disableTwoFactor() {
+        viewModelScope.launch {
+            try { api.disableTwoFactor(); _state.value = _state.value.copy(notice = "Verifikasi dua langkah nonaktif"); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun exportPrivacy() {
+        viewModelScope.launch {
+            try {
+                val text = api.exportPrivacyData()
+                _state.value = _state.value.copy(exportedText = text.take(500), notice = "Data diekspor")
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun loadSafeVisit() {
+        val id = _state.value.visitOrderId.toLongOrNull()
+        if (id == null) { _state.value = _state.value.copy(notice = "ID pesanan tidak valid"); return }
+        viewModelScope.launch {
+            try {
+                val result = api.safeVisit(id)
+                _state.value = _state.value.copy(notice = "Kode kunjungan: ${result.codeWord}")
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -204,16 +265,26 @@ fun TrustCenterScreen(onBack: () -> Unit, viewModel: TrustViewModel = hiltViewMo
                     TKButton("Daftarkan perangkat", viewModel::registerDevice, variant = TKButtonVariant.Tonal)
                     LazyColumn(Modifier.fillMaxSize()) {
                         items(state.devices, key = { it.id }) { device ->
-                            Text("${device.deviceName} · ${if (device.trusted) "terpercaya" else "tidak terpercaya"}", modifier = Modifier.padding(vertical = 4.dp))
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Text("${device.deviceName} · ${if (device.trusted) "terpercaya" else "tidak terpercaya"}", modifier = Modifier.weight(1f))
+                                TextButton(onClick = { viewModel.toggleDeviceTrust(device.id, device.trusted) }) { Text(if (device.trusted) "Cabut" else "Percaya") }
+                                TextButton(onClick = { viewModel.removeDevice(device.id) }) { Text("Hapus") }
+                            }
                         }
                     }
                 }
                 1 -> LazyColumn(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     items(state.sessions, key = { it.id }) { session ->
-                        Text("${session.deviceName} · ${session.startedAt.take(10)} · ${if (session.revoked) "dicabut" else "aktif"}", modifier = Modifier.padding(vertical = 4.dp))
+                        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Text("${session.deviceName} · ${session.startedAt.take(10)} · ${if (session.revoked) "dicabut" else "aktif"}", modifier = Modifier.weight(1f))
+                            if (!session.revoked) TextButton(onClick = { viewModel.revoke(session.id) }) { Text("Cabut") }
+                        }
                     }
                     items(state.alerts, key = { it.id }) { alert ->
-                        Text("Login: ${alert.deviceName} · ${alert.createdAt.take(10)}", modifier = Modifier.padding(vertical = 4.dp))
+                        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Text("Login: ${alert.deviceName} · ${alert.createdAt.take(10)}", modifier = Modifier.weight(1f))
+                            if (!alert.isRead) TextButton(onClick = { viewModel.readAlert(alert.id) }) { Text("Baca") }
+                        }
                     }
                 }
                 2 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
@@ -231,6 +302,10 @@ fun TrustCenterScreen(onBack: () -> Unit, viewModel: TrustViewModel = hiltViewMo
                     }
                     TKOutlinedField(state.blockId, { viewModel.field("blockId", it) }, label = "ID pengguna diblokir")
                     TKButton("Blokir pengguna", viewModel::blockUser, variant = TKButtonVariant.Outlined)
+                    TKButton("Ekspor data JSON", viewModel::exportPrivacy, variant = TKButtonVariant.Tonal)
+                    state.exportedText.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    TKOutlinedField(state.visitOrderId, { viewModel.field("visitOrderId", it) }, label = "ID pesanan untuk kode kunjungan")
+                    TKButton("Lihat kode kunjungan", viewModel::loadSafeVisit, variant = TKButtonVariant.Outlined)
                     TKButton("Hapus data privasi lokal", viewModel::deletePrivacyData, variant = TKButtonVariant.Tonal)
                 }
                 3 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
@@ -245,6 +320,7 @@ fun TrustCenterScreen(onBack: () -> Unit, viewModel: TrustViewModel = hiltViewMo
                     TKButton("Minta OTP simulasi", viewModel::requestOtp, variant = TKButtonVariant.Tonal)
                     TKOutlinedField(state.otp, { viewModel.field("otp", it) }, label = "Kode OTP")
                     TKButton("Verifikasi OTP", viewModel::verifyOtp)
+                    TKButton("Nonaktifkan 2FA", viewModel::disableTwoFactor, variant = TKButtonVariant.Outlined)
                 }
                 else -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     TKOutlinedField(state.sosNote, { viewModel.field("sosNote", it) }, label = "Catatan darurat")

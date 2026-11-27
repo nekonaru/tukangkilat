@@ -1818,6 +1818,7 @@ class ApiIntegrationTest {
         }
         assertEquals(HttpStatusCode.OK, enabled.status)
         assertTrue(json.decodeFromString<TwoFactorDto>(enabled.bodyAsText()).enabled)
+        client.delete("/consumer/trust/two-factor") { bearer(consumer) }
     }
 
     @Test

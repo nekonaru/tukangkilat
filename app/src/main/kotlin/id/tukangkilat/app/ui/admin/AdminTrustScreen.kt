@@ -111,6 +111,30 @@ class AdminTrustViewModel @Inject constructor(private val api: ApiService) : Vie
         }
     }
 
+    fun resolveSos(id: Long) {
+        viewModelScope.launch {
+            try { api.resolveSos(id); _state.value = _state.value.copy(notice = "SOS ditangani"); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun resolveIncident(id: Long) {
+        viewModelScope.launch {
+            try {
+                api.resolveIncident(id, mapOf("note" to "Ditutup dari panel admin"))
+                _state.value = _state.value.copy(notice = "Insiden ditutup")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun runBackup(id: Long) {
+        viewModelScope.launch {
+            try { api.runBackupJob(id); _state.value = _state.value.copy(notice = "Cadangan dijalankan"); refresh() }
+            catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -139,6 +163,7 @@ fun AdminTrustScreen(onBack: () -> Unit, viewModel: AdminTrustViewModel = hiltVi
                         TKCard {
                             Text("SOS ${alert.id} · ${alert.status}", fontWeight = FontWeight.Bold)
                             Text("Waktu ${alert.createdAt.take(10)} · ${alert.note}")
+                            if (alert.status == "OPEN") TKButton("Tandai ditangani", { viewModel.resolveSos(alert.id) }, variant = TKButtonVariant.Tonal)
                         }
                     }
                 }
@@ -148,7 +173,10 @@ fun AdminTrustScreen(onBack: () -> Unit, viewModel: AdminTrustViewModel = hiltVi
                     TKButton("Buat insiden", viewModel::createIncident, variant = TKButtonVariant.Tonal)
                     LazyColumn(Modifier.fillMaxSize()) {
                         items(state.incidents, key = { it.id }) { incident ->
-                            Text("${incident.code} · ${incident.title} · ${incident.status}", modifier = Modifier.padding(vertical = 4.dp))
+                            Column(Modifier.padding(vertical = 4.dp)) {
+                                Text("${incident.code} · ${incident.title} · ${incident.status}")
+                                if (incident.status == "OPEN") TKButton("Tutup insiden", { viewModel.resolveIncident(incident.id) }, variant = TKButtonVariant.Tonal)
+                            }
                         }
                     }
                 }
@@ -172,7 +200,10 @@ fun AdminTrustScreen(onBack: () -> Unit, viewModel: AdminTrustViewModel = hiltVi
                     TKButton("Buat jadwal", viewModel::saveBackup, variant = TKButtonVariant.Tonal)
                     LazyColumn(Modifier.fillMaxSize()) {
                         items(state.backups, key = { it.id }) { job ->
-                            Text("${job.name} · ${job.frequency} · ${job.enabled}", modifier = Modifier.padding(vertical = 4.dp))
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                Text("${job.name} · ${job.frequency} · ${job.enabled}", modifier = Modifier.weight(1f))
+                                TextButton(onClick = { viewModel.runBackup(job.id) }) { Text("Jalankan") }
+                            }
                         }
                     }
                 }
