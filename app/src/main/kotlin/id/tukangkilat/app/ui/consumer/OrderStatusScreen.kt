@@ -350,7 +350,7 @@ fun OrderStatusScreen(
                         val reminderMillis = remember(order.scheduledDate, order.slotLabel) {
                             try {
                                 val time = order.slotLabel.take(5).replace('.', ':')
-                                SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                                SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
                                     .parse("${order.scheduledDate} $time")?.time?.minus(3_600_000L)
                             } catch (e: Exception) { null }
                         }
@@ -360,7 +360,7 @@ fun OrderStatusScreen(
                             if (granted && reminderMillis != null && reminderMillis > System.currentTimeMillis()) {
                                 OrderReminder.schedule(context, orderId, "Pesanan ${order.code}", reminderMillis)
                             } else {
-                                viewModel.setSnackbar("Izin notifikasi diperlukan atau jadwal sudah lewat")
+                                viewModel.setSnackbar("Gagal menjadwalkan pengingat: periksa izin notifikasi dan jadwal")
                             }
                         }
                         TextButton(onClick = {
@@ -546,7 +546,7 @@ private fun SlaCountdownCard(order: OrderDto) {
     val deadline = remember(order.scheduledDate, order.slotLabel) {
         try {
             val time = order.slotLabel.take(5).replace('.', ':')
-            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
                 .parse("${order.scheduledDate} $time")?.time
         } catch (e: Exception) { null }
     }

@@ -21,12 +21,17 @@ object SecureBackup {
     private const val SALT_BYTES = 16
     private const val IV_BYTES = 12
     private const val MAGIC_BYTES = 5
+    private const val MAX_BACKUP_BYTES = 128 * 1024 * 1024
 
     private fun key(passphrase: String, salt: ByteArray): SecretKeySpec {
         require(passphrase.length >= 8) { "Kata sandi minimal 8 karakter" }
         val spec = PBEKeySpec(passphrase.toCharArray(), salt, ITERATIONS, KEY_BITS)
-        val raw = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
-        return SecretKeySpec(raw, "AES")
+        return try {
+            val raw = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+            SecretKeySpec(raw, "AES")
+        } finally {
+            spec.clearPassword()
+        }
     }
 
     /** Write an encrypted snapshot to [out]. Never closes [out], the caller owns the stream. */
@@ -46,7 +51,19 @@ object SecureBackup {
 
     /** Decrypt and restore a snapshot. Throws on wrong passphrase or corrupt data. */
     fun decrypt(context: Context, passphrase: String, input: InputStream) {
-        val bytes = input.readBytes()
+        val buffer = java.io.ByteArrayOutputStream()
+        var total = 0
+        input.use { stream ->
+            val chunk = ByteArray(16 * 1024)
+            while (true) {
+                val read = stream.read(chunk)
+                if (read == -1) break
+                total += read
+                require(total <= MAX_BACKUP_BYTES) { "Berkas cadangan terlalu besar" }
+                buffer.write(chunk, 0, read)
+            }
+        }
+        val bytes = buffer.toByteArray()
         require(bytes.size > MAGIC_BYTES + SALT_BYTES + IV_BYTES) { "Berkas cadangan tidak valid" }
         require(bytes.copyOf(MAGIC_BYTES).toString(Charsets.US_ASCII) == MAGIC) { "Format cadangan tidak dikenal" }
         val salt = bytes.copyOfRange(MAGIC_BYTES, MAGIC_BYTES + SALT_BYTES)

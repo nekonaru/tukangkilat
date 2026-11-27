@@ -629,7 +629,7 @@ object OrderService {
             it[comment] = req.comment.trim()
             it[createdAt] = OffsetDateTime.now()
         }
-        req.photos.map { it.trim() }.filter { it.isNotBlank() }.distinct().take(5).forEach { url ->
+        req.photos.map { it.trim() }.filter { it.isNotBlank() && it.length <= 512 }.distinct().take(5).forEach { url ->
             ReviewPhotosTable.insert {
                 it[ReviewPhotosTable.orderId] = orderId
                 it[photoUrl] = url

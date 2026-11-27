@@ -135,6 +135,8 @@ data class MessageReportDto(
     val id: Long,
     val messageId: Long,
     val reporterId: Long,
+    val reporterName: String,
+    val messageBody: String,
     val reason: String,
     val status: String,
     val createdAt: String

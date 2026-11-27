@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
 
 /** Services for the v3 ecosystem: wallet, loyalty, subscriptions and technician workbench. */
 object EcosystemService {
@@ -395,7 +396,8 @@ object EcosystemService {
     // ---------- Platform polish (v3.1.0) ----------
 
     private fun csvCell(value: Any?): String {
-        val text = value?.toString() ?: ""
+        var text = value?.toString() ?: ""
+        if (text.isNotEmpty() && text.first() in listOf('=', '+', '-', '@')) text = "'$text"
         return "\"" + text.replace("\"", "\"\"") + "\""
     }
 
@@ -414,8 +416,8 @@ object EcosystemService {
                 row[OrdersTable.createdAt]
             )
         }.filter { row ->
-            val created = row.last().toString()
-            (from.isNullOrBlank() || created >= from) && (to.isNullOrBlank() || created <= to)
+            val day = row.last().toString().take(10)
+            (from.isNullOrBlank() || day >= from) && (to.isNullOrBlank() || day <= to)
         }
         csv(listOf(listOf("kode", "status", "layanan_id", "tanggal", "total", "pembayaran", "dibuat")) + rows)
     }
@@ -459,47 +461,55 @@ object EcosystemService {
         }) { it[readAt] = OffsetDateTime.now() }
     }
 
+    private fun messageReportDto(row: ResultRow): MessageReportDto {
+        val messageId = row[MessageReportsTable.messageId]
+        val message = DirectMessagesTable.selectAll()
+            .where { DirectMessagesTable.id eq messageId }.singleOrNull()
+        val reporterId = row[MessageReportsTable.reporterId]
+        val reporter = UsersTable.selectAll().where { UsersTable.id eq reporterId }
+            .singleOrNull()?.get(UsersTable.fullName) ?: "Pengguna"
+        return MessageReportDto(
+            row[MessageReportsTable.id], messageId, reporterId, reporter,
+            message?.get(DirectMessagesTable.body) ?: "[pesan tidak ditemukan]",
+            row[MessageReportsTable.reason], row[MessageReportsTable.status],
+            row[MessageReportsTable.createdAt].toString()
+        )
+    }
+
     fun reportMessage(userId: Long, req: ReportMessageRequest): MessageReportDto {
         val message = transaction {
             DirectMessagesTable.selectAll().where { DirectMessagesTable.id eq req.messageId }
                 .singleOrNull() ?: throw NotFoundException("Pesan tidak ditemukan")
         }
         if (message[DirectMessagesTable.senderId] == userId) throw BadRequestException("Tidak bisa melaporkan pesan sendiri")
+        if (message[DirectMessagesTable.consumerId] != userId && message[DirectMessagesTable.technicianId] != userId) {
+            throw ForbiddenException("Anda bukan peserta percakapan ini")
+        }
         return transaction {
             val existing = MessageReportsTable.selectAll().where {
                 (MessageReportsTable.messageId eq req.messageId) and (MessageReportsTable.reporterId eq userId)
             }.singleOrNull()
-            if (existing == null) {
-                val id = MessageReportsTable.insert {
+            val id = if (existing == null) {
+                MessageReportsTable.insert {
                     it[messageId] = req.messageId
                     it[reporterId] = userId
                     it[reason] = req.reason.trim().take(255)
                     it[status] = "OPEN"
                     it[createdAt] = OffsetDateTime.now()
                 } get MessageReportsTable.id
-                MessageReportDto(id, req.messageId, userId, req.reason.trim().take(255), "OPEN", OffsetDateTime.now().toString())
-            } else {
-                MessageReportDto(
-                    existing[MessageReportsTable.id], req.messageId, userId,
-                    existing[MessageReportsTable.reason], existing[MessageReportsTable.status],
-                    existing[MessageReportsTable.createdAt].toString()
-                )
-            }
+            } else existing[MessageReportsTable.id]
+            messageReportDto(MessageReportsTable.selectAll().where { MessageReportsTable.id eq id }.single())
         }
     }
 
     fun messageReports(): List<MessageReportDto> = transaction {
-        MessageReportsTable.selectAll().orderBy(MessageReportsTable.createdAt to SortOrder.DESC).limit(100).map {
-            MessageReportDto(
-                it[MessageReportsTable.id], it[MessageReportsTable.messageId], it[MessageReportsTable.reporterId],
-                it[MessageReportsTable.reason], it[MessageReportsTable.status], it[MessageReportsTable.createdAt].toString()
-            )
-        }
+        MessageReportsTable.selectAll().orderBy(MessageReportsTable.createdAt to SortOrder.DESC).limit(100).map(::messageReportDto)
     }
 
     fun resolveMessageReport(adminId: Long, id: Long, hideMessage: Boolean) = transaction {
         val row = MessageReportsTable.selectAll().where { MessageReportsTable.id eq id }
             .singleOrNull() ?: throw NotFoundException("Laporan tidak ditemukan")
+        if (row[MessageReportsTable.status] != "OPEN") throw ConflictException("Laporan sudah diproses")
         MessageReportsTable.update({ MessageReportsTable.id eq id }) {
             it[status] = if (hideMessage) "DISEMBUNYIKAN" else "DITOLAK"
             it[resolvedBy] = adminId
@@ -567,8 +577,9 @@ object EcosystemService {
 
     /** Called from the maintenance tick. Only technicians with a schedule for today are toggled. */
     fun applyAutoSchedules(): Int {
-        val today = LocalDate.now().dayOfWeek.value
-        val now = LocalTime.now()
+        val zone = ZoneId.of("Asia/Jakarta")
+        val today = LocalDate.now(zone).dayOfWeek.value
+        val now = LocalTime.now(zone)
         val schedules = transaction {
             AutoOnlineSchedulesTable.selectAll()
                 .where { AutoOnlineSchedulesTable.dayOfWeek eq today }
@@ -582,8 +593,10 @@ object EcosystemService {
         }
         var changed = 0
         schedules.groupBy { it.first }.forEach { (technicianId, entries) ->
-            val active = entries.any { (_, enabled, window) ->
-                enabled && !now.isBefore(window.first) && now.isBefore(window.second)
+            val enabled = entries.filter { it.second }
+            if (enabled.isEmpty()) return@forEach
+            val active = enabled.any { (_, _, window) ->
+                !now.isBefore(window.first) && now.isBefore(window.second)
             }
             changed += transaction {
                 TechnicianProfilesTable.update({ TechnicianProfilesTable.userId eq technicianId }) {

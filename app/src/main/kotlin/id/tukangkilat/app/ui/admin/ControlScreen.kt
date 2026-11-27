@@ -134,7 +134,9 @@ class ControlViewModel @Inject constructor(private val api: ApiService) : ViewMo
                         putExtra(Intent.EXTRA_STREAM, uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    context.startActivity(Intent.createChooser(intent, "Bagikan $name"))
+                    withContext(Dispatchers.Main) {
+                        context.startActivity(Intent.createChooser(intent, "Bagikan $name"))
+                    }
                     "Ekspor $name siap dibagikan"
                 } catch (e: Exception) {
                     e.cleanApiError()
@@ -217,8 +219,9 @@ fun ControlScreen(onBack: () -> Unit, viewModel: ControlViewModel = hiltViewMode
                 state.tab == 5 -> LazyColumn(Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm)) {
                     items(state.messageReports, key = { it.id }) { report ->
                         Column(Modifier.padding(vertical = TKSpacing.Xs)) {
-                            Text("Laporan #${report.id} · pesan ${report.messageId}")
-                            Text("Alasan: ${report.reason} · ${report.status}", style = MaterialTheme.typography.bodySmall)
+                            Text("Laporan #${report.id} · ${report.reporterName} · ${report.status}")
+                            Text("Pesan: ${report.messageBody}", style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                            Text("Alasan: ${report.reason}", style = MaterialTheme.typography.bodySmall)
                             Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(TKSpacing.Xs)) {
                                 TKButton("Sembunyikan pesan", { viewModel.resolveReport(report.id, true) }, variant = TKButtonVariant.Tonal)
                                 TKButton("Tolak laporan", { viewModel.resolveReport(report.id, false) }, variant = TKButtonVariant.Outlined)

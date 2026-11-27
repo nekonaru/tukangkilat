@@ -1071,18 +1071,29 @@ class ApiIntegrationTest {
             .let { json.decodeFromString<List<DirectPeerDto>>(it) }
         assertEquals(0, after.first { it.peerId == techId }.unreadCount)
 
+        val today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Jakarta")).dayOfWeek.value
+        client.post("/technician/online") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody("{\"online\":false}")
+        }
         val schedule = client.post("/technician/auto-schedule") {
             bearer(tech)
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(
                 CreateAutoScheduleRequest.serializer(),
-                CreateAutoScheduleRequest(1, "08:00", "17:00")
+                CreateAutoScheduleRequest(today, "00:00", "23:59")
             ))
         }
         assertEquals(HttpStatusCode.Created, schedule.status)
         val schedules = client.okGet("/technician/auto-schedule", tech).bodyAsText()
             .let { json.decodeFromString<List<AutoOnlineScheduleDto>>(it) }
-        assertTrue(schedules.any { it.dayOfWeek == 1 && it.enabled })
+        assertTrue(schedules.any { it.dayOfWeek == today && it.enabled })
+
+        assertEquals(1, EcosystemService.applyAutoSchedules())
+        val profile = client.okGet("/technician/profile", tech).bodyAsText()
+            .let { json.decodeFromString<TechnicianProfileDto>(it) }
+        assertTrue(profile.isOnline)
     }
 
     @Test
@@ -1099,6 +1110,14 @@ class ApiIntegrationTest {
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(SendDirectMessageRequest.serializer(), SendDirectMessageRequest("Pesan untuk dimoderasi")))
         }.bodyAsText().let { json.decodeFromString<DirectMessageDto>(it) }
+
+        val otherTechnician = client.loginToken("sari", "sari12345")
+        val outsider = client.post("/technician/messages/${message.id}/report") {
+            bearer(otherTechnician)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportMessageRequest.serializer(), ReportMessageRequest(message.id, "Spam")))
+        }
+        assertEquals(HttpStatusCode.Forbidden, outsider.status)
 
         val reported = client.post("/consumer/messages/${message.id}/report") {
             bearer(consumer)
@@ -1117,6 +1136,8 @@ class ApiIntegrationTest {
             setBody("{\"hideMessage\":true}")
         }
         assertEquals(HttpStatusCode.OK, resolved.status)
+        val hidden = client.okGet("/technician/direct-messages/$consumerId", tech).bodyAsText()
+        assertTrue(hidden.contains("pesan disembunyikan oleh admin"))
 
         val ordersCsv = client.okGet("/admin/export/orders", admin).bodyAsText()
         assertTrue(ordersCsv.contains("kode"))

@@ -77,10 +77,10 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         launch {
             while (true) {
                 try {
+                    EcosystemService.applyAutoSchedules()
                     DispatchService.dispatchRound()
                     DispatchService.maintenanceRound()
                     EcosystemService.processDueSubscriptions()
-                    EcosystemService.applyAutoSchedules()
                 } catch (e: Exception) {
                     environment.log.error("Dispatcher tick failed", e)
                 }

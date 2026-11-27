@@ -21,12 +21,23 @@ object OrderReminder {
             putExtra("title", title)
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val pending = PendingIntent.getBroadcast(context, orderId.toInt(), intent, flags)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val requestCode = (orderId xor (orderId shr 32)).toInt()
+        val pending = PendingIntent.getBroadcast(context, requestCode, intent, flags)
+        val canScheduleExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms()
+        if (canScheduleExact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pending)
         } else {
+            // Inexact alarms need no special access and still deliver the reminder.
             manager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pending)
         }
+    }
+
+    fun cancel(context: Context, orderId: Long) {
+        val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderReceiver::class.java)
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val requestCode = (orderId xor (orderId shr 32)).toInt()
+        manager.cancel(PendingIntent.getBroadcast(context, requestCode, intent, flags))
     }
 }
 
