@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.data.ws.WsManager
 import id.tukangkilat.app.ui.components.*
@@ -42,6 +43,7 @@ import id.tukangkilat.app.ui.map.MapMarker
 import id.tukangkilat.app.ui.map.OsmMap
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
+import id.tukangkilat.app.ui.util.SignaturePad
 import id.tukangkilat.app.util.OrderReminder
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -66,13 +68,16 @@ data class StatusUiState(
     val error: String? = null,
     val order: OrderDto? = null,
     val snackbar: String? = null,
-    val isCancelling: Boolean = false
+    val isCancelling: Boolean = false,
+    val checklist: List<ChecklistItemDto> = emptyList(),
+    val showSignature: Boolean = false
 )
 
 @HiltViewModel
 class OrderStatusViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val wsManager: WsManager
+    private val wsManager: WsManager,
+    private val api: ApiService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StatusUiState())
@@ -86,7 +91,8 @@ class OrderStatusViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val order = orderRepository.detail(orderId)
-                _state.value = StatusUiState(isLoading = false, order = order)
+                val checklist = runCatching { api.checklist(orderId) }.getOrDefault(emptyList())
+                _state.value = StatusUiState(isLoading = false, order = order, checklist = checklist)
             } catch (e: Exception) {
                 _state.value = StatusUiState(isLoading = false, error = e.cleanApiError())
             }
@@ -117,6 +123,39 @@ class OrderStatusViewModel @Inject constructor(
     }
 
     fun setSnackbar(message: String) { _state.value = _state.value.copy(snackbar = message) }
+
+    fun toggleSignature() { _state.value = _state.value.copy(showSignature = !_state.value.showSignature) }
+
+    fun payWithWallet(orderId: Long) {
+        viewModelScope.launch {
+            try {
+                api.payWithWallet(orderId)
+                _state.value = _state.value.copy(snackbar = "Pembayaran dompet berhasil")
+                load(orderId)
+            } catch (e: Exception) { _state.value = _state.value.copy(snackbar = e.cleanApiError()) }
+        }
+    }
+
+    fun saveSignature(orderId: Long, dataUrl: String) {
+        viewModelScope.launch {
+            try {
+                api.saveSignature(orderId, SignatureRequest(dataUrl, "KONSUMEN"))
+                _state.value = _state.value.copy(showSignature = false, snackbar = "Tanda tangan tersimpan")
+            } catch (e: Exception) { _state.value = _state.value.copy(snackbar = e.cleanApiError()) }
+        }
+    }
+
+    fun toggleChecklist(orderId: Long, id: Long, done: Boolean, photoUrl: String, note: String) {
+        viewModelScope.launch {
+            try {
+                val updated = api.updateChecklist(orderId, id, UpdateChecklistRequest(done, photoUrl, note))
+                val current = _state.value.checklist.toMutableList()
+                val index = current.indexOfFirst { it.id == id }
+                if (index >= 0) current[index] = updated
+                _state.value = _state.value.copy(checklist = current)
+            } catch (e: Exception) { _state.value = _state.value.copy(snackbar = e.cleanApiError()) }
+        }
+    }
 
     fun clearSnackbar() { _state.value = _state.value.copy(snackbar = null) }
 
@@ -330,6 +369,24 @@ fun OrderStatusScreen(
                                 }
                             }
                             Spacer(Modifier.height(14.dp))
+                        }
+
+                        if (order.status == id.tukangkilat.shared.OrderStatus.MENUNGGU_PEMBAYARAN) {
+                            TKButton("Bayar dengan dompet", { viewModel.payWithWallet(orderId) }, variant = TKButtonVariant.Tonal)
+                            Spacer(Modifier.height(TKSpacing.Xs))
+                        }
+
+                        if (state.checklist.isNotEmpty()) {
+                            SectionLabel("Daftar pekerjaan")
+                            state.checklist.forEach { step ->
+                                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(checked = step.done, onCheckedChange = { viewModel.toggleChecklist(orderId, step.id, it, step.photoUrl, step.note) })
+                                    Text(step.title, modifier = Modifier.weight(1f))
+                                    if (step.done) Text("Selesai", color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                            TextButton(onClick = viewModel::toggleSignature) { Text("Tanda tangani pekerjaan") }
+                            if (state.showSignature) SignaturePad { viewModel.saveSignature(orderId, it) }
                         }
 
                         // timeline

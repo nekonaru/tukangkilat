@@ -40,6 +40,8 @@ data class CatalogUiState(
     val services: List<ServiceSearchDto> = emptyList(),
     val bundles: List<ServiceBundleDto> = emptyList(),
     val estimate: EstimateDto? = null,
+    val promoCode: String = "",
+    val voucherCode: String = "",
     val notice: String? = null
 )
 
@@ -70,6 +72,8 @@ class CatalogViewModel @Inject constructor(private val api: ApiService) : ViewMo
             "query" -> _state.value.copy(query = value)
             "maxPrice" -> _state.value.copy(maxPrice = value)
             "minRating" -> _state.value.copy(minRating = value)
+            "promoCode" -> _state.value.copy(promoCode = value)
+            "voucherCode" -> _state.value.copy(voucherCode = value)
             else -> _state.value
         }
     }
@@ -91,7 +95,11 @@ class CatalogViewModel @Inject constructor(private val api: ApiService) : ViewMo
                 val date = java.time.LocalDate.now().plusDays(1).toString()
                 val slot = api.slots(date).firstOrNull { it.available }
                     ?: throw IllegalStateException("Tidak ada slot tersedia")
-                val result = api.estimate(EstimateRequest(service.id, address.id, date, slot.id))
+                val s = _state.value
+                val result = api.estimate(EstimateRequest(
+                    service.id, address.id, date, slot.id,
+                    s.promoCode.ifBlank { null }, s.voucherCode.ifBlank { null }, null
+                ))
                 _state.value = _state.value.copy(estimate = result)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(notice = e.cleanApiError())
@@ -136,6 +144,8 @@ fun CatalogScreen(onBack: () -> Unit, onOpenService: (Long) -> Unit, viewModel: 
                 }
             }
             TKButton("Terapkan filter", viewModel::refresh)
+            TKOutlinedField(state.promoCode, { viewModel.onField("promoCode", it) }, label = "Kode promo")
+            TKOutlinedField(state.voucherCode, { viewModel.onField("voucherCode", it) }, label = "Kode voucher")
             LazyColumn(Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm)) {
                 if (state.bundles.isNotEmpty()) {
                     item { SectionLabel("Paket bundling") }

@@ -9,6 +9,14 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 
 /** v4 commerce: catalog, pricing, vouchers, loyalty tiers and order extras. */
+data class OrderPricing(
+    val serviceFee: Long,
+    val visitFee: Long,
+    val discount: Long,
+    val total: Long,
+    val voucherUsed: String?
+)
+
 object CommerceService {
 
     private val jakarta = ZoneId.of("Asia/Jakarta")
@@ -154,6 +162,94 @@ object CommerceService {
         )
     }
 
+    internal fun ensureCatalog() {
+        ensureTiers()
+        if (!ServiceCategoriesTable.selectAll().any()) {
+            listOf("Listrik" to "LISTRIK", "Pipa" to "WATER", "AC" to "AC").forEachIndexed { index, pair ->
+                ServiceCategoriesTable.insert {
+                    it[name] = pair.first
+                    it[icon] = pair.second
+                    it[sortOrder] = index + 1
+                    it[isActive] = true
+                }
+            }
+        }
+        if (!ServiceBundlesTable.selectAll().any()) {
+            val ids = ServicesTable.selectAll().orderBy(ServicesTable.id to SortOrder.ASC)
+                .limit(2).map { it[ServicesTable.id] }
+            if (ids.size == 2) {
+                ServiceBundlesTable.insert {
+                    it[name] = "Paket Hemat"
+                    it[description] = "Dua layanan sekaligus dengan diskon"
+                    it[serviceIds] = ids.joinToString(",")
+                    it[discountPercent] = 10
+                    it[isActive] = true
+                    it[createdAt] = OffsetDateTime.now()
+                }
+            }
+        }
+    }
+
+    /** Applies v4 pricing to a real order. Consumes a voucher when used. */
+    internal fun applyOrderPricing(
+        consumerId: Long, serviceId: Long, bundleId: Long?, voucherCode: String?
+    ): OrderPricing = transaction {
+        ensureCatalog()
+        val service = ServicesTable.selectAll().where { ServicesTable.id eq serviceId }
+            .singleOrNull() ?: throw NotFoundException("Layanan tidak ditemukan")
+        var serviceFee = service[ServicesTable.basePrice]
+        var visitFee = service[ServicesTable.visitFee]
+        var discount = 0L
+
+        val hour = LocalTime.now(jakarta).hour
+        if (service[ServicesTable.surgeEligible] && hour in 17..21) {
+            val surge = serviceFee * 15 / 100
+            serviceFee += surge
+            discount -= surge
+        }
+        if (bundleId != null) {
+            val bundle = ServiceBundlesTable.selectAll().where { ServiceBundlesTable.id eq bundleId }.singleOrNull()
+            if (bundle != null && serviceId in bundle[ServiceBundlesTable.serviceIds].split(",").mapNotNull { it.toLongOrNull() }) {
+                val amount = serviceFee * bundle[ServiceBundlesTable.discountPercent] / 100
+                serviceFee -= amount
+                discount += amount
+            }
+        }
+        val tier = currentTier(consumerId)
+        if (tier[MembershipTiersTable.freeVisit]) {
+            discount += visitFee
+            visitFee = 0
+        } else if (tier[MembershipTiersTable.discountPercent] > 0) {
+            val amount = serviceFee * tier[MembershipTiersTable.discountPercent] / 100
+            serviceFee -= amount
+            discount += amount
+        }
+
+        var voucherUsed: String? = null
+        voucherCode?.takeIf { it.isNotBlank() }?.let { code ->
+            val voucher = VouchersTable.selectAll().where {
+                (VouchersTable.code eq code.trim().uppercase()) and (VouchersTable.consumerId eq consumerId)
+            }.singleOrNull() ?: throw BadRequestException("Voucher tidak ditemukan")
+            if (voucher[VouchersTable.status] != "AKTIF") throw BadRequestException("Voucher sudah dipakai")
+            voucher[VouchersTable.expiresAt]?.let { if (OffsetDateTime.now().isAfter(it)) throw BadRequestException("Voucher kedaluwarsa") }
+            val amount = voucher[VouchersTable.amount].coerceAtMost(serviceFee + visitFee)
+            discount += amount
+            voucherUsed = voucher[VouchersTable.code]
+            VouchersTable.update({ VouchersTable.id eq voucher[VouchersTable.id] }) {
+                it[status] = "DIPAKAI"
+                it[usedAt] = OffsetDateTime.now()
+            }
+        }
+        OrderPricing(serviceFee, visitFee, discount, (serviceFee + visitFee).coerceAtLeast(0), voucherUsed)
+    }
+
+    internal fun assertOrderParty(userId: Long, orderId: Long) {
+        val row = OrderQueries.loadOrderRow(orderId)
+        if (row[OrdersTable.consumerId] != userId && row[OrdersTable.technicianId] != userId) {
+            throw ForbiddenException("Anda bukan peserta pesanan ini")
+        }
+    }
+
     private fun currentTier(userId: Long): ResultRow {
         ensureTiers()
         val lifetime = LoyaltyTable.selectAll().where { LoyaltyTable.userId eq userId }
@@ -181,7 +277,7 @@ object CommerceService {
         }
     }
 
-    private fun ensureTiers() {
+    internal fun ensureTiers() {
         if (MembershipTiersTable.selectAll().any()) return
         listOf(
             Triple("SILVER", 0, 0),
@@ -251,6 +347,9 @@ object CommerceService {
             (ReferralsTable.code eq code.trim().uppercase()) and (ReferralsTable.consumerId neq userId)
         }.singleOrNull() ?: throw BadRequestException("Kode referral tidak valid")
         if (referral[ReferralsTable.invitedUserId] != null) throw ConflictException("Kode referral sudah dipakai")
+        if (ReferralsTable.selectAll().where { ReferralsTable.invitedUserId eq userId }.any()) {
+            throw ConflictException("Anda sudah memakai kode referral")
+        }
         val inviter = referral[ReferralsTable.consumerId]
         ReferralsTable.update({ ReferralsTable.id eq referral[ReferralsTable.id] }) {
             it[invitedUserId] = userId
@@ -293,11 +392,12 @@ object CommerceService {
         val order = OrderQueries.loadOrderRow(req.orderId)
         if (order[OrdersTable.consumerId] != userId) throw ForbiddenException("Bukan pesanan Anda")
         if (order[OrdersTable.total] < 500_000) throw BadRequestException("Minimum cicilan Rp500.000")
+        if (order[OrdersTable.paymentStatus] != PaymentStatus.LUNAS.name) throw BadRequestException("Pesanan harus lunas")
         if (InstallmentPlansTable.selectAll().where { InstallmentPlansTable.orderId eq req.orderId }.any()) {
             throw ConflictException("Cicilan untuk pesanan ini sudah ada")
         }
         val total = order[OrdersTable.total]
-        val monthly = total / req.months
+        val monthly = (total + req.months - 1) / req.months
         val id = InstallmentPlansTable.insert {
             it[orderId] = req.orderId
             it[consumerId] = userId
@@ -373,7 +473,13 @@ object CommerceService {
         }
         val settings = walletSettings(userId)
         val total = order[OrdersTable.total]
-        if (total > settings.dailyLimit) throw BadRequestException("Melebihi batas harian dompet")
+        val todayStart = LocalDate.now(jakarta).atStartOfDay().atZone(jakarta).toOffsetDateTime()
+        val spentToday = WalletTransactionsTable.selectAll().where {
+            (WalletTransactionsTable.userId eq userId) and
+                (WalletTransactionsTable.type eq "BAYAR") and
+                (WalletTransactionsTable.createdAt greaterEq todayStart)
+        }.sumOf { kotlin.math.abs(it[WalletTransactionsTable.amount]) }
+        if (spentToday + total > settings.dailyLimit) throw BadRequestException("Melebihi batas harian dompet")
         val walletRow = WalletsTable.selectAll().where { WalletsTable.userId eq userId }.singleOrNull()
             ?: throw BadRequestException("Dompet belum tersedia")
         var balance = walletRow[WalletsTable.balance]
@@ -445,15 +551,17 @@ object CommerceService {
 
     fun resumeSubscription(userId: Long, id: Long) = transaction {
         val updated = SubscriptionsTable.update({
-            (SubscriptionsTable.id eq id) and (SubscriptionsTable.consumerId eq userId)
+            (SubscriptionsTable.id eq id) and (SubscriptionsTable.consumerId eq userId) and
+                (SubscriptionsTable.status eq "DIJEDA")
         }) { it[status] = "AKTIF" }
-        if (updated == 0) throw NotFoundException("Langganan tidak ditemukan")
+        if (updated == 0) throw NotFoundException("Langganan jeda tidak ditemukan")
     }
 
     fun skipSubscription(userId: Long, id: Long) = transaction {
         val row = SubscriptionsTable.selectAll().where {
             (SubscriptionsTable.id eq id) and (SubscriptionsTable.consumerId eq userId)
         }.singleOrNull() ?: throw NotFoundException("Langganan tidak ditemukan")
+        if (row[SubscriptionsTable.status] != "AKTIF") throw ConflictException("Hanya langganan aktif yang bisa dilewati")
         SubscriptionsTable.update({ SubscriptionsTable.id eq id }) {
             it[nextDate] = LocalDate.parse(row[SubscriptionsTable.nextDate].toString())
                 .plusDays(row[SubscriptionsTable.intervalDays].toLong())
@@ -483,6 +591,7 @@ object CommerceService {
     }
 
     fun voteReview(userId: Long, orderId: Long, helpful: Boolean) = transaction {
+        assertOrderParty(userId, orderId)
         val exists = ReviewVotesTable.selectAll().where {
             (ReviewVotesTable.reviewOrderId eq orderId) and (ReviewVotesTable.userId eq userId)
         }.any()
@@ -523,11 +632,14 @@ object CommerceService {
 
     // ---------- Signatures and checklist ----------
 
-    fun saveSignature(userId: Long, orderId: Long, role: String, dataUrl: String): SignatureDto = transaction {
-        if (role !in listOf("KONSUMEN", "TEKNISI")) throw BadRequestException("Peran tidak valid")
-        if (dataUrl.isBlank() || dataUrl.length > 512) throw BadRequestException("Tanda tangan tidak valid")
+    fun saveSignature(userId: Long, orderId: Long, ignoredRole: String, dataUrl: String): SignatureDto = transaction {
+        if (dataUrl.isBlank() || dataUrl.length > 200_000) throw BadRequestException("Tanda tangan tidak valid")
         val order = OrderQueries.loadOrderRow(orderId)
-        if (order[OrdersTable.consumerId] != userId && order[OrdersTable.technicianId] != userId) {
+        val role = UsersTable.selectAll().where { UsersTable.id eq userId }
+            .singleOrNull()?.get(UsersTable.role) ?: throw ForbiddenException("Pengguna tidak ditemukan")
+        if (role != Role.KONSUMEN.name && role != Role.TUKANG.name) throw ForbiddenException("Peran tidak didukung")
+        if ((role == Role.KONSUMEN.name && order[OrdersTable.consumerId] != userId) ||
+            (role == Role.TUKANG.name && order[OrdersTable.technicianId] != userId)) {
             throw ForbiddenException("Bukan pesanan Anda")
         }
         val exists = SignaturesTable.selectAll().where {
@@ -557,12 +669,14 @@ object CommerceService {
         row[SignaturesTable.dataUrl], row[SignaturesTable.createdAt].toString()
     )
 
-    fun signatures(orderId: Long): List<SignatureDto> = transaction {
+    fun signatures(userId: Long, orderId: Long): List<SignatureDto> = transaction {
+        assertOrderParty(userId, orderId)
         SignaturesTable.selectAll().where { SignaturesTable.orderId eq orderId }
             .orderBy(SignaturesTable.createdAt to SortOrder.ASC).map(::signatureDto)
     }
 
-    fun checklist(orderId: Long): List<ChecklistItemDto> = transaction {
+    fun checklist(userId: Long, orderId: Long): List<ChecklistItemDto> = transaction {
+        assertOrderParty(userId, orderId)
         val order = OrderQueries.loadOrderRow(orderId)
         val templates = ChecklistTemplatesTable.selectAll()
             .where { ChecklistTemplatesTable.serviceId eq order[OrdersTable.serviceId] }
@@ -613,7 +727,8 @@ object CommerceService {
             }
     }
 
-    fun updateChecklistItem(orderId: Long, id: Long, req: UpdateChecklistRequest): ChecklistItemDto = transaction {
+    fun updateChecklistItem(userId: Long, orderId: Long, id: Long, req: UpdateChecklistRequest): ChecklistItemDto = transaction {
+        assertOrderParty(userId, orderId)
         val row = ChecklistItemsTable.selectAll().where {
             (ChecklistItemsTable.id eq id) and (ChecklistItemsTable.orderId eq orderId)
         }.singleOrNull() ?: throw NotFoundException("Langkah tidak ditemukan")
@@ -681,6 +796,21 @@ object CommerceService {
             it[resolvedAt] = OffsetDateTime.now()
         }
         if (req.approve) {
+            val amount = req.amount.coerceIn(0, row[RefundRequestsTable.amount])
+            val wallet = WalletsTable.selectAll().where { WalletsTable.userId eq row[RefundRequestsTable.consumerId] }.singleOrNull()
+            if (wallet != null) {
+                WalletsTable.update({ WalletsTable.userId eq row[RefundRequestsTable.consumerId] }) {
+                    it[balance] = wallet[WalletsTable.balance] + amount
+                    it[updatedAt] = OffsetDateTime.now()
+                }
+                WalletTransactionsTable.insert {
+                    it[WalletTransactionsTable.userId] = row[RefundRequestsTable.consumerId]
+                    it[WalletTransactionsTable.amount] = amount
+                    it[WalletTransactionsTable.type] = "REFUND"
+                    it[WalletTransactionsTable.reference] = row[RefundRequestsTable.orderId].toString()
+                    it[WalletTransactionsTable.createdAt] = OffsetDateTime.now()
+                }
+            }
             val orderId = row[RefundRequestsTable.orderId]
             PaymentsTable.update({
                 (PaymentsTable.orderId eq orderId) and (PaymentsTable.status eq PaymentStatus.LUNAS.name)

@@ -23,6 +23,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.event.Level
 import java.io.File
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 fun main() {
     val config = AppConfig.fromEnv()
@@ -323,16 +324,17 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 }
                 get("/orders/{id}/signatures") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
-                    call.respond(CommerceService.signatures(call.parameters["id"]!!.toLong()))
+                    call.respond(CommerceService.signatures(call.authUser().id, call.parameters["id"]!!.toLong()))
                 }
                 get("/orders/{id}/checklist") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
-                    call.respond(CommerceService.checklist(call.parameters["id"]!!.toLong()))
+                    call.respond(CommerceService.checklist(call.authUser().id, call.parameters["id"]!!.toLong()))
                 }
                 post("/orders/{id}/checklist/{itemId}") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
                     call.respond(CommerceService.updateChecklistItem(
-                        call.parameters["id"]!!.toLong(), call.parameters["itemId"]!!.toLong(), call.receive()
+                        call.authUser().id, call.parameters["id"]!!.toLong(),
+                        call.parameters["itemId"]!!.toLong(), call.receive()
                     ))
                 }
                 post("/orders/{id}/messages") {
@@ -632,6 +634,56 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.requireRole(Role.ADMIN)
                 call.respond(CommerceService.resolveRefund(call.authUser().id, call.parameters["id"]!!.toLong(), call.receive()))
             }
+            post("/categories") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, String>>()
+                val name = body["name"] ?: throw BadRequestException("name wajib")
+                val id = transaction {
+                    ServiceCategoriesTable.insert {
+                        it[ServiceCategoriesTable.name] = name
+                        it[icon] = body["icon"] ?: ""
+                        it[sortOrder] = body["sortOrder"]?.toIntOrNull() ?: 0
+                        it[isActive] = true
+                    } get ServiceCategoriesTable.id
+                }
+                call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            }
+            post("/bundles") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, String>>()
+                val name = body["name"] ?: throw BadRequestException("name wajib")
+                val ids = body["serviceIds"] ?: throw BadRequestException("serviceIds wajib")
+                val id = transaction {
+                    ServiceBundlesTable.insert {
+                        it[ServiceBundlesTable.name] = name
+                        it[description] = body["description"] ?: ""
+                        it[serviceIds] = ids
+                        it[discountPercent] = body["discountPercent"]?.toIntOrNull()?.coerceIn(0, 100) ?: 0
+                        it[isActive] = true
+                        it[createdAt] = OffsetDateTime.now()
+                    } get ServiceBundlesTable.id
+                }
+                call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            }
+            post("/promo-campaigns") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, String>>()
+                val code = body["code"] ?: throw BadRequestException("code wajib")
+                val id = transaction {
+                    PromoCampaignsTable.insert {
+                        it[PromoCampaignsTable.code] = code.trim().uppercase()
+                        it[discountType] = body["discountType"] ?: "NOMINAL"
+                        it[discountValue] = body["value"]?.toLongOrNull() ?: 0
+                        it[minTotal] = body["minTotal"]?.toLongOrNull() ?: 0
+                        it[maxDiscount] = body["maxDiscount"]?.toLongOrNull() ?: 0
+                        it[quota] = body["quota"]?.toIntOrNull() ?: 0
+                        it[used] = 0
+                        it[isActive] = true
+                        it[createdAt] = OffsetDateTime.now()
+                    } get PromoCampaignsTable.id
+                }
+                call.respond(HttpStatusCode.Created, mapOf("id" to id))
+            }
             post("/vouchers/issue") {
                 call.requireRole(Role.ADMIN)
                 val body = call.receive<Map<String, Long>>()
@@ -742,16 +794,17 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 }
                 get("/{id}/signatures") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
-                    call.respond(CommerceService.signatures(call.parameters["id"]!!.toLong()))
+                    call.respond(CommerceService.signatures(call.authUser().id, call.parameters["id"]!!.toLong()))
                 }
                 get("/{id}/checklist") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
-                    call.respond(CommerceService.checklist(call.parameters["id"]!!.toLong()))
+                    call.respond(CommerceService.checklist(call.authUser().id, call.parameters["id"]!!.toLong()))
                 }
                 post("/{id}/checklist/{itemId}") {
                     call.requireRole(Role.KONSUMEN, Role.TUKANG)
                     call.respond(CommerceService.updateChecklistItem(
-                        call.parameters["id"]!!.toLong(), call.parameters["itemId"]!!.toLong(), call.receive()
+                        call.authUser().id, call.parameters["id"]!!.toLong(),
+                        call.parameters["itemId"]!!.toLong(), call.receive()
                     ))
                 }
             }

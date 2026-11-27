@@ -115,6 +115,8 @@ data class CreateOrderRequest(
     val slotId: Long,
     val customTime: String? = null,
     val promoCode: String? = null,
+    val bundleId: Long? = null,
+    val voucherCode: String? = null,
     val photoUrls: List<String> = emptyList()
 )
 
