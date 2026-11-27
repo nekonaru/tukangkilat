@@ -71,6 +71,8 @@ object Routes {
     const val T_OPS = "technician/operations"
     const val A_CONTROL = "admin/control"
     const val A_PLATFORM = "admin/platform"
+    const val TRUST_CENTER = "trust"
+    const val A_TRUST = "admin/trust"
     const val C_CATALOG = "consumer/catalog"
     const val C_COMMERCE = "consumer/commerce"
     const val C_ORDER_NEW = "consumer/new"
@@ -287,7 +289,8 @@ fun TukangKilatApp(
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onBrowseTechnicians = { navController.navigate(Routes.C_TECHNICIANS) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
-                    onWallet = { navController.navigate(Routes.WALLET) }
+                    onWallet = { navController.navigate(Routes.WALLET) },
+                    onTrust = { navController.navigate(Routes.TRUST_CENTER) }
                 )
             }
             composable(Routes.C_TECHNICIANS) {
@@ -348,6 +351,8 @@ fun TukangKilatApp(
             composable(Routes.T_OPS) { OpsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_PLATFORM) { AdminPlatformScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.TRUST_CENTER) { TrustCenterScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.A_TRUST) { AdminTrustScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
                 ChatListScreen(
@@ -480,6 +485,7 @@ fun TukangKilatApp(
                     onNotifications = { navController.navigate(Routes.NOTIFICATIONS) },
                     onControl = { navController.navigate(Routes.A_CONTROL) },
                     onPlatform = { navController.navigate(Routes.A_PLATFORM) },
+                    onTrust = { navController.navigate(Routes.A_TRUST) },
                 )
             }
             composable(Routes.A_VERIFY) { AdminVerifyScreen(onBack = { navController.navigateUp() }) }

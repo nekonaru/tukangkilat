@@ -401,6 +401,130 @@ object WeeklyReportsTable : Table("weekly_reports") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object TrustedDevicesTable : Table("trusted_devices") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val deviceName = varchar("device_name", 120)
+    val deviceId = varchar("device_id", 120)
+    val trusted = bool("trusted")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val lastSeen = safeTimestampWithTimeZone("last_seen")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object UserSessionsTable : Table("user_sessions") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val deviceName = varchar("device_name", 120)
+    val ipAddress = varchar("ip_address", 64)
+    val startedAt = safeTimestampWithTimeZone("started_at")
+    val lastActive = safeTimestampWithTimeZone("last_active")
+    val revoked = bool("revoked")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ConsentsTable : Table("consents") {
+    val userId = long("user_id").references(UsersTable.id)
+    val kind = varchar("kind", 32)
+    val granted = bool("granted")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId, kind)
+}
+
+object UserBlocksTable : Table("user_blocks") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val blockedId = long("blocked_id").references(UsersTable.id)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object SosAlertsTable : Table("sos_alerts") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val orderId = long("order_id").references(OrdersTable.id).nullable()
+    val lat = double("lat")
+    val lng = double("lng")
+    val note = varchar("note", 255)
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val resolvedAt = safeTimestampWithTimeZone("resolved_at").nullable()
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AppLocksTable : Table("app_locks") {
+    val userId = long("user_id").references(UsersTable.id)
+    val pinHash = varchar("pin_hash", 128)
+    val enabled = bool("enabled")
+    val failedCount = integer("failed_count")
+    val lockedUntil = safeTimestampWithTimeZone("locked_until").nullable()
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object TwoFactorsTable : Table("two_factors") {
+    val userId = long("user_id").references(UsersTable.id)
+    val enabled = bool("enabled")
+    val otpCode = varchar("otp_code", 16)
+    val otpExpires = safeTimestampWithTimeZone("otp_expires").nullable()
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId)
+}
+
+object LoginAlertsTable : Table("login_alerts") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val deviceName = varchar("device_name", 120)
+    val ipAddress = varchar("ip_address", 64)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val isRead = bool("is_read")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object SubadminRolesTable : Table("subadmin_roles") {
+    val id = long("id").autoIncrement()
+    val adminId = long("admin_id").references(UsersTable.id)
+    val roleName = varchar("role_name", 48)
+    val permissions = varchar("permissions", 512)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object IncidentsTable : Table("incidents") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 32)
+    val title = varchar("title", 120)
+    val description = text("description")
+    val severity = varchar("severity", 16)
+    val status = varchar("status", 16)
+    val runbook = text("runbook")
+    val createdBy = long("created_by").references(UsersTable.id)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val resolvedAt = safeTimestampWithTimeZone("resolved_at").nullable()
+    override val primaryKey = PrimaryKey(id)
+}
+
+object RetentionPoliciesTable : Table("retention_policies") {
+    val code = varchar("code", 48)
+    val policyTable = varchar("policy_table", 64)
+    val days = integer("days")
+    val enabled = bool("enabled")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(code)
+}
+
+object BackupJobsTable : Table("backup_jobs") {
+    val id = long("id").autoIncrement()
+    val name = varchar("name", 120)
+    val frequency = varchar("frequency", 16)
+    val enabled = bool("enabled")
+    val lastRun = safeTimestampWithTimeZone("last_run").nullable()
+    val nextRun = safeTimestampWithTimeZone("next_run").nullable()
+    val createdBy = long("created_by").references(UsersTable.id)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object ProposalsTable : Table("proposals") {
     val id = long("id").autoIncrement()
     val consumerId = long("consumer_id")

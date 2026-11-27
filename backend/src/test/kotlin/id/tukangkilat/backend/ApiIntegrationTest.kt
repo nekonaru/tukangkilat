@@ -1761,4 +1761,108 @@ class ApiIntegrationTest {
         assertTrue(body.contains("migrations"))
     }
 
+
+    @Test
+    fun `trust devices sessions consent and pin work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+
+        val device = client.post("/consumer/trust/devices") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterDeviceRequest.serializer(), RegisterDeviceRequest("HP Rina", "device-rina-1")))
+        }
+        assertEquals(HttpStatusCode.Created, device.status, device.bodyAsText())
+        val devices = client.okGet("/consumer/trust/devices", consumer).bodyAsText()
+            .let { json.decodeFromString<List<TrustedDeviceDto>>(it) }
+        assertTrue(devices.any { it.deviceId == "device-rina-1" && it.trusted })
+
+        val session = client.post("/consumer/trust/sessions") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"deviceName\":\"HP Rina\",\"ipAddress\":\"127.0.0.1\"}")
+        }
+        assertEquals(HttpStatusCode.Created, session.status)
+        val sessionId = json.decodeFromString<SessionDto>(session.bodyAsText()).id
+        client.post("/consumer/trust/sessions/$sessionId/revoke") { bearer(consumer) }
+
+        val consent = client.put("/consumer/trust/consents") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveConsentRequest.serializer(), SaveConsentRequest("LOKASI", true)))
+        }
+        assertEquals(HttpStatusCode.OK, consent.status)
+        assertTrue(consent.bodyAsText().contains("LOKASI"))
+
+        val pin = client.put("/consumer/trust/app-lock") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SetPinRequest.serializer(), SetPinRequest("1234", true)))
+        }
+        assertEquals(HttpStatusCode.OK, pin.status)
+        val verified = client.post("/consumer/trust/app-lock/verify") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(VerifyPinRequest.serializer(), VerifyPinRequest("1234")))
+        }
+        assertEquals(HttpStatusCode.OK, verified.status)
+        assertTrue(verified.bodyAsText().contains("true"))
+
+        val otp = client.post("/consumer/trust/two-factor/request") { bearer(consumer) }
+        assertEquals(HttpStatusCode.OK, otp.status)
+        val code = json.decodeFromString<TwoFactorDto>(otp.bodyAsText()).otpCode
+        val enabled = client.post("/consumer/trust/two-factor/verify") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"code\":\"$code\"}")
+        }
+        assertEquals(HttpStatusCode.OK, enabled.status)
+        assertTrue(json.decodeFromString<TwoFactorDto>(enabled.bodyAsText()).enabled)
+    }
+
+    @Test
+    fun `sos and admin trust ops work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+
+        val sos = client.post("/consumer/trust/sos") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateSosRequest.serializer(), CreateSosRequest(null, -6.2, 106.8, "Butuh bantuan")))
+        }
+        assertEquals(HttpStatusCode.Created, sos.status, sos.bodyAsText())
+        val sosId = json.decodeFromString<SosAlertDto>(sos.bodyAsText()).id
+        val resolved = client.post("/admin/trust/sos/$sosId/resolve") { bearer(admin) }
+        assertEquals(HttpStatusCode.OK, resolved.status)
+
+        val incident = client.post("/admin/trust/incidents") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateIncidentRequest.serializer(),
+                CreateIncidentRequest("Gangguan SMS", "Notifikasi simulasi gagal", "MEDIUM", "Periksa server")
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, incident.status)
+        val incidentId = json.decodeFromString<IncidentDto>(incident.bodyAsText()).id
+        val closed = client.post("/admin/trust/incidents/$incidentId/resolve") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"note\":\"Sudah diperbaiki\"}")
+        }
+        assertEquals(HttpStatusCode.OK, closed.status)
+
+        val backup = client.post("/admin/trust/backups") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveBackupJobRequest.serializer(), SaveBackupJobRequest("Cadangan harian", "HARIAN", true)))
+        }
+        assertEquals(HttpStatusCode.Created, backup.status)
+        val backupId = json.decodeFromString<BackupJobDto>(backup.bodyAsText()).id
+        val run = client.post("/admin/trust/backups/$backupId/run") { bearer(admin) }
+        assertEquals(HttpStatusCode.OK, run.status)
+        assertTrue(json.decodeFromString<BackupJobDto>(run.bodyAsText()).lastRun != null)
+    }
+
 }

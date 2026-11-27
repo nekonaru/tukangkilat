@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 6
+    private const val VERSION = 7
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -38,7 +38,10 @@ object DatabaseTransfer {
         "tech_documents", "service_areas", "auto_accept_rules", "checkins", "job_materials",
         "tech_badges", "chat_templates", "leave_requests", "work_journals", "equipment_items",
         "feature_flags", "content_pages", "scheduled_broadcasts", "review_reports", "sla_policies",
-        "sla_breaches", "admin_notes", "weekly_reports"
+        "sla_breaches", "admin_notes", "weekly_reports",
+        "trusted_devices", "user_sessions", "consents", "user_blocks", "sos_alerts",
+        "app_locks", "two_factors", "login_alerts", "subadmin_roles", "incidents",
+        "retention_policies", "backup_jobs"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */

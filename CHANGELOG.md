@@ -4,6 +4,19 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Pusat kepercayaan**: perangkat terpercaya, sesi aktif dengan pencabutan, notifikasi login, persetujuan, dan pemblokiran pengguna.
+- **Kunci aplikasi**: PIN perangkat dengan pembatasan percobaan dan penguncian sementara.
+- **Verifikasi dua langkah simulasi**: kode sekali pakai yang dibuat lokal dengan masa berlaku.
+- **Sinyal darurat**: SOS dari konsumen atau teknisi dengan antrean penyelesaian admin.
+- **Kode kunjungan aman**: kode verifikasi untuk pesanan terjadwal.
+- **Kontrol privasi**: ringkasan data pribadi, ekspor JSON, dan penghapusan data privasi lokal.
+- **Kepercayaan admin**: antrean SOS, insiden dengan runbook, peran sub-admin, kebijakan retensi, dan jadwal cadangan.
+- Migrasi V13 mendukung tabel baru dan ikut dalam ekspor serta impor.
+
 ## [4.3.0] - 2026-11-27
 
 ### Ditambahkan
@@ -439,6 +452,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0
 [4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
 [4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0

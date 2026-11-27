@@ -73,6 +73,88 @@ interface ApiService {
     suspend fun services(): List<ServiceDto>
 
     // ----- v4 commerce -----
+
+    // ----- v5 trust -----
+    @GET("/consumer/trust/devices")
+    suspend fun trustedDevices(): List<TrustedDeviceDto>
+
+    @POST("/consumer/trust/devices")
+    suspend fun registerDevice(@Body req: RegisterDeviceRequest): TrustedDeviceDto
+
+    @PUT("/consumer/trust/devices/{id}")
+    suspend fun setDeviceTrust(@Path("id") id: Long, @Body req: Map<String, Boolean>): Map<String, String>
+
+    @DELETE("/consumer/trust/devices/{id}")
+    suspend fun removeDevice(@Path("id") id: Long)
+
+    @GET("/consumer/trust/sessions")
+    suspend fun sessions(): List<SessionDto>
+
+    @POST("/consumer/trust/sessions")
+    suspend fun recordSession(@Body req: Map<String, String>): SessionDto
+
+    @POST("/consumer/trust/sessions/{id}/revoke")
+    suspend fun revokeSession(@Path("id") id: Long): Map<String, String>
+
+    @GET("/consumer/trust/consents")
+    suspend fun consents(): List<ConsentDto>
+
+    @PUT("/consumer/trust/consents")
+    suspend fun saveConsent(@Body req: SaveConsentRequest): ConsentDto
+
+    @GET("/consumer/trust/blocks")
+    suspend fun blocks(): List<BlockDto>
+
+    @POST("/consumer/trust/blocks")
+    suspend fun blockUser(@Body req: Map<String, Long>): BlockDto
+
+    @DELETE("/consumer/trust/blocks/{id}")
+    suspend fun unblockUser(@Path("id") id: Long)
+
+    @GET("/consumer/trust/login-alerts")
+    suspend fun loginAlerts(): List<LoginAlertDto>
+
+    @POST("/consumer/trust/login-alerts/{id}/read")
+    suspend fun markAlertRead(@Path("id") id: Long): Map<String, String>
+
+    @POST("/consumer/trust/sos")
+    suspend fun createSos(@Body req: CreateSosRequest): SosAlertDto
+
+    @GET("/consumer/trust/sos")
+    suspend fun sosAlerts(): List<SosAlertDto>
+
+    @GET("/consumer/trust/safe-visit/{orderId}")
+    suspend fun safeVisit(@Path("orderId") orderId: Long): SafeVisitDto
+
+    @GET("/consumer/trust/app-lock")
+    suspend fun appLock(): AppLockDto
+
+    @PUT("/consumer/trust/app-lock")
+    suspend fun setPin(@Body req: SetPinRequest): AppLockDto
+
+    @POST("/consumer/trust/app-lock/verify")
+    suspend fun verifyPin(@Body req: VerifyPinRequest): Map<String, Boolean>
+
+    @GET("/consumer/trust/two-factor")
+    suspend fun twoFactor(): TwoFactorDto
+
+    @POST("/consumer/trust/two-factor/request")
+    suspend fun requestOtp(): TwoFactorDto
+
+    @POST("/consumer/trust/two-factor/verify")
+    suspend fun verifyOtp(@Body req: Map<String, String>): TwoFactorDto
+
+    @DELETE("/consumer/trust/two-factor")
+    suspend fun disableTwoFactor(): Map<String, String>
+
+    @GET("/consumer/trust/privacy")
+    suspend fun privacySnapshot(): PrivacySnapshotDto
+
+    @GET("/consumer/trust/privacy/export")
+    suspend fun exportPrivacyData(): String
+
+    @DELETE("/consumer/trust/privacy")
+    suspend fun deletePrivacyData(): Map<String, String>
     @GET("/consumer/categories")
     suspend fun categories(): List<ServiceCategoryDto>
 
@@ -488,6 +570,43 @@ interface ApiService {
 
 
 
+
+    // ----- v5 trust admin -----
+    @GET("/admin/trust/sos")
+    suspend fun adminSos(@Query("status") status: String? = null): List<SosAlertDto>
+
+    @POST("/admin/trust/sos/{id}/resolve")
+    suspend fun resolveSos(@Path("id") id: Long): Map<String, String>
+
+    @GET("/admin/trust/subadmins")
+    suspend fun subadmins(): List<SubadminDto>
+
+    @POST("/admin/trust/subadmins")
+    suspend fun saveSubadmin(@Body req: SaveSubadminRequest): SubadminDto
+
+    @GET("/admin/trust/incidents")
+    suspend fun incidents(@Query("status") status: String? = null): List<IncidentDto>
+
+    @POST("/admin/trust/incidents")
+    suspend fun createIncident(@Body req: CreateIncidentRequest): IncidentDto
+
+    @POST("/admin/trust/incidents/{id}/resolve")
+    suspend fun resolveIncident(@Path("id") id: Long, @Body req: Map<String, String>): Map<String, String>
+
+    @GET("/admin/trust/retention")
+    suspend fun retentionPolicies(): List<RetentionDto>
+
+    @PUT("/admin/trust/retention/{code}")
+    suspend fun saveRetention(@Path("code") code: String, @Body req: SaveRetentionRequest): RetentionDto
+
+    @GET("/admin/trust/backups")
+    suspend fun backupJobs(): List<BackupJobDto>
+
+    @POST("/admin/trust/backups")
+    suspend fun saveBackupJob(@Body req: SaveBackupJobRequest): BackupJobDto
+
+    @POST("/admin/trust/backups/{id}/run")
+    suspend fun runBackupJob(@Path("id") id: Long): BackupJobDto
     @GET("/admin/technician-documents")
     suspend fun adminDocuments(@Query("status") status: String? = null): List<TechDocumentDto>
 
