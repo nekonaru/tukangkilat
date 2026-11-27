@@ -2040,4 +2040,45 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.OK, store.status)
     }
 
+
+    @Test
+    fun `platform quality sync keys limits versions and jobs work`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+
+        val queued = client.post("/consumer/quality/sync") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(QueueSyncRequest.serializer(), QueueSyncRequest("ORDER", "1", "UPDATE", "{}")))
+        }
+        assertEquals(HttpStatusCode.Created, queued.status)
+        val result = client.post("/consumer/quality/sync/process") { bearer(consumer) }
+        assertEquals(HttpStatusCode.OK, result.status)
+        assertEquals(1, json.decodeFromString<SyncResultDto>(result.bodyAsText()).processed)
+
+        val key = client.post("/consumer/quality/chat-key") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody("{\"publicKey\":\"demo-public-key\"}")
+        }
+        assertEquals(HttpStatusCode.Created, key.status)
+        assertTrue(json.decodeFromString<ChatKeyDto>(key.bodyAsText()).fingerprint.isNotBlank())
+
+        val limit = client.put("/admin/quality/rate-limits/LOGIN") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"maxCalls\":30,\"windowSeconds\":60,\"enabled\":true}")
+        }
+        assertEquals(HttpStatusCode.OK, limit.status)
+        val versions = client.okGet("/admin/quality/api-versions", admin).bodyAsText()
+            .let { json.decodeFromString<List<ApiVersionDto>>(it) }
+        assertTrue(versions.any { it.version == "v1" })
+        val jobs = client.okGet("/admin/quality/jobs", admin).bodyAsText()
+            .let { json.decodeFromString<List<ScheduledJobDto>>(it) }
+        assertTrue(jobs.any { it.code == "DISPATCH" })
+        val run = client.post("/admin/quality/jobs/DISPATCH/run") { bearer(admin) }
+        assertEquals(HttpStatusCode.OK, run.status)
+    }
+
 }

@@ -157,6 +157,49 @@ interface ApiService {
     suspend fun deletePrivacyData(): Map<String, String>
 
     // ----- v5 marketplace -----
+
+    // ----- v5 platform quality -----
+    @POST("/consumer/quality/sync")
+    suspend fun queueSync(@Body req: QueueSyncRequest): SyncOperationDto
+
+    @GET("/consumer/quality/sync")
+    suspend fun syncOperations(): List<SyncOperationDto>
+
+    @POST("/consumer/quality/sync/process")
+    suspend fun processSync(): SyncResultDto
+
+    @GET("/consumer/quality/chat-key")
+    suspend fun chatKeys(): List<ChatKeyDto>
+
+    @POST("/consumer/quality/chat-key")
+    suspend fun generateKey(@Body req: GenerateKeyRequest): ChatKeyDto
+
+    @GET("/consumer/quality/widgets")
+    suspend fun widgets(): List<WidgetConfigDto>
+
+    @PUT("/consumer/quality/widgets")
+    suspend fun saveWidget(@Body req: SaveWidgetRequest): Map<String, String>
+
+    @GET("/admin/quality/rate-limits")
+    suspend fun rateLimits(): List<RateLimitDto>
+
+    @PUT("/admin/quality/rate-limits/{code}")
+    suspend fun saveRateLimit(@Path("code") code: String, @Body req: SaveRateLimitRequest): RateLimitDto
+
+    @GET("/admin/quality/api-versions")
+    suspend fun apiVersions(): List<ApiVersionDto>
+
+    @PUT("/admin/quality/api-versions/{version}")
+    suspend fun saveApiVersion(@Path("version") version: String, @Body req: SaveApiVersionRequest): ApiVersionDto
+
+    @GET("/admin/quality/jobs")
+    suspend fun scheduledJobs(): List<ScheduledJobDto>
+
+    @POST("/admin/quality/jobs")
+    suspend fun saveJob(@Body req: SaveJobRequest): ScheduledJobDto
+
+    @POST("/admin/quality/jobs/{code}/run")
+    suspend fun runJob(@Path("code") code: String): ScheduledJobDto
     @GET("/consumer/market/bundles")
     suspend fun marketBundles(): List<CustomBundleDto>
 

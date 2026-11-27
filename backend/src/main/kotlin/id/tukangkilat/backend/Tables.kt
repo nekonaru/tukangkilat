@@ -794,6 +794,68 @@ object StorefrontsTable : Table("storefronts") {
     override val primaryKey = PrimaryKey(technicianId)
 }
 
+object SyncOperationsTable : Table("sync_operations") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val entity = varchar("entity", 64)
+    val entityId = varchar("entity_id", 64)
+    val operation = varchar("operation", 16)
+    val payload = text("payload")
+    val version = integer("version")
+    val status = varchar("status", 16)
+    val conflict = bool("conflict")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    val syncedAt = safeTimestampWithTimeZone("synced_at").nullable()
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ChatKeysTable : Table("chat_keys") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id)
+    val publicKey = varchar("public_key", 512)
+    val fingerprint = varchar("fingerprint", 64)
+    val active = bool("active")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object RateLimitsTable : Table("rate_limits") {
+    val code = varchar("code", 64)
+    val maxCalls = integer("max_calls")
+    val windowSeconds = integer("window_sec")
+    val enabled = bool("enabled")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(code)
+}
+
+object ApiVersionsTable : Table("api_versions") {
+    val version = varchar("version", 16)
+    val status = varchar("status", 16)
+    val note = varchar("note", 255)
+    val releasedAt = safeTimestampWithTimeZone("released_at")
+    override val primaryKey = PrimaryKey(version)
+}
+
+object WidgetConfigsTable : Table("widget_configs") {
+    val userId = long("user_id").references(UsersTable.id)
+    val widgetType = varchar("widget_type", 48)
+    val enabled = bool("enabled")
+    val position = integer("position")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(userId, widgetType)
+}
+
+object ScheduledJobsTable : Table("scheduled_jobs") {
+    val id = long("id").autoIncrement()
+    val code = varchar("code", 64)
+    val name = varchar("name", 120)
+    val intervalMs = long("interval_ms")
+    val enabled = bool("enabled")
+    val lastRun = safeTimestampWithTimeZone("last_run").nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object ProposalsTable : Table("proposals") {
     val id = long("id").autoIncrement()
     val consumerId = long("consumer_id")

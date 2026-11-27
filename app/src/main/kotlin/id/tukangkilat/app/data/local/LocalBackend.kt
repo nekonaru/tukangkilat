@@ -51,7 +51,8 @@ object LocalBackend {
         12 to "V12__platform_admin.sql",
         13 to "V13__trust_identity.sql",
         14 to "V14__marketplace.sql",
-        15 to "V15__tech_economy.sql"
+        15 to "V15__tech_economy.sql",
+        16 to "V16__platform_quality.sql"
     )
 
     private var server: EmbeddedServer<*, *>? = null

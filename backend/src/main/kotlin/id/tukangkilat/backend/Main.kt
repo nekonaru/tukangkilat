@@ -99,8 +99,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "5.2.0",
-                "migrations" to "15"
+                "version" to "5.3.0",
+                "migrations" to "16"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -372,6 +372,37 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     val orderId = call.parameters["id"]!!.toLong()
                     val body = call.receive<SendMessageRequest>()
                     call.respond(HttpStatusCode.Created, sendMessage(orderId, call.authUser(), body))
+                }
+                // ---------- v5 platform quality ----------
+                post("/quality/sync") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(HttpStatusCode.Created, PlatformQualityService.queue(call.authUser().id, call.receive()))
+                }
+                get("/quality/sync") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(PlatformQualityService.operations(call.authUser().id))
+                }
+                post("/quality/sync/process") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(PlatformQualityService.processSync(call.authUser().id))
+                }
+                get("/quality/chat-key") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(PlatformQualityService.chatKeys(call.authUser().id))
+                }
+                post("/quality/chat-key") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    val body = call.receive<GenerateKeyRequest>()
+                    call.respond(HttpStatusCode.Created, PlatformQualityService.generateKey(call.authUser().id, body.publicKey))
+                }
+                get("/quality/widgets") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    call.respond(PlatformQualityService.widgets(call.authUser().id))
+                }
+                put("/quality/widgets") {
+                    call.requireRole(Role.KONSUMEN, Role.TUKANG)
+                    PlatformQualityService.saveWidget(call.authUser().id, call.receive())
+                    call.respond(mapOf("status" to "ok"))
                 }
                 // ---------- v5 marketplace ----------
                 get("/market/bids/{orderId}") {
@@ -1151,6 +1182,25 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             post("/trust/backups/{id}/run") {
                 call.requireRole(Role.ADMIN)
                 call.respond(TrustService.runBackupJob(call.authUser().id, call.parameters["id"]!!.toLong()))
+            }
+            get("/quality/rate-limits") { call.requireRole(Role.ADMIN); call.respond(PlatformQualityService.rateLimits()) }
+            put("/quality/rate-limits/{code}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformQualityService.saveRateLimit(call.parameters["code"]!!, call.receive()))
+            }
+            get("/quality/api-versions") { call.requireRole(Role.ADMIN); call.respond(PlatformQualityService.apiVersions()) }
+            put("/quality/api-versions/{version}") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformQualityService.saveApiVersion(call.parameters["version"]!!, call.receive()))
+            }
+            get("/quality/jobs") { call.requireRole(Role.ADMIN); call.respond(PlatformQualityService.jobs()) }
+            post("/quality/jobs") {
+                call.requireRole(Role.ADMIN)
+                call.respond(HttpStatusCode.Created, PlatformQualityService.saveJob(call.receive()))
+            }
+            post("/quality/jobs/{code}/run") {
+                call.requireRole(Role.ADMIN)
+                call.respond(PlatformQualityService.runJob(call.parameters["code"]!!))
             }
             get("/market/summary") { call.requireRole(Role.ADMIN); call.respond(MarketplaceService.summary()) }
             get("/market/ledger") { call.requireRole(Role.ADMIN); call.respond(MarketplaceService.ledger()) }
