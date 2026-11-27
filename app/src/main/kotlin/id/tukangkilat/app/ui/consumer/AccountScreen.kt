@@ -196,6 +196,7 @@ fun AccountScreen(
     onWallet: () -> Unit = {},
     onTrust: () -> Unit = {},
     onMarket: () -> Unit = {},
+    onQuality: () -> Unit = {},
     onBrowseTechnicians: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
@@ -257,6 +258,7 @@ fun AccountScreen(
                     SectionRow(Icons.Filled.AccountBalanceWallet, "Dompet & langganan", onClick = onWallet)
                     SectionRow(Icons.Filled.Lock, "Pusat kepercayaan", onClick = onTrust)
                     SectionRow(Icons.Filled.LocalOffer, "Pasar", onClick = onMarket)
+                    SectionRow(Icons.Filled.Build, "Kualitas platform", onClick = onQuality)
                     SectionLabel("Akun")
                     SectionRow(Icons.Filled.Lock, "Ubah password") { showPasswordDialog = true }
                     SectionRow(Icons.Filled.Place, "Kelola alamat (${state.addresses.size})") { showAddressDialog = true }

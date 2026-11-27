@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2026-11-28
+
+### Added
+
+- **Offline sync**: queued operations with server-wins conflict detection and a manual sync action.
+- **Simulated chat keys**: local key generation with a fingerprint for demo encryption flows.
+- **Widgets**: configurable home widgets per user.
+- **Admin platform quality**: rate limit settings, API version management and scheduled job controls.
+- Migration V16 backs the new tables and is included in export/import.
+- Final consolidation of the v5 plan.
+
 ## [5.2.0] - 2026-11-28
 
 ### Added
@@ -476,6 +487,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[5.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.3.0
 [5.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.2.0
 [5.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.1.0
 [5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
