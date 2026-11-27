@@ -66,7 +66,9 @@ class SettingsViewModel @Inject constructor(
     fun setServer(url: String) = viewModelScope.launch {
         serverConfig.save(url)
         BaseUrlInterceptor.invalidate()
-        _state.value = _state.value.copy(message = "Alamat server disimpan")
+        _state.value = _state.value.copy(
+            message = "Alamat server disimpan", serverInfo = emptyMap(), faq = null, connection = null
+        )
     }
 
     fun clearMessage() { _state.value = _state.value.copy(message = null) }

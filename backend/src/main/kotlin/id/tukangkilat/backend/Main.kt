@@ -97,7 +97,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         get("/server-info") {
             call.respond(mapOf(
                 "status" to "ok",
-                "mode" to if (config.startDispatcher) "embedded" else "lan",
+                "mode" to if (config.h2InMemory) "embedded" else "lan",
                 "version" to "4.3.0",
                 "migrations" to "12"
             ))

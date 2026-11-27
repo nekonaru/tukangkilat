@@ -62,7 +62,16 @@ object PlatformService {
     fun publicContent(code: String): ContentDto = transaction {
         val row = ContentPagesTable.selectAll().where {
             (ContentPagesTable.code eq code) and (ContentPagesTable.isActive eq true)
-        }.singleOrNull() ?: throw NotFoundException("Konten tidak ditemukan")
+        }.singleOrNull()
+        if (row == null && code == "faq") {
+            return@transaction ContentDto(
+                "faq", "FAQ",
+                "Pilih layanan di Beranda, isi detail dan alamat, lalu bayar. Teknisi akan diispatch otomatis.\n" +
+                    "Pastikan teknisi online dan izin lokasi aktif.\n" +
+                    "Untuk server LAN, jalankan start-lan-server.bat lalu isi alamat IP di Pengaturan."
+            )
+        }
+        if (row == null) throw NotFoundException("Konten tidak ditemukan")
         ContentDto(row[ContentPagesTable.code], row[ContentPagesTable.title], row[ContentPagesTable.body])
     }
 

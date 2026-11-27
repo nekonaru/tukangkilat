@@ -111,7 +111,7 @@ class WalletViewModel @Inject constructor(private val api: ApiService) : ViewMod
 }
 
 @Composable
-fun WalletScreen(onBack: () -> Unit, viewModel: WalletViewModel = hiltViewModel()) {
+fun WalletScreen(onBack: () -> Unit, promoCode: String? = null, viewModel: WalletViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(Unit) { viewModel.refresh() }
@@ -123,6 +123,12 @@ fun WalletScreen(onBack: () -> Unit, viewModel: WalletViewModel = hiltViewModel(
         topBar = { TKTopAppBar("Dompet & Langganan", onBack = onBack, showBell = false) }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
+            promoCode?.takeIf { it.isNotBlank() }?.let { code ->
+                TKCard {
+                    Text("Kode promo dari tautan: $code", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    Text("Gunakan kode ini saat memesan layanan.", style = MaterialTheme.typography.bodySmall)
+                }
+            }
             TabRow(selectedTabIndex = state.tab) {
                 Tab(selected = state.tab == 0, onClick = { viewModel.tab(0) }, text = { Text("Dompet") })
                 Tab(selected = state.tab == 1, onClick = { viewModel.tab(1) }, text = { Text("Langganan") })

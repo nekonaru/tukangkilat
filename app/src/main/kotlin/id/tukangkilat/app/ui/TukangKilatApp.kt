@@ -338,7 +338,12 @@ fun TukangKilatApp(
             composable(Routes.C_COMMERCE) { CommerceScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.WALLET, deepLinks = listOf(
                 NavDeepLink.Builder().setUriPattern("tukangkilat://promo/{code}").build()
-            )) { WalletScreen(onBack = { navController.navigateUp() }) }
+            )) { entry ->
+                WalletScreen(
+                    onBack = { navController.navigateUp() },
+                    promoCode = entry.arguments?.getString("code")
+                )
+            }
             composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.T_OPS) { OpsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
