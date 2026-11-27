@@ -17,6 +17,9 @@ interface ApiService {
     @GET("/health")
     suspend fun health(): Map<String, String>
 
+    @GET("/server-info")
+    suspend fun serverInfo(): Map<String, String>
+
     // ----- Auth -----
     @POST("/auth/register")
     suspend fun register(@Body req: RegisterRequest): LoginResponse
