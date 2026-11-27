@@ -114,10 +114,14 @@ object DispatchService {
             }
         }
         if (inserted) {
-            if (createdOfferId != null && TechnicianOpsService.shouldAutoAccept(next, orderId)) {
-                runCatching { TechnicianService.acceptOffer(next, createdOfferId!!) }
-            }
             WsHub.sendTo(next, WsEvent(WsEventType.OFFER_NEW, orderId))
+            if (createdOfferId != null && TechnicianOpsService.shouldAutoAccept(next, orderId)) {
+                try {
+                    TechnicianService.acceptOffer(next, createdOfferId!!)
+                } catch (_: Exception) {
+                    // The offer stays pending so the technician can accept it manually.
+                }
+            }
         }
     }
 
@@ -193,6 +197,10 @@ object DispatchService {
                         (AvailabilityBlocksTable.technicianId eq techId) and
                             (AvailabilityBlocksTable.blockDate eq scheduledDate)
                     }.none()
+                }
+                .filter { row ->
+                    // v4 documents and approved leaves gate dispatch
+                    TechnicianOpsService.canDispatch(row[UsersTable.id], scheduledDate)
                 }
                 .filter { row ->
                     // v4 service areas can exclude a technician from this location

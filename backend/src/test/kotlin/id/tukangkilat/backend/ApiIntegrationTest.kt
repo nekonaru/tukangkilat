@@ -1606,6 +1606,31 @@ class ApiIntegrationTest {
         val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
             .let { json.decodeFromString<List<SlotDto>>(it).first().id }
         val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+        val ownerId = transaction {
+            val id = UsersTable.selectAll().where { UsersTable.username eq "budi" }.single()[UsersTable.id]
+            OrdersTable.update({ OrdersTable.id eq orderId }) {
+                it[technicianId] = id
+                it[status] = OrderStatus.DALAM_PERJALANAN.name
+            }
+            id
+        }
+        val owner = client.loginToken("budi", "budi12345")
+        val address = transaction {
+            val addressIdRow = OrdersTable.selectAll().where { OrdersTable.id eq orderId }.single()[OrdersTable.addressId]
+            val row = AddressesTable.selectAll().where { AddressesTable.id eq addressIdRow }.single()
+            row[AddressesTable.lat] to row[AddressesTable.lng]
+        }
+        val success = client.post("/technician/orders/$orderId/checkin") {
+            bearer(owner)
+            contentType(ContentType.Application.Json)
+            setBody("{\"kind\":\"DATANG\",\"lat\":${address.first},\"lng\":${address.second}}")
+        }
+        assertEquals(HttpStatusCode.OK, success.status, success.bodyAsText())
+        val history = client.okGet("/technician/orders/$orderId/checkins", owner).bodyAsText()
+            .let { json.decodeFromString<List<CheckinDto>>(it) }
+        assertTrue(history.any { it.kind == "DATANG" })
+        val historyForbidden = client.get("/technician/orders/$orderId/checkins") { bearer(outsider) }
+        assertEquals(HttpStatusCode.Forbidden, historyForbidden.status)
 
         val forbidden = client.post("/technician/orders/$orderId/checkin") {
             bearer(outsider)
@@ -1613,6 +1638,7 @@ class ApiIntegrationTest {
             setBody("{\"kind\":\"DATANG\",\"lat\":-6.26,\"lng\":106.80}")
         }
         assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+        assertTrue(ownerId > 0)
         val materialForbidden = client.post("/technician/materials") {
             bearer(outsider)
             contentType(ContentType.Application.Json)

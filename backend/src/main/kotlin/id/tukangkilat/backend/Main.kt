@@ -604,7 +604,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             }
             get("/orders/{id}/checkins") {
                 call.requireRole(Role.TUKANG)
-                call.respond(TechnicianOpsService.checkins(call.parameters["id"]!!.toLong()))
+                call.respond(TechnicianOpsService.checkins(call.authUser().id, call.parameters["id"]!!.toLong()))
             }
             get("/materials") {
                 call.requireRole(Role.TUKANG)
@@ -736,6 +736,24 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.respond(TechnicianOpsService.verifyDocument(
                     call.authUser().id, call.parameters["id"]!!.toLong(), body.approve, body.note
                 ))
+            }
+            get("/technician-leaves") {
+                call.requireRole(Role.ADMIN)
+                call.respond(transaction {
+                    LeaveRequestsTable.selectAll().orderBy(LeaveRequestsTable.createdAt to SortOrder.DESC)
+                        .limit(100).map {
+                            LeaveDto(it[LeaveRequestsTable.id], it[LeaveRequestsTable.startDate].toString(),
+                                it[LeaveRequestsTable.endDate].toString(), it[LeaveRequestsTable.reason], it[LeaveRequestsTable.status])
+                        }
+                })
+            }
+            post("/technician-leaves/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, Boolean>>()
+                TechnicianOpsService.resolveLeave(
+                    call.authUser().id, call.parameters["id"]!!.toLong(), body["approve"] ?: false
+                )
+                call.respond(mapOf("status" to "ok"))
             }
             get("/refunds") {
                 call.requireRole(Role.ADMIN)

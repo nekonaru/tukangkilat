@@ -566,6 +566,7 @@ object JobOffersTable : Table("job_offers") {
     val status = varchar("status", 16)
     val expiresAt = safeTimestampWithTimeZone("expires_at")
     val rejectReason = varchar("reject_reason", 255).nullable()
+    val respondedAt = safeTimestampWithTimeZone("responded_at").nullable()
     val isRevisit = bool("is_revisit").default(false)
     val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)

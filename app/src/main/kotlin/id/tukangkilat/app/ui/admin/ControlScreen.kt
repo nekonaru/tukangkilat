@@ -44,7 +44,8 @@ data class ControlUiState(
     val body: String = "",
     val notice: String? = null,
     val voucherConsumer: String = "",
-    val voucherAmount: String = ""
+    val voucherAmount: String = "",
+    val documents: List<TechDocumentDto> = emptyList()
 )
 
 @HiltViewModel
@@ -63,7 +64,8 @@ class ControlViewModel @Inject constructor(private val api: ApiService) : ViewMo
                     audit = runCatching { api.auditLogs() }.getOrDefault(emptyList()),
                     announcements = runCatching { api.announcements() }.getOrDefault(emptyList()),
                     configs = runCatching { api.systemConfigs() }.getOrDefault(emptyList()),
-                    messageReports = runCatching { api.messageReports() }.getOrDefault(emptyList())
+                    messageReports = runCatching { api.messageReports() }.getOrDefault(emptyList()),
+                    documents = runCatching { api.adminDocuments("MENUNGGU") }.getOrDefault(emptyList())
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
@@ -173,6 +175,16 @@ class ControlViewModel @Inject constructor(private val api: ApiService) : ViewMo
         }
     }
 
+    fun verifyDocument(id: Long, approve: Boolean) {
+        viewModelScope.launch {
+            try {
+                api.verifyDocument(id, VerifyDocumentRequest(approve, ""))
+                _state.value = _state.value.copy(notice = "Dokumen diverifikasi")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -191,7 +203,7 @@ fun ControlScreen(onBack: () -> Unit, viewModel: ControlViewModel = hiltViewMode
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ScrollableTabRow(selectedTabIndex = state.tab) {
-                listOf("Sengketa", "Peringkat", "Audit", "Siaran", "Konfigurasi", "Laporan", "Ekspor", "Voucher").forEachIndexed { i, title ->
+                listOf("Sengketa", "Peringkat", "Audit", "Siaran", "Konfigurasi", "Laporan", "Ekspor", "Voucher", "Dokumen").forEachIndexed { i, title ->
                     Tab(selected = state.tab == i, onClick = { viewModel.tab(i) }, text = { Text(title) })
                 }
             }
@@ -261,11 +273,23 @@ fun ControlScreen(onBack: () -> Unit, viewModel: ControlViewModel = hiltViewMode
                     TKButton("Ekspor dompet (CSV)", { viewModel.exportCsv(context, "wallet") }, variant = TKButtonVariant.Tonal)
                     Text("Berkas dibuka lewat aplikasi pembagian yang tersedia.", style = MaterialTheme.typography.bodySmall)
                 }
-                else -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm), verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                state.tab == 7 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm), verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
                     Text("Terbitkan voucher untuk konsumen.", style = MaterialTheme.typography.bodySmall)
                     TKOutlinedField(state.voucherConsumer, { viewModel.onVoucher("consumer", it) }, label = "ID konsumen")
                     TKOutlinedField(state.voucherAmount, { viewModel.onVoucher("amount", it) }, label = "Nominal voucher")
                     TKButton("Terbitkan voucher", viewModel::issueVoucher, variant = TKButtonVariant.Tonal)
+                }
+                else -> LazyColumn(Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm)) {
+                    items(state.documents, key = { it.id }) { doc ->
+                        Column(Modifier.padding(vertical = TKSpacing.Xs)) {
+                            Text("Dokumen #${doc.id} · teknisi ${doc.docType}")
+                            Text("Status ${doc.status} · ${doc.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
+                            Row(horizontalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                                TKButton("Setujui", { viewModel.verifyDocument(doc.id, true) }, variant = TKButtonVariant.Tonal)
+                                TKButton("Tolak", { viewModel.verifyDocument(doc.id, false) }, variant = TKButtonVariant.Outlined)
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -482,6 +482,12 @@ interface ApiService {
     @POST("/admin/technician-documents/{id}/verify")
     suspend fun verifyDocument(@Path("id") id: Long, @Body req: VerifyDocumentRequest): TechDocumentDto
 
+    @GET("/admin/technician-leaves")
+    suspend fun adminLeaves(): List<LeaveDto>
+
+    @POST("/admin/technician-leaves/{id}/resolve")
+    suspend fun resolveLeave(@Path("id") id: Long, @Body req: Map<String, Boolean>): Map<String, String>
+
     @GET("/admin/refunds")
     suspend fun adminRefunds(): List<RefundRequestDto>
 

@@ -24,17 +24,18 @@ object TechnicianOpsService {
 
     fun addDocument(technicianId: Long, req: AddDocumentRequest): TechDocumentDto = transaction {
         if (req.docType.isBlank() || req.fileUrl.isBlank()) throw BadRequestException("Jenis dan berkas wajib")
-        if (req.fileUrl.length > 512) throw BadRequestException("URL berkas terlalu panjang")
+        if (req.docType.trim().length > 32 || req.fileUrl.length > 512) throw BadRequestException("Data dokumen terlalu panjang")
+        val normalizedType = req.docType.trim().uppercase()
         val expires = req.expiresAt?.takeIf { it.isNotBlank() }?.let {
             try { LocalDate.parse(it) } catch (e: Exception) { throw BadRequestException("Format tanggal tidak valid") }
         }
         val existing = TechDocumentsTable.selectAll().where {
-            (TechDocumentsTable.technicianId eq technicianId) and (TechDocumentsTable.docType eq req.docType)
+            (TechDocumentsTable.technicianId eq technicianId) and (TechDocumentsTable.docType eq normalizedType)
         }.singleOrNull()
         val id = if (existing == null) {
             TechDocumentsTable.insert {
                 it[this.technicianId] = technicianId
-                it[docType] = req.docType.trim().uppercase()
+                it[docType] = normalizedType
                 it[fileUrl] = req.fileUrl.trim()
                 it[this.expiresAt] = expires
                 it[status] = "MENUNGGU"
@@ -74,8 +75,7 @@ object TechnicianOpsService {
         val limit = LocalDate.now().plusDays(30)
         TechDocumentsTable.selectAll().where {
             (TechDocumentsTable.technicianId eq technicianId) and
-                (TechDocumentsTable.expiresAt lessEq limit) and
-                (TechDocumentsTable.expiresAt greaterEq LocalDate.now())
+                (TechDocumentsTable.expiresAt lessEq limit)
         }.map(::documentDto)
     }
 
@@ -167,8 +167,22 @@ object TechnicianOpsService {
         if (!rule.enabled) return@transaction false
         val order = OrderQueries.loadOrderRow(orderId)
         if (order[OrdersTable.total] < rule.minPrice) return@transaction false
-        if (rule.serviceIds.isNotBlank() && order[OrdersTable.serviceId].toString() !in rule.serviceIds.split(",")) {
+        if (rule.serviceIds.isNotBlank() && order[OrdersTable.serviceId].toString() !in
+            rule.serviceIds.split(",").map { it.trim() }) {
             return@transaction false
+        }
+        val tech = TechnicianProfilesTable.selectAll()
+            .where { TechnicianProfilesTable.userId eq technicianId }.singleOrNull()
+        if (tech?.get(TechnicianProfilesTable.lastLat) != null && tech[TechnicianProfilesTable.lastLng] != null) {
+            val address = AddressesTable.selectAll()
+                .where { AddressesTable.id eq order[OrdersTable.addressId] }.singleOrNull()
+            if (address != null) {
+                val distance = Geo.haversineKm(
+                    tech[TechnicianProfilesTable.lastLat]!!, tech[TechnicianProfilesTable.lastLng]!!,
+                    address[AddressesTable.lat], address[AddressesTable.lng]
+                )
+                if (distance > rule.maxDistance) return@transaction false
+            }
         }
         true
     }
@@ -178,19 +192,29 @@ object TechnicianOpsService {
     fun route(technicianId: Long): List<RouteStopDto> = transaction {
         val tech = TechnicianProfilesTable.selectAll()
             .where { TechnicianProfilesTable.userId eq technicianId }.singleOrNull()
-        val lat = tech?.get(TechnicianProfilesTable.lastLat) ?: 0.0
-        val lng = tech?.get(TechnicianProfilesTable.lastLng) ?: 0.0
+        var lat = tech?.get(TechnicianProfilesTable.lastLat)
+        var lng = tech?.get(TechnicianProfilesTable.lastLng)
+        val today = LocalDate.now()
         val orders = OrdersTable.selectAll().where {
             (OrdersTable.technicianId eq technicianId) and
-                (OrdersTable.status eq OrderStatus.DALAM_PERJALANAN.name)
+                (OrdersTable.status eq OrderStatus.DALAM_PERJALANAN.name) and
+                (OrdersTable.scheduledDate eq today)
         }.orderBy(OrdersTable.scheduledDate to SortOrder.ASC).toList()
+        if ((lat == null || lng == null) && orders.isNotEmpty()) {
+            val firstAddress = AddressesTable.selectAll()
+                .where { AddressesTable.id eq orders.first()[OrdersTable.addressId] }.singleOrNull()
+            lat = firstAddress?.get(AddressesTable.lat) ?: 0.0
+            lng = firstAddress?.get(AddressesTable.lng) ?: 0.0
+        }
+        val originLat = lat ?: 0.0
+        val originLng = lng ?: 0.0
         orders.map { row ->
             val address = AddressesTable.selectAll().where { AddressesTable.id eq row[OrdersTable.addressId] }.singleOrNull()
             val service = ServicesTable.selectAll().where { ServicesTable.id eq row[OrdersTable.serviceId] }.singleOrNull()
             RouteStopDto(
                 row[OrdersTable.id], row[OrdersTable.code], service?.get(ServicesTable.name) ?: "Layanan",
                 address?.get(AddressesTable.lat) ?: 0.0, address?.get(AddressesTable.lng) ?: 0.0,
-                Math.round(Geo.haversineKm(lat, lng, address?.get(AddressesTable.lat) ?: 0.0,
+                Math.round(Geo.haversineKm(originLat, originLng, address?.get(AddressesTable.lat) ?: 0.0,
                     address?.get(AddressesTable.lng) ?: 0.0) * 10) / 10.0,
                 row[OrdersTable.scheduledDate].toString(), row[OrdersTable.status]
             )
@@ -199,8 +223,20 @@ object TechnicianOpsService {
 
     fun checkin(technicianId: Long, orderId: Long, req: CheckinRequest): CheckinDto = transaction {
         if (req.kind !in listOf("DATANG", "PULANG")) throw BadRequestException("Jenis check-in tidak valid")
+        if (!req.lat.isFinite() || !req.lng.isFinite() || req.lat !in -90.0..90.0 || req.lng !in -180.0..180.0) {
+            throw BadRequestException("Koordinat tidak valid")
+        }
         val order = OrderQueries.loadOrderRow(orderId)
         if (order[OrdersTable.technicianId] != technicianId) throw ForbiddenException("Bukan pesanan Anda")
+        val status = OrderStatus.valueOf(order[OrdersTable.status])
+        if (status in listOf(OrderStatus.SELESAI, OrderStatus.DIBATALKAN, OrderStatus.DILAPORKAN)) {
+            throw ConflictException("Pesanan sudah ditutup")
+        }
+        if (req.kind == "DATANG" && status !in listOf(
+                OrderStatus.DALAM_PERJALANAN, OrderStatus.TIBA, OrderStatus.SEDANG_BEKERJA
+            )) {
+            throw ConflictException("Check-in datang belum tersedia pada status ini")
+        }
         val address = AddressesTable.selectAll().where { AddressesTable.id eq order[OrdersTable.addressId] }.singleOrNull()
             ?: throw NotFoundException("Alamat tidak ditemukan")
         val distance = Math.round(Geo.haversineKm(req.lat, req.lng, address[AddressesTable.lat], address[AddressesTable.lng]) * 1000).toInt()
@@ -233,7 +269,9 @@ object TechnicianOpsService {
         CheckinDto(id, orderId, req.kind, row[CheckinsTable.lat], row[CheckinsTable.lng], row[CheckinsTable.distanceM], row[CheckinsTable.createdAt].toString())
     }
 
-    fun checkins(orderId: Long): List<CheckinDto> = transaction {
+    fun checkins(technicianId: Long, orderId: Long): List<CheckinDto> = transaction {
+        val order = OrderQueries.loadOrderRow(orderId)
+        if (order[OrdersTable.technicianId] != technicianId) throw ForbiddenException("Bukan pesanan Anda")
         CheckinsTable.selectAll().where { CheckinsTable.orderId eq orderId }
             .orderBy(CheckinsTable.createdAt to SortOrder.ASC).map {
                 CheckinDto(it[CheckinsTable.id], orderId, it[CheckinsTable.kind], it[CheckinsTable.lat],
@@ -334,6 +372,16 @@ object TechnicianOpsService {
         if (deleted == 0) throw NotFoundException("Template tidak ditemukan")
     }
 
+    fun resolveLeave(adminId: Long, id: Long, approve: Boolean) = transaction {
+        val row = LeaveRequestsTable.selectAll().where { LeaveRequestsTable.id eq id }
+            .singleOrNull() ?: throw NotFoundException("Pengajuan libur tidak ditemukan")
+        if (row[LeaveRequestsTable.status] != "MENUNGGU") throw ConflictException("Pengajuan sudah diproses")
+        LeaveRequestsTable.update({ LeaveRequestsTable.id eq id }) {
+            it[status] = if (approve) "DISETUJUI" else "DITOLAK"
+        }
+        EcosystemService.log(adminId, "RESOLVE_LEAVE", id.toString())
+    }
+
     fun leaves(technicianId: Long): List<LeaveDto> = transaction {
         LeaveRequestsTable.selectAll().where { LeaveRequestsTable.technicianId eq technicianId }
             .orderBy(LeaveRequestsTable.startDate to SortOrder.DESC).map {
@@ -404,18 +452,48 @@ object TechnicianOpsService {
         }
     }
 
+    internal fun canDispatch(technicianId: Long, date: LocalDate): Boolean = transaction {
+        val onLeave = LeaveRequestsTable.selectAll().where {
+            (LeaveRequestsTable.technicianId eq technicianId) and
+                (LeaveRequestsTable.status eq "DISETUJUI") and
+                (LeaveRequestsTable.startDate lessEq date) and
+                (LeaveRequestsTable.endDate greaterEq date)
+        }.any()
+        if (onLeave) return@transaction false
+        val ktp = TechDocumentsTable.selectAll().where {
+            (TechDocumentsTable.technicianId eq technicianId) and (TechDocumentsTable.docType eq "KTP")
+        }.singleOrNull()
+        if (ktp != null && ktp[TechDocumentsTable.status] == "DITOLAK") return@transaction false
+        val expired = TechDocumentsTable.selectAll().where {
+            (TechDocumentsTable.technicianId eq technicianId) and
+                (TechDocumentsTable.status eq "TERVERIFIKASI") and
+                (TechDocumentsTable.expiresAt lessEq date)
+        }.any()
+        !expired
+    }
+
     fun opsStats(technicianId: Long): OpsStatsDto = transaction {
         val offers = JobOffersTable.selectAll().where { JobOffersTable.technicianId eq technicianId }.toList()
-        val accepted = offers.count { it[JobOffersTable.status] == OfferStatus.DITERIMA.name }
-        val responseMinutes = 8
+        val rejected = offers.count { it[JobOffersTable.status] == OfferStatus.DITOLAK.name }
+        val responseTimes = offers.filter { it[JobOffersTable.respondedAt] != null }.map { row ->
+            java.time.Duration.between(row[JobOffersTable.createdAt], row[JobOffersTable.respondedAt]).toMinutes()
+        }
+        val responseMinutes = if (responseTimes.isEmpty()) 0 else (responseTimes.sum() / responseTimes.size).toInt()
+        val durations = OrdersTable.selectAll().where {
+            (OrdersTable.technicianId eq technicianId) and (OrdersTable.status eq OrderStatus.SELESAI.name)
+        }.map { row ->
+            java.time.Duration.between(row[OrdersTable.createdAt], row[OrdersTable.updatedAt]).toMinutes() / 60.0
+        }
+        val completionHours = if (durations.isEmpty()) 0.0 else
+            Math.round((durations.sum() / durations.size) * 10) / 10.0
         val completed = TechnicianService.earnings(technicianId).totalEarned
         val jobs = TechnicianProfilesTable.selectAll()
             .where { TechnicianProfilesTable.userId eq technicianId }
             .singleOrNull()?.get(TechnicianProfilesTable.jobsCount) ?: 0
         OpsStatsDto(
             responseMinutes = responseMinutes,
-            completionHours = 1.6,
-            cancellationRate = if (offers.isEmpty()) 0 else (offers.size - accepted) * 100 / offers.size,
+            completionHours = completionHours,
+            cancellationRate = if (offers.isEmpty()) 0 else rejected * 100 / offers.size,
             level = when {
                 jobs >= 25 -> 3
                 jobs >= 5 -> 2

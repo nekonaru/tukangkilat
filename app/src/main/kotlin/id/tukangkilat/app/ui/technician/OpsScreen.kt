@@ -46,6 +46,11 @@ data class OpsUiState(
     val templateBody: String = "",
     val leaveStart: String = "",
     val leaveEnd: String = "",
+    val materialName: String = "",
+    val materialQty: String = "1",
+    val materialCost: String = "0",
+    val checkinLat: String = "",
+    val checkinLng: String = "",
     val notice: String? = null
 )
 
@@ -55,12 +60,22 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
     val state: StateFlow<OpsUiState> = _state.asStateFlow()
 
     fun refresh() {
+        val current = _state.value
         viewModelScope.launch {
             try {
                 _state.value = OpsUiState(
-                    tab = _state.value.tab,
+                    tab = current.tab,
+                    notice = current.notice,
+                    docType = current.docType, docUrl = current.docUrl,
+                    areaName = current.areaName, areaLat = current.areaLat, areaLng = current.areaLng,
+                    journalNote = current.journalNote, templateTitle = current.templateTitle,
+                    templateBody = current.templateBody, leaveStart = current.leaveStart, leaveEnd = current.leaveEnd,
                     documents = runCatching { api.techDocuments() }.getOrDefault(emptyList()),
                     areas = runCatching { api.serviceAreas() }.getOrDefault(emptyList()),
+                    materialName = current.materialName,
+                    materialQty = current.materialQty,
+                    materialCost = current.materialCost,
+                    checkinLat = current.checkinLat, checkinLng = current.checkinLng,
                     rule = runCatching { api.autoAccept() }.getOrNull(),
                     route = runCatching { api.route() }.getOrDefault(emptyList()),
                     equipment = runCatching { api.equipment() }.getOrDefault(emptyList()),
@@ -90,6 +105,8 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
             "templateBody" -> _state.value.copy(templateBody = value)
             "leaveStart" -> _state.value.copy(leaveStart = value)
             "leaveEnd" -> _state.value.copy(leaveEnd = value)
+            "checkinLat" -> _state.value.copy(checkinLat = value)
+            "checkinLng" -> _state.value.copy(checkinLng = value)
             else -> _state.value
         }
     }
@@ -181,6 +198,36 @@ class OpsViewModel @Inject constructor(private val api: ApiService) : ViewModel(
         }
     }
 
+    fun checkin(orderId: Long, kind: String) {
+        val s = _state.value
+        val lat = s.checkinLat.toDoubleOrNull()
+        val lng = s.checkinLng.toDoubleOrNull()
+        if (lat == null || lng == null) {
+            _state.value = s.copy(notice = "Isi koordinat check-in")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                api.checkin(orderId, CheckinRequest(kind, lat, lng))
+                _state.value = _state.value.copy(notice = "Check-in $kind tersimpan")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun addMaterial(orderId: Long) {
+        val s = _state.value
+        viewModelScope.launch {
+            try {
+                api.addMaterial(AddMaterialRequest(
+                    orderId, s.materialName, s.materialQty.toIntOrNull() ?: 1, s.materialCost.toLongOrNull() ?: 0
+                ))
+                _state.value = _state.value.copy(notice = "Material ditambahkan", materialName = "")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -255,6 +302,18 @@ fun OpsScreen(onBack: () -> Unit, viewModel: OpsViewModel = hiltViewModel()) {
                         TKCard {
                             Text("${stop.code} · ${stop.serviceName}")
                             Text("${stop.scheduledDate} · ${stop.distanceKm} km · ${stop.status}")
+                            TKOutlinedField(state.checkinLat, { viewModel.field("checkinLat", it) }, label = "Latitude check-in")
+                            TKOutlinedField(state.checkinLng, { viewModel.field("checkinLng", it) }, label = "Longitude check-in")
+                            Row(horizontalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                                TKButton("Check-in datang", { viewModel.checkin(stop.orderId, "DATANG") }, variant = TKButtonVariant.Tonal)
+                                TKButton("Check-out", { viewModel.checkin(stop.orderId, "PULANG") }, variant = TKButtonVariant.Outlined)
+                            }
+                            TKOutlinedField(state.materialName, { viewModel.field("materialName", it) }, label = "Nama material")
+                            Row(horizontalArrangement = Arrangement.spacedBy(TKSpacing.Xs)) {
+                                TKOutlinedField(state.materialQty, { viewModel.field("materialQty", it) }, label = "Jumlah", modifier = Modifier.weight(1f))
+                                TKOutlinedField(state.materialCost, { viewModel.field("materialCost", it) }, label = "Biaya", modifier = Modifier.weight(1f))
+                            }
+                            TKButton("Tambah material", { viewModel.addMaterial(stop.orderId) })
                         }
                     }
                 }
