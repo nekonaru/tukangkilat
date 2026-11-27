@@ -79,6 +79,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 try {
                     DispatchService.dispatchRound()
                     DispatchService.maintenanceRound()
+                    EcosystemService.processDueSubscriptions()
                 } catch (e: Exception) {
                     environment.log.error("Dispatcher tick failed", e)
                 }
@@ -89,6 +90,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
 
     routing {
         get("/health") { call.respond(mapOf("status" to "ok")) }
+        get("/announcements") { call.respond(EcosystemService.announcements()) }
 
         // ---------- Auth (public) ----------
         route("/auth") {
@@ -166,6 +168,37 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         // ---------- Consumer API ----------
         authenticate("auth-jwt") {
             route("/consumer") {
+                get("/wallet") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(EcosystemService.wallet(call.authUser().id))
+                }
+                post("/wallet/topup") {
+                    call.requireRole(Role.KONSUMEN)
+                    val req = call.receive<TopUpRequest>()
+                    call.respond(EcosystemService.topUp(call.authUser().id, req.amount))
+                }
+                get("/loyalty") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(EcosystemService.loyalty(call.authUser().id))
+                }
+                post("/loyalty/redeem") {
+                    call.requireRole(Role.KONSUMEN)
+                    val body = call.receive<Map<String, Int>>()
+                    call.respond(EcosystemService.redeem(call.authUser().id, body["points"] ?: 0))
+                }
+                get("/subscriptions") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(EcosystemService.subscriptions(call.authUser().id))
+                }
+                post("/subscriptions") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(HttpStatusCode.Created, EcosystemService.addSubscription(call.authUser().id, call.receive()))
+                }
+                delete("/subscriptions/{id}") {
+                    call.requireRole(Role.KONSUMEN)
+                    EcosystemService.cancelSubscription(call.authUser().id, call.parameters["id"]!!.toLong())
+                    call.respond(HttpStatusCode.NoContent)
+                }
                 get("/services") {
                     call.requireRole(Role.KONSUMEN); call.respond(OrderService.listServices())
                 }
@@ -279,7 +312,47 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         // ---------- Technician API ----------
         authenticate("auth-jwt") {
             route("/technician") {
-                put("/online") {
+                get("/availability") {
+                call.requireRole(Role.TUKANG)
+                call.respond(EcosystemService.blocks(call.authUser().id))
+            }
+            post("/availability") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, EcosystemService.addBlock(call.authUser().id, call.receive()))
+            }
+            delete("/availability/{id}") {
+                call.requireRole(Role.TUKANG)
+                EcosystemService.deleteBlock(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(HttpStatusCode.NoContent)
+            }
+            get("/portfolio") {
+                call.requireRole(Role.TUKANG)
+                call.respond(EcosystemService.portfolio(call.authUser().id))
+            }
+            post("/portfolio") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, EcosystemService.addPortfolio(call.authUser().id, call.receive()))
+            }
+            delete("/portfolio/{id}") {
+                call.requireRole(Role.TUKANG)
+                EcosystemService.deletePortfolio(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(HttpStatusCode.NoContent)
+            }
+            get("/payout-account") {
+                call.requireRole(Role.TUKANG)
+                val account = EcosystemService.payoutAccount(call.authUser().id)
+                if (account != null) call.respond(account) else call.respond(HttpStatusCode.NoContent)
+            }
+            put("/payout-account") {
+                call.requireRole(Role.TUKANG)
+                EcosystemService.savePayoutAccount(call.authUser().id, call.receive())
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/stats") {
+                call.requireRole(Role.TUKANG)
+                call.respond(EcosystemService.stats(call.authUser().id))
+            }
+            put("/online") {
                     call.requireRole(Role.TUKANG)
                     TechnicianService.setOnline(call.authUser().id, call.receive<OnlineRequest>().online)
                     call.respond(mapOf("status" to "ok"))
@@ -356,6 +429,47 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         authenticate("auth-jwt") {
             route("/admin") {
                 get("/analytics") { call.requireRole(Role.ADMIN); call.respond(AdminService.analytics()) }
+            get("/disputes") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.disputes())
+            }
+            post("/disputes/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val id = call.parameters["id"]!!.toLong()
+                val result = EcosystemService.resolveDispute(call.authUser().id, id, call.receive())
+                EcosystemService.log(call.authUser().id, "RESOLVE_DISPUTE", id.toString())
+                call.respond(result)
+            }
+            get("/audit") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.audit())
+            }
+            get("/announcements") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.announcements())
+            }
+            post("/announcements") {
+                call.requireRole(Role.ADMIN)
+                val result = EcosystemService.announce(call.authUser().id, call.receive())
+                EcosystemService.log(call.authUser().id, "ANNOUNCE", result.id.toString())
+                call.respond(HttpStatusCode.Created, result)
+            }
+            get("/config") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.configs())
+            }
+            put("/config/{key}") {
+                call.requireRole(Role.ADMIN)
+                val key = call.parameters["key"]!!
+                val body = call.receive<Map<String, String>>()
+                EcosystemService.setConfig(key, body["value"] ?: "")
+                EcosystemService.log(call.authUser().id, "SET_CONFIG", key)
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/leaders") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.leaders())
+            }
             get("/summary") { call.requireRole(Role.ADMIN); call.respond(AdminService.summary()) }
                 get("/technicians") {
                     call.requireRole(Role.ADMIN)

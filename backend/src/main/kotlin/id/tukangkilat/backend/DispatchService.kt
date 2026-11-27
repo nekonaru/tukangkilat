@@ -181,6 +181,14 @@ object DispatchService {
                     distance <= row[TechnicianProfilesTable.serviceRadiusKm]
                 }
                 .filter { row ->
+                    // technician availability blocks exclude them from this date entirely
+                    val techId = row[UsersTable.id]
+                    AvailabilityBlocksTable.selectAll().where {
+                        (AvailabilityBlocksTable.technicianId eq techId) and
+                            (AvailabilityBlocksTable.blockDate eq scheduledDate)
+                    }.none()
+                }
+                .filter { row ->
                     // no schedule conflict: no other order at the same date+slot assigned to this technician
                     val techId = row[UsersTable.id]
                     val conflict = OrdersTable.selectAll().where {

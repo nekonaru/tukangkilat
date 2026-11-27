@@ -5,6 +5,9 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    @GET("/announcements")
+    suspend fun publicAnnouncements(): List<AnnouncementDto>
+
     @GET("/health")
     suspend fun health(): Map<String, String>
 
@@ -36,6 +39,27 @@ interface ApiService {
     suspend fun uploadPhoto(@Part file: okhttp3.MultipartBody.Part): Map<String, String>
 
     // ----- Consumer -----
+    @GET("/consumer/wallet")
+    suspend fun wallet(): WalletDto
+
+    @POST("/consumer/wallet/topup")
+    suspend fun topUp(@Body req: TopUpRequest): WalletDto
+
+    @GET("/consumer/loyalty")
+    suspend fun loyalty(): LoyaltyDto
+
+    @POST("/consumer/loyalty/redeem")
+    suspend fun redeemPoints(@Body req: Map<String, Int>): LoyaltyDto
+
+    @GET("/consumer/subscriptions")
+    suspend fun subscriptions(): List<SubscriptionDto>
+
+    @POST("/consumer/subscriptions")
+    suspend fun addSubscription(@Body req: CreateSubscriptionRequest): SubscriptionDto
+
+    @DELETE("/consumer/subscriptions/{id}")
+    suspend fun cancelSubscription(@Path("id") id: Long)
+
     @GET("/consumer/services")
     suspend fun services(): List<ServiceDto>
 
@@ -114,6 +138,33 @@ interface ApiService {
     suspend fun sendMessage(@Path("id") id: Long, @Body req: SendMessageRequest): MessageDto
 
     // ----- Technician -----
+    @GET("/technician/availability")
+    suspend fun availability(): List<AvailabilityBlockDto>
+
+    @POST("/technician/availability")
+    suspend fun addAvailability(@Body req: CreateAvailabilityBlockRequest): AvailabilityBlockDto
+
+    @DELETE("/technician/availability/{id}")
+    suspend fun deleteAvailability(@Path("id") id: Long)
+
+    @GET("/technician/portfolio")
+    suspend fun portfolio(): List<PortfolioDto>
+
+    @POST("/technician/portfolio")
+    suspend fun addPortfolio(@Body req: AddPortfolioRequest): PortfolioDto
+
+    @DELETE("/technician/portfolio/{id}")
+    suspend fun deletePortfolio(@Path("id") id: Long)
+
+    @GET("/technician/payout-account")
+    suspend fun payoutAccount(): PayoutAccountDto?
+
+    @PUT("/technician/payout-account")
+    suspend fun savePayoutAccount(@Body req: SavePayoutAccountRequest): Map<String, String>
+
+    @GET("/technician/stats")
+    suspend fun technicianStats(): TechnicianStatsDto
+
     @PUT("/technician/online")
     suspend fun setOnline(@Body req: OnlineRequest): Map<String, String>
 
@@ -187,6 +238,30 @@ interface ApiService {
     suspend fun technicianSendMessage(@Path("id") id: Long, @Body req: SendMessageRequest): MessageDto
 
     // ----- Admin -----
+    @GET("/admin/disputes")
+    suspend fun disputes(): List<DisputeDto>
+
+    @POST("/admin/disputes/{id}/resolve")
+    suspend fun resolveDispute(@Path("id") id: Long, @Body req: ResolveDisputeRequest): DisputeDto
+
+    @GET("/admin/audit")
+    suspend fun auditLogs(): List<AuditLogDto>
+
+    @GET("/admin/announcements")
+    suspend fun announcements(): List<AnnouncementDto>
+
+    @POST("/admin/announcements")
+    suspend fun createAnnouncement(@Body req: CreateAnnouncementRequest): AnnouncementDto
+
+    @GET("/admin/config")
+    suspend fun systemConfigs(): List<SystemConfigDto>
+
+    @PUT("/admin/config/{key}")
+    suspend fun setSystemConfig(@Path("key") key: String, @Body req: Map<String, String>): Map<String, String>
+
+    @GET("/admin/leaders")
+    suspend fun leaders(): List<TechnicianLeaderDto>
+
     @GET("/admin/analytics")
     suspend fun adminAnalytics(): AdminAnalyticsDto
 

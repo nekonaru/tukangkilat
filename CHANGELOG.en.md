@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-11-27
+
+### Added
+
+- **Consumer wallet and loyalty**: simulated top up, balance history, loyalty points and point redemption.
+- **Subscriptions**: recurring service plans with interval, start date, next run and cancellation. Due subscriptions create orders automatically from the maintenance tick.
+- **Technician workbench**: availability blocks, photo portfolio, performance stats and payout account setup. Dispatch skips technicians on blocked dates.
+- **Admin control center**: dispute resolution with simulated refund, audit log, announcements visible to all users, editable system configuration and technician leaderboard.
+- Migrations V6, V7 and V8 back the new feature sets and are included in export/import.
+
+### Changed
+
+- Announcements appear in the notification center.
+- New screens follow the existing design system and screen-entrance motion.
+
 ## [2.21.0] - 2026-11-26
 
 ### Added
@@ -353,6 +368,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0
 [2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0
 [2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
 [2.19.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.19.0

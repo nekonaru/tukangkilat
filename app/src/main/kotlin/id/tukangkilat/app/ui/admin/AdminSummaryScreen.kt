@@ -126,6 +126,7 @@ fun AdminSummaryScreen(
     onServices: () -> Unit,
     onPromo: () -> Unit,
     onNotifications: () -> Unit,
+    onControl: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
