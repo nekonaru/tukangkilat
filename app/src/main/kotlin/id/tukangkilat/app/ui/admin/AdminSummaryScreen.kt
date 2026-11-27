@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.tukangkilat.app.data.local.DatabaseTransfer
+import id.tukangkilat.app.data.local.SecureBackup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -133,6 +134,8 @@ fun AdminSummaryScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var transferMessage by remember { mutableStateOf<String?>(null) }
+    var backupMode by remember { mutableStateOf<String?>(null) }
+    var backupPassphrase by remember { mutableStateOf("") }
     var firstResume by remember { mutableStateOf(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (firstResume) firstResume = false else viewModel.refresh()
@@ -171,6 +174,56 @@ fun AdminSummaryScreen(
                 "Impor database berhasil. Silakan masuk ulang."
             } catch (e: Exception) {
                 "Impor gagal: ${e.message}"
+            }
+        }
+    }
+
+    val secureExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val passphrase = backupPassphrase
+        backupPassphrase = ""
+        if (passphrase.length < 8) {
+            transferMessage = "Kata sandi minimal 8 karakter"
+            return@rememberLauncherForActivityResult
+        }
+        scope.launch(Dispatchers.IO) {
+            transferMessage = try {
+                context.contentResolver.openOutputStream(uri)?.use {
+                    SecureBackup.encrypt(context, passphrase, it)
+                } ?: error("File tidak bisa dibuka")
+                "Cadangan terenkripsi berhasil dibuat"
+            } catch (e: Exception) {
+                "Cadangan gagal: ${e.message}"
+            }
+        }
+    }
+
+    val secureImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val passphrase = backupPassphrase
+        backupPassphrase = ""
+        if (passphrase.length < 8) {
+            transferMessage = "Kata sandi minimal 8 karakter"
+            return@rememberLauncherForActivityResult
+        }
+        scope.launch(Dispatchers.IO) {
+            transferMessage = try {
+                val stream = context.contentResolver.openInputStream(uri)
+                    ?: error("File tidak bisa dibuka")
+                LocalBackend.stopForImport()
+                try {
+                    stream.use { SecureBackup.decrypt(context, passphrase, it) }
+                } finally {
+                    LocalBackend.restartAfterImport(context.applicationContext)
+                }
+                viewModel.clearSession()
+                "Cadangan dipulihkan. Silakan masuk ulang."
+            } catch (e: Exception) {
+                "Pemulihan gagal: ${e.message}"
             }
         }
     }
@@ -287,6 +340,22 @@ fun AdminSummaryScreen(
                             { importLauncher.launch(arrayOf("application/zip")) }
                         )
                     }
+                    item {
+                        AdminMenuCard(
+                            Icons.Filled.Lock,
+                            "Cadangan terenkripsi",
+                            "Ekspor database dengan kata sandi (AES-GCM)",
+                            { backupMode = "EXPORT" }
+                        )
+                    }
+                    item {
+                        AdminMenuCard(
+                            Icons.Filled.Lock,
+                            "Pulihkan cadangan",
+                            "Buka cadangan terenkripsi dengan kata sandi",
+                            { backupMode = "IMPORT" }
+                        )
+                    }
                     transferMessage?.let { message ->
                         item { Text(message, color = TKColor.Mist, fontSize = 12.sp) }
                     }
@@ -294,6 +363,36 @@ fun AdminSummaryScreen(
                 }
             }
         }
+    }
+
+    backupMode?.let { mode ->
+        AlertDialog(
+            onDismissRequest = { backupMode = null; backupPassphrase = "" },
+            confirmButton = {
+                TextButton(onClick = {
+                    backupMode = null
+                    if (mode == "EXPORT") secureExportLauncher.launch("tukangkilat-backup.tkbk")
+                    else secureImportLauncher.launch(arrayOf("application/octet-stream", "application/zip", "*/*"))
+                }) { Text("Lanjut") }
+            },
+            dismissButton = {
+                TextButton(onClick = { backupMode = null; backupPassphrase = "" }) { Text("Batal") }
+            },
+            title = { Text(if (mode == "EXPORT") "Kata sandi cadangan" else "Kata sandi pemulihan") },
+            text = {
+                Column {
+                    Text("Minimal 8 karakter. Simpan kata sandi ini, tidak bisa dikembalikan.", color = TKColor.Mist, fontSize = 12.sp)
+                    Spacer(Modifier.height(8.dp))
+                    TextField(
+                        value = backupPassphrase,
+                        onValueChange = { backupPassphrase = it },
+                        label = { Text("Kata sandi") },
+                        singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                }
+            }
+        )
     }
 }
 

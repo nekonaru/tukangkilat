@@ -629,6 +629,13 @@ object OrderService {
             it[comment] = req.comment.trim()
             it[createdAt] = OffsetDateTime.now()
         }
+        req.photos.map { it.trim() }.filter { it.isNotBlank() }.distinct().take(5).forEach { url ->
+            ReviewPhotosTable.insert {
+                it[ReviewPhotosTable.orderId] = orderId
+                it[photoUrl] = url
+                it[createdAt] = OffsetDateTime.now()
+            }
+        }
         // recompute technician aggregates
         val aggregate = (RatingsTable innerJoin OrdersTable)
             .select(RatingsTable.stars.count(), RatingsTable.stars.avg())

@@ -10,6 +10,37 @@ object DirectMessagesTable : Table("direct_messages") {
     val technicianId = long("technician_id")
     val senderId = long("sender_id")
     val body = text("body")
+    val readAt = safeTimestampWithTimeZone("read_at").nullable()
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ReviewPhotosTable : Table("review_photos") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val photoUrl = varchar("photo_url", 512)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AutoOnlineSchedulesTable : Table("auto_online_schedules") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val dayOfWeek = integer("day_of_week")
+    val startTime = varchar("start_time", 5)
+    val endTime = varchar("end_time", 5)
+    val enabled = bool("enabled")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object MessageReportsTable : Table("message_reports") {
+    val id = long("id").autoIncrement()
+    val messageId = long("message_id").references(DirectMessagesTable.id)
+    val reporterId = long("reporter_id").references(UsersTable.id)
+    val reason = varchar("reason", 255)
+    val status = varchar("status", 16)
+    val resolvedBy = long("resolved_by").references(UsersTable.id).nullable()
     val createdAt = safeTimestampWithTimeZone("created_at")
     override val primaryKey = PrimaryKey(id)
 }

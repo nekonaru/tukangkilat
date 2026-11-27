@@ -68,6 +68,9 @@ class DirectChatViewModel @Inject constructor(
                 val messages = if (technicianSide) api.technicianDirectMessages(peerId)
                 else api.consumerMessages(peerId)
                 val services = if (technicianSide) runCatching { api.services() }.getOrDefault(emptyList()) else emptyList()
+                runCatching {
+                    if (technicianSide) api.markTechnicianPeerRead(peerId) else api.markConsumerPeerRead(peerId)
+                }
                 _state.value = _state.value.copy(
                     isLoading = false,
                     messages = messages,
@@ -148,6 +151,19 @@ class DirectChatViewModel @Inject constructor(
         }
     }
 
+    fun report(messageId: Long, technicianSide: Boolean, reason: String) {
+        viewModelScope.launch {
+            try {
+                val req = ReportMessageRequest(messageId, reason)
+                if (technicianSide) api.reportTechnicianMessage(messageId, req)
+                else api.reportConsumerMessage(messageId, req)
+                _state.value = _state.value.copy(notice = "Pesan dilaporkan")
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(notice = e.cleanApiError())
+            }
+        }
+    }
+
     fun clearNotice() { _state.value = _state.value.copy(notice = null) }
 }
 
@@ -188,11 +204,17 @@ fun DirectChatScreen(
                     verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)
                 ) {
                     items(state.messages, key = { it.id }) { message ->
+                        val mine = message.senderId == state.myUserId
                         ChatBubble(
                             text = message.body,
                             time = message.createdAt.takeLast(8).take(5),
-                            mine = message.senderId == state.myUserId
+                            mine = mine
                         )
+                        if (!mine) {
+                            TextButton(onClick = { viewModel.report(message.id, technicianSide, "Pesan tidak pantas") }) {
+                                Text("Laporkan pesan", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
                     }
                 }
                 if (technicianSide) {

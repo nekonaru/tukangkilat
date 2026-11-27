@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-11-27
+
+### Added
+
+- **Order reminders**: one-hour-before notifications for scheduled visits, with Android 13 permission handling.
+- **Review photos**: consumers can attach up to five photos to a rating; technicians see them with a full-screen preview in the workbench.
+- **Auto-online schedule**: technicians set weekly online windows; the maintenance tick toggles their online state for days with a schedule.
+- **Chat unread badges**: direct message lists show unread counts and opening a conversation marks it as read.
+- **Chat moderation**: users can report a direct message; admins can hide the message or reject the report.
+- **CSV export**: admins can share orders and wallet transactions as CSV files.
+- **Encrypted backup**: admins can export and restore the database with AES-GCM and a passphrase (PBKDF2, 120000 iterations).
+- **Batch portfolio upload**: technicians can add up to five portfolio photos at once.
+
+### Changed
+
+- Database export now includes V6 to V9 tables. Version 2 and version 3 archives can still be imported.
+- Order detail shows an SLA countdown to the scheduled start time.
+
 ## [3.0.0] - 2026-11-27
 
 ### Added
@@ -368,6 +386,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0
 [3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0
 [2.21.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.21.0
 [2.20.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v2.20.0
