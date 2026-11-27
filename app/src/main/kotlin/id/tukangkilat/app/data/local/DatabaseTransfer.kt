@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 2
+    private const val VERSION = 3
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -28,13 +28,25 @@ object DatabaseTransfer {
         "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
         "promo_codes", "photos", "orders", "order_photos", "order_events",
         "job_offers", "payments", "ratings", "issue_reports", "messages", "withdrawals",
-        "direct_messages", "proposals"
+        "direct_messages", "proposals", "wallets", "wallet_transactions", "loyalty_points",
+        "subscriptions", "availability_blocks", "technician_portfolios", "payout_accounts",
+        "disputes", "audit_logs", "announcements", "system_config", "review_photos",
+        "auto_online_schedules", "message_reports"
+    )
+
+    /** Tables present in every snapshot format, used to validate older archives. */
+    private val LEGACY_TABLES = listOf(
+        "users", "refresh_tokens", "technician_profiles", "addresses", "services", "time_slots",
+        "promo_codes", "photos", "orders", "order_photos", "order_events", "job_offers",
+        "payments", "ratings", "issue_reports", "messages", "withdrawals", "direct_messages", "proposals"
     )
 
     private val AUTO_ID_TABLES = setOf(
         "users", "refresh_tokens", "addresses", "services", "time_slots", "photos", "orders",
         "order_photos", "order_events", "job_offers", "payments", "issue_reports", "messages", "withdrawals",
-        "direct_messages", "proposals"
+        "direct_messages", "proposals", "wallet_transactions", "subscriptions", "availability_blocks",
+        "technician_portfolios", "disputes", "audit_logs", "announcements", "review_photos",
+        "auto_online_schedules", "message_reports"
     )
 
     private val SAFE_TABLES = TABLES.toSet()
@@ -125,8 +137,9 @@ object DatabaseTransfer {
         }
         if (json.isBlank()) error("Arsip tidak berisi database.json")
         val snapshot = Json.decodeFromString<Snapshot>(json)
-        require(snapshot.version == VERSION) { "Versi arsip tidak didukung: ${snapshot.version}" }
-        TABLES.forEach { require(snapshot.tables.containsKey(it)) { "Tabel $it hilang dari arsip" } }
+        require(snapshot.version in 2..VERSION) { "Versi arsip tidak didukung: ${snapshot.version}" }
+        val tablesToRestore = TABLES.filter { snapshot.tables.containsKey(it) }
+        require(tablesToRestore.containsAll(LEGACY_TABLES)) { "Arsip tidak berisi tabel dasar" }
         snapshot.tables.keys.forEach { require(it in SAFE_TABLES) { "Tabel asing ditolak: $it" } }
         snapshot.tables.forEach { (table, rows) ->
             rows.forEach { row ->
@@ -144,12 +157,12 @@ object DatabaseTransfer {
                 TABLES.asReversed().forEach { table ->
                     conn.createStatement().use { it.execute("DELETE FROM $table") }
                 }
-                TABLES.forEach { table ->
+                tablesToRestore.forEach { table ->
                     snapshot.tables[table]?.forEach { row -> insertRow(conn, table, row) }
                 }
                 conn.commit()
                 // H2 implicitly commits DDL, so identity resets must run after the data commit.
-                val restarts = AUTO_ID_TABLES.map { table ->
+                val restarts = tablesToRestore.filter { it in AUTO_ID_TABLES }.map { table ->
                     val rows = snapshot.tables[table].orEmpty()
                     val max = rows.mapNotNull { it["id"]?.toLongOrNull() }.maxOrNull() ?: 0
                     "ALTER TABLE $table ALTER COLUMN id RESTART WITH ${max + 1}"

@@ -298,7 +298,8 @@ data class ReportOrderRequest(
 data class RatingRequest(
     val stars: Int,
     val tags: List<String> = emptyList(),
-    val comment: String = ""
+    val comment: String = "",
+    val photos: List<String> = emptyList()
 )
 
 // ---------- Technician ----------
@@ -491,6 +492,7 @@ data class ReviewDto(
     val stars: Int,
     val tags: List<String> = emptyList(),
     val comment: String,
+    val photos: List<String> = emptyList(),
     val createdAt: String
 )
 

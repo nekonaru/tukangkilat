@@ -71,6 +71,18 @@ interface ApiService {
         @Query("lng") lng: Double? = null
     ): List<TechnicianBrowseDto>
 
+    @GET("/consumer/direct-peers")
+    suspend fun consumerDirectPeers(): List<DirectPeerDto>
+
+    @POST("/consumer/direct-peers/{peerId}/read")
+    suspend fun markConsumerPeerRead(@Path("peerId") peerId: Long): Map<String, String>
+
+    @POST("/consumer/messages/{messageId}/report")
+    suspend fun reportConsumerMessage(
+        @Path("messageId") messageId: Long,
+        @Body req: ReportMessageRequest
+    ): MessageReportDto
+
     @GET("/consumer/technicians/{technicianId}/messages")
     suspend fun consumerMessages(@Path("technicianId") technicianId: Long): List<DirectMessageDto>
 
@@ -180,6 +192,27 @@ interface ApiService {
     @GET("/technician/direct-peers")
     suspend fun directPeers(): List<Long>
 
+    @GET("/technician/direct-peers/summary")
+    suspend fun directPeerSummaries(): List<DirectPeerDto>
+
+    @POST("/technician/direct-peers/{peerId}/read")
+    suspend fun markTechnicianPeerRead(@Path("peerId") peerId: Long): Map<String, String>
+
+    @POST("/technician/messages/{messageId}/report")
+    suspend fun reportTechnicianMessage(
+        @Path("messageId") messageId: Long,
+        @Body req: ReportMessageRequest
+    ): MessageReportDto
+
+    @GET("/technician/auto-schedule")
+    suspend fun autoSchedules(): List<AutoOnlineScheduleDto>
+
+    @POST("/technician/auto-schedule")
+    suspend fun saveAutoSchedule(@Body req: CreateAutoScheduleRequest): AutoOnlineScheduleDto
+
+    @DELETE("/technician/auto-schedule/{id}")
+    suspend fun deleteAutoSchedule(@Path("id") id: Long)
+
     @GET("/technician/direct-messages/{consumerId}")
     suspend fun technicianDirectMessages(@Path("consumerId") consumerId: Long): List<DirectMessageDto>
 
@@ -261,6 +294,21 @@ interface ApiService {
 
     @GET("/admin/leaders")
     suspend fun leaders(): List<TechnicianLeaderDto>
+
+    @GET("/admin/message-reports")
+    suspend fun messageReports(): List<MessageReportDto>
+
+    @POST("/admin/message-reports/{id}/resolve")
+    suspend fun resolveMessageReport(
+        @Path("id") id: Long,
+        @Body req: Map<String, Boolean>
+    ): Map<String, String>
+
+    @GET("/admin/export/orders")
+    suspend fun exportOrders(@Query("from") from: String? = null, @Query("to") to: String? = null): okhttp3.ResponseBody
+
+    @GET("/admin/export/wallet")
+    suspend fun exportWallet(): okhttp3.ResponseBody
 
     @GET("/admin/analytics")
     suspend fun adminAnalytics(): AdminAnalyticsDto

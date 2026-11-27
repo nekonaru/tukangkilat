@@ -18,6 +18,7 @@ import id.tukangkilat.app.ui.components.*
 import id.tukangkilat.app.ui.theme.TKShape
 import id.tukangkilat.app.ui.theme.TKSpacing
 import id.tukangkilat.app.ui.util.cleanApiError
+import id.tukangkilat.shared.DirectPeerDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,7 @@ import javax.inject.Inject
 data class TechnicianChatsUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
-    val peers: List<Long> = emptyList()
+    val peers: List<DirectPeerDto> = emptyList()
 )
 
 @HiltViewModel
@@ -39,7 +40,7 @@ class TechnicianChatsViewModel @Inject constructor(private val api: ApiService) 
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                _state.value = TechnicianChatsUiState(isLoading = false, peers = api.directPeers())
+                _state.value = TechnicianChatsUiState(isLoading = false, peers = api.directPeerSummaries())
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.cleanApiError())
             }
@@ -69,14 +70,26 @@ fun TechnicianChatsScreen(onOpenChat: (Long) -> Unit, onBack: () -> Unit, viewMo
                     Modifier.fillMaxSize().padding(horizontal = TKSpacing.Sm),
                     verticalArrangement = Arrangement.spacedBy(TKSpacing.Xs)
                 ) {
-                    items(state.peers, key = { it }) { peer ->
+                    items(state.peers, key = { it.peerId }) { peer ->
                         Row(
                             Modifier.fillMaxWidth().heightIn(min = TKSpacing.MinTouch)
                                 .background(MaterialTheme.colorScheme.surfaceContainer, TKShape.Card)
-                                .clickable { onOpenChat(peer) }
-                                .padding(TKSpacing.Sm)
+                                .clickable { onOpenChat(peer.peerId) }
+                                .padding(TKSpacing.Sm),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                         ) {
-                            Text("Konsumen #$peer", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            Column(Modifier.weight(1f)) {
+                                Text("Konsumen #${peer.peerId}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                                if (peer.lastMessage.isNotBlank()) {
+                                    Text(peer.lastMessage, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                                }
+                            }
+                            if (peer.unreadCount > 0) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ) { Text(peer.unreadCount.toString()) }
+                            }
                         }
                     }
                 }

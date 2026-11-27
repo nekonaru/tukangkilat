@@ -104,3 +104,43 @@ data class TechnicianLeaderDto(
     val jobsCount: Int,
     val acceptRate: Int
 )
+
+@Serializable
+data class DirectPeerDto(
+    val peerId: Long,
+    val unreadCount: Int,
+    val lastMessage: String,
+    val lastAt: String
+)
+
+@Serializable
+data class AutoOnlineScheduleDto(
+    val id: Long,
+    val dayOfWeek: Int,
+    val startTime: String,
+    val endTime: String,
+    val enabled: Boolean
+)
+
+@Serializable
+data class CreateAutoScheduleRequest(
+    val dayOfWeek: Int,
+    val startTime: String,
+    val endTime: String,
+    val enabled: Boolean = true
+)
+
+@Serializable
+data class MessageReportDto(
+    val id: Long,
+    val messageId: Long,
+    val reporterId: Long,
+    val reporterName: String,
+    val messageBody: String,
+    val reason: String,
+    val status: String,
+    val createdAt: String
+)
+
+@Serializable
+data class ReportMessageRequest(val messageId: Long, val reason: String)

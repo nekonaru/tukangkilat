@@ -5,6 +5,8 @@ import id.tukangkilat.app.ui.theme.TKSpacing
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,6 +42,9 @@ import id.tukangkilat.app.ui.map.MapMarker
 import id.tukangkilat.app.ui.map.OsmMap
 import id.tukangkilat.app.ui.theme.TKColor
 import id.tukangkilat.app.ui.util.cleanApiError
+import id.tukangkilat.app.util.OrderReminder
+import java.text.SimpleDateFormat
+import java.util.Locale
 import id.tukangkilat.shared.OrderDto
 import id.tukangkilat.shared.OrderStatus
 import id.tukangkilat.shared.PaymentStatus
@@ -107,6 +112,8 @@ class OrderStatusViewModel @Inject constructor(
             _state.value = _state.value.copy(order = order)
         } catch (_: Exception) {}
     }
+
+    fun setSnackbar(message: String) { _state.value = _state.value.copy(snackbar = message) }
 
     fun clearSnackbar() { _state.value = _state.value.copy(snackbar = null) }
 
@@ -323,6 +330,8 @@ fun OrderStatusScreen(
                         }
 
                         // timeline
+                        SlaCountdownCard(order = order)
+                        Spacer(Modifier.height(TKSpacing.Xs))
                         TimelineCard(order = order)
                         Spacer(Modifier.height(TKSpacing.Sm))
 
@@ -337,6 +346,26 @@ fun OrderStatusScreen(
                             ) { Text("Cari teknisi pengganti") }
                             Spacer(Modifier.height(TKSpacing.Xs))
                         }
+
+                        val reminderMillis = remember(order.scheduledDate, order.slotLabel) {
+                            try {
+                                val time = order.slotLabel.take(5).replace('.', ':')
+                                SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+                                    .parse("${order.scheduledDate} $time")?.time?.minus(3_600_000L)
+                            } catch (e: Exception) { null }
+                        }
+                        val notificationPermission = rememberLauncherForActivityResult(
+                            ActivityResultContracts.RequestPermission()
+                        ) { granted ->
+                            if (granted && reminderMillis != null && reminderMillis > System.currentTimeMillis()) {
+                                OrderReminder.schedule(context, orderId, "Pesanan ${order.code}", reminderMillis)
+                            } else {
+                                viewModel.setSnackbar("Gagal menjadwalkan pengingat: periksa izin notifikasi dan jadwal")
+                            }
+                        }
+                        TextButton(onClick = {
+                            notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }) { Text("Ingatkan 1 jam sebelum") }
 
                         if (order.status in CANCELABLE) {
                             OutlinedButton(
@@ -504,4 +533,32 @@ private fun CancelDialog(
             }
         }
     )
+}
+@Composable
+private fun SlaCountdownCard(order: OrderDto) {
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L)
+            now = System.currentTimeMillis()
+        }
+    }
+    val deadline = remember(order.scheduledDate, order.slotLabel) {
+        try {
+            val time = order.slotLabel.take(5).replace('.', ':')
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+                .parse("${order.scheduledDate} $time")?.time
+        } catch (e: Exception) { null }
+    }
+    if (deadline == null) return
+    val minutes = (deadline - now) / 60_000L
+    val label = when {
+        minutes > 0 -> "SLA: ${minutes / 60} jam ${minutes % 60} menit lagi"
+        minutes > -120 -> "SLA terlewat ${-minutes} menit"
+        else -> return
+    }
+    TKCard {
+        Text(label, fontWeight = FontWeight.Bold, color = if (minutes > 0) TKColor.Orange else TKColor.Red)
+        Text("Target kerja dimulai ${order.scheduledDate} · ${order.slotLabel}", fontSize = 12.sp)
+    }
 }

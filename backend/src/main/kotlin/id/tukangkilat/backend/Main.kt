@@ -77,6 +77,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
         launch {
             while (true) {
                 try {
+                    EcosystemService.applyAutoSchedules()
                     DispatchService.dispatchRound()
                     DispatchService.maintenanceRound()
                     EcosystemService.processDueSubscriptions()
@@ -201,6 +202,20 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 }
                 get("/services") {
                     call.requireRole(Role.KONSUMEN); call.respond(OrderService.listServices())
+                }
+                get("/direct-peers") {
+                    call.requireRole(Role.KONSUMEN)
+                    call.respond(EcosystemService.directPeers(call.authUser().id, true))
+                }
+                post("/direct-peers/{peerId}/read") {
+                    call.requireRole(Role.KONSUMEN)
+                    EcosystemService.markDirectRead(call.authUser().id, call.parameters["peerId"]!!.toLong())
+                    call.respond(mapOf("status" to "ok"))
+                }
+                post("/messages/{messageId}/report") {
+                    call.requireRole(Role.KONSUMEN)
+                    val body = call.receive<ReportMessageRequest>()
+                    call.respond(EcosystemService.reportMessage(call.authUser().id, body.copy(messageId = call.parameters["messageId"]!!.toLong())))
                 }
                 get("/technicians/{technicianId}/messages") {
                     call.requireRole(Role.KONSUMEN)
@@ -372,6 +387,33 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                 call.requireRole(Role.TUKANG)
                 call.respond(NegotiationService.recentPeers(call.authUser().id, false))
             }
+            get("/direct-peers/summary") {
+                call.requireRole(Role.TUKANG)
+                call.respond(EcosystemService.directPeers(call.authUser().id, false))
+            }
+            post("/direct-peers/{peerId}/read") {
+                call.requireRole(Role.TUKANG)
+                EcosystemService.markDirectRead(call.authUser().id, call.parameters["peerId"]!!.toLong())
+                call.respond(mapOf("status" to "ok"))
+            }
+            post("/messages/{messageId}/report") {
+                call.requireRole(Role.TUKANG)
+                val body = call.receive<ReportMessageRequest>()
+                call.respond(EcosystemService.reportMessage(call.authUser().id, body.copy(messageId = call.parameters["messageId"]!!.toLong())))
+            }
+            get("/auto-schedule") {
+                call.requireRole(Role.TUKANG)
+                call.respond(EcosystemService.autoSchedules(call.authUser().id))
+            }
+            post("/auto-schedule") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, EcosystemService.saveAutoSchedule(call.authUser().id, call.receive()))
+            }
+            delete("/auto-schedule/{id}") {
+                call.requireRole(Role.TUKANG)
+                EcosystemService.deleteAutoSchedule(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(HttpStatusCode.NoContent)
+            }
             get("/direct-messages/{consumerId}") {
                 call.requireRole(Role.TUKANG)
                 val peer = call.parameters["consumerId"]!!.toLong()
@@ -469,6 +511,33 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             get("/leaders") {
                 call.requireRole(Role.ADMIN)
                 call.respond(EcosystemService.leaders())
+            }
+            get("/message-reports") {
+                call.requireRole(Role.ADMIN)
+                call.respond(EcosystemService.messageReports())
+            }
+            post("/message-reports/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, Boolean>>()
+                EcosystemService.resolveMessageReport(
+                    call.authUser().id,
+                    call.parameters["id"]!!.toLong(),
+                    body["hideMessage"] ?: false
+                )
+                EcosystemService.log(call.authUser().id, "RESOLVE_MESSAGE", call.parameters["id"]!!)
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/export/orders") {
+                call.requireRole(Role.ADMIN)
+                val from = call.request.queryParameters["from"]
+                val to = call.request.queryParameters["to"]
+                call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"pesanan.csv\"")
+                call.respondText(EcosystemService.ordersCsv(from, to), ContentType("text", "csv").withCharset(Charsets.UTF_8))
+            }
+            get("/export/wallet") {
+                call.requireRole(Role.ADMIN)
+                call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"dompet.csv\"")
+                call.respondText(EcosystemService.walletCsv(), ContentType("text", "csv").withCharset(Charsets.UTF_8))
             }
             get("/summary") { call.requireRole(Role.ADMIN); call.respond(AdminService.summary()) }
                 get("/technicians") {

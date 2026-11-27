@@ -255,13 +255,19 @@ object TechnicianService {
             .where { OrdersTable.technicianId eq userId }
             .orderBy(RatingsTable.createdAt to SortOrder.DESC)
             .map { row ->
+                val orderId = row[RatingsTable.orderId]
+                val photos = ReviewPhotosTable.selectAll()
+                    .where { ReviewPhotosTable.orderId eq orderId }
+                    .orderBy(ReviewPhotosTable.id to SortOrder.ASC)
+                    .map { it[ReviewPhotosTable.photoUrl] }
                 ReviewDto(
-                    orderId = row[RatingsTable.orderId],
+                    orderId = orderId,
                     orderCode = row[OrdersTable.code],
                     serviceName = row[ServicesTable.name],
                     stars = row[RatingsTable.stars],
                     tags = row[RatingsTable.tags].split(",").filter { it.isNotBlank() },
                     comment = row[RatingsTable.comment],
+                    photos = photos,
                     createdAt = row[RatingsTable.createdAt].toString()
                 )
             }

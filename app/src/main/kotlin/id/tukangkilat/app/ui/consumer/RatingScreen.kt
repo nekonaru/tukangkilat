@@ -1,5 +1,9 @@
 package id.tukangkilat.app.ui.consumer
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import id.tukangkilat.app.ui.theme.TKShape
 import id.tukangkilat.app.ui.theme.TKSpacing
 
@@ -28,7 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.tukangkilat.app.BuildConfig
+import id.tukangkilat.app.data.api.ApiService
 import id.tukangkilat.app.data.repository.FavoriteRepository
 import id.tukangkilat.app.data.repository.OrderRepository
 import id.tukangkilat.app.ui.components.*
@@ -43,7 +50,12 @@ import id.tukangkilat.shared.RatingRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 data class RatingUiState(
@@ -53,6 +65,8 @@ data class RatingUiState(
     val stars: Int = 5,
     val tags: Set<String> = emptySet(),
     val comment: String = "",
+    val photos: List<String> = emptyList(),
+    val uploadingPhotos: Boolean = false,
     val isSubmitting: Boolean = false,
     val submitted: Boolean = false,
     val isFavorite: Boolean = false
@@ -61,7 +75,8 @@ data class RatingUiState(
 @HiltViewModel
 class RatingViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val favoriteRepository: FavoriteRepository
+    private val favoriteRepository: FavoriteRepository,
+    private val api: ApiService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RatingUiState())
@@ -95,13 +110,44 @@ class RatingViewModel @Inject constructor(
     }
     fun onComment(value: String) { _state.value = _state.value.copy(comment = value) }
 
+    fun removePhoto(url: String) {
+        _state.value = _state.value.copy(photos = _state.value.photos - url)
+    }
+
+    fun uploadPhotos(context: android.content.Context, uris: List<Uri>) {
+        val remaining = 5 - _state.value.photos.size
+        if (remaining <= 0 || uris.isEmpty()) return
+        viewModelScope.launch {
+            _state.value = _state.value.copy(uploadingPhotos = true)
+            val added = mutableListOf<String>()
+            for (uri in uris.take(remaining)) {
+                try {
+                    val bytes = withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            ?: throw IllegalStateException("Berkas tidak bisa dibaca")
+                    }
+                    val part = MultipartBody.Part.createFormData(
+                        "file", "review.jpg", bytes.toRequestBody("image/jpeg".toMediaType())
+                    )
+                    api.uploadPhoto(part)["url"]?.let { added += it }
+                } catch (e: Exception) {
+                    _state.value = _state.value.copy(error = e.cleanApiError())
+                }
+            }
+            _state.value = _state.value.copy(
+                photos = (_state.value.photos + added).distinct().take(5),
+                uploadingPhotos = false
+            )
+        }
+    }
+
     fun submit(orderId: Long) {
         if (_state.value.isSubmitting) return
         val s = _state.value
         viewModelScope.launch {
             _state.value = s.copy(isSubmitting = true, error = null)
             try {
-                orderRepository.rate(orderId, RatingRequest(s.stars, s.tags.toList(), s.comment.trim()))
+                orderRepository.rate(orderId, RatingRequest(s.stars, s.tags.toList(), s.comment.trim(), s.photos))
                 _state.value = _state.value.copy(isSubmitting = false, submitted = true)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isSubmitting = false, error = e.cleanApiError())
@@ -120,6 +166,10 @@ fun RatingScreen(
     viewModel: RatingViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
+        viewModel.uploadPhotos(context, uris)
+    }
     LaunchedEffect(orderId) { viewModel.load(orderId) }
 
     when {
@@ -132,7 +182,10 @@ fun RatingScreen(
             onToggleTag = viewModel::toggleTag,
             onComment = viewModel::onComment,
             onSubmit = { viewModel.submit(orderId) },
-            onBack = onDone
+            onBack = onDone,
+            onPickPhotos = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onRemovePhoto = viewModel::removePhoto,
+            onPreviewPhoto = { }
         )
     }
 }
@@ -144,9 +197,13 @@ private fun RatingForm(
     onToggleTag: (String) -> Unit,
     onComment: (String) -> Unit,
     onSubmit: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onPickPhotos: () -> Unit,
+    onRemovePhoto: (String) -> Unit,
+    onPreviewPhoto: (String) -> Unit
 ) {
     val order = state.order!!
+    var preview by remember { mutableStateOf<String?>(null) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -217,6 +274,42 @@ private fun RatingForm(
                 onValueChange = onComment,
                 placeholder = "Tulis ulasan (opsional)"
             )
+            Spacer(Modifier.height(TKSpacing.Sm))
+            Text("Foto ulasan (opsional, maksimal 5)", color = TKColor.Mist, fontSize = 12.sp)
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.photos.forEach { url ->
+                    Box {
+                        AsyncImage(
+                            model = "${BuildConfig.BASE_URL}$url",
+                            contentDescription = "Foto ulasan",
+                            modifier = Modifier.size(72.dp).clip(TKShape.Media).clickable { preview = url }
+                        )
+                        IconButton(
+                            onClick = { onRemovePhoto(url) },
+                            modifier = Modifier.align(Alignment.TopEnd).size(24.dp)
+                        ) { Text("x", color = TKColor.Red, fontWeight = FontWeight.Bold) }
+                    }
+                }
+                if (state.photos.size < 5) {
+                    Button(onClick = onPickPhotos, enabled = !state.uploadingPhotos) {
+                        Text(if (state.uploadingPhotos) "Mengunggah..." else "Tambah foto")
+                    }
+                }
+            }
+            preview?.let { url ->
+                AlertDialog(
+                    onDismissRequest = { preview = null },
+                    confirmButton = { TextButton(onClick = { preview = null }) { Text("Tutup") } },
+                    text = {
+                        AsyncImage(
+                            model = "${BuildConfig.BASE_URL}$url",
+                            contentDescription = "Pratinjau foto",
+                            modifier = Modifier.fillMaxWidth().height(320.dp).clip(TKShape.Media)
+                        )
+                    }
+                )
+            }
             Spacer(Modifier.height(TKSpacing.Sm))
             if (state.isSubmitting) {
                 CircularProgressIndicator(color = TKColor.Orange)

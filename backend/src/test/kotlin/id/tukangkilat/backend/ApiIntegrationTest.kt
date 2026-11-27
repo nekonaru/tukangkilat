@@ -618,11 +618,12 @@ class ApiIntegrationTest {
         client.post("/consumer/orders/${order.id}/confirm") { bearer(rina) }
         client.post("/consumer/orders/${order.id}/rating") {
             bearer(rina); contentType(ContentType.Application.Json)
-            setBody("""{"stars":5,"tags":["Rapi"],"comment":"Mantap sekali"}""")
+            setBody("""{"stars":5,"tags":["Rapi"],"comment":"Mantap sekali","photos":["$photoUrl"]}""")
         }
         val reviewsRes = client.okGet("/technician/reviews", budi)
         assertTrue(reviewsRes.bodyAsText().contains("Mantap sekali"))
         assertTrue(reviewsRes.bodyAsText().contains(order.code))
+        assertTrue(reviewsRes.bodyAsText().contains(photoUrl))
     }
 
     @Test
@@ -1042,6 +1043,106 @@ class ApiIntegrationTest {
             setBody("{\"value\":\"12\"}")
         }
         assertEquals(HttpStatusCode.OK, config.status)
+    }
+
+
+    @Test
+    fun `auto online schedule and unread chat work`() = testApplication {
+        setupApp()
+        val techLogin = client.login("budi", "budi12345")
+        val techId = json.decodeFromString<LoginResponse>(techLogin.bodyAsText()).user.id
+        val tech = json.decodeFromString<LoginResponse>(techLogin.bodyAsText()).accessToken
+        val consumerLogin = client.login("rina", "rina12345")
+        val consumerId = json.decodeFromString<LoginResponse>(consumerLogin.bodyAsText()).user.id
+        val consumer = json.decodeFromString<LoginResponse>(consumerLogin.bodyAsText()).accessToken
+
+        val sent = client.post("/technician/direct-messages/$consumerId") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SendDirectMessageRequest.serializer(), SendDirectMessageRequest("Halo dari teknisi")))
+        }
+        assertEquals(HttpStatusCode.OK, sent.status)
+        val before = client.okGet("/consumer/direct-peers", consumer).bodyAsText()
+            .let { json.decodeFromString<List<DirectPeerDto>>(it) }
+        assertTrue(before.any { it.peerId == techId && it.unreadCount >= 1 })
+
+        client.post("/consumer/direct-peers/$techId/read") { bearer(consumer) }
+        val after = client.okGet("/consumer/direct-peers", consumer).bodyAsText()
+            .let { json.decodeFromString<List<DirectPeerDto>>(it) }
+        assertEquals(0, after.first { it.peerId == techId }.unreadCount)
+
+        val today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Jakarta")).dayOfWeek.value
+        client.post("/technician/online") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody("{\"online\":false}")
+        }
+        val schedule = client.post("/technician/auto-schedule") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateAutoScheduleRequest.serializer(),
+                CreateAutoScheduleRequest(today, "00:00", "23:59")
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, schedule.status)
+        val schedules = client.okGet("/technician/auto-schedule", tech).bodyAsText()
+            .let { json.decodeFromString<List<AutoOnlineScheduleDto>>(it) }
+        assertTrue(schedules.any { it.dayOfWeek == today && it.enabled })
+
+        assertEquals(1, EcosystemService.applyAutoSchedules())
+        val profile = client.okGet("/technician/profile", tech).bodyAsText()
+            .let { json.decodeFromString<TechnicianProfileDto>(it) }
+        assertTrue(profile.isOnline)
+    }
+
+    @Test
+    fun `message moderation and csv export work`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+        val tech = client.loginToken("budi", "budi12345")
+        val consumerLogin = client.login("rina", "rina12345")
+        val consumerId = json.decodeFromString<LoginResponse>(consumerLogin.bodyAsText()).user.id
+
+        val consumer = json.decodeFromString<LoginResponse>(consumerLogin.bodyAsText()).accessToken
+        val message = client.post("/technician/direct-messages/$consumerId") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SendDirectMessageRequest.serializer(), SendDirectMessageRequest("Pesan untuk dimoderasi")))
+        }.bodyAsText().let { json.decodeFromString<DirectMessageDto>(it) }
+
+        val otherTechnician = client.loginToken("sari", "sari12345")
+        val outsider = client.post("/technician/messages/${message.id}/report") {
+            bearer(otherTechnician)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportMessageRequest.serializer(), ReportMessageRequest(message.id, "Spam")))
+        }
+        assertEquals(HttpStatusCode.Forbidden, outsider.status)
+
+        val reported = client.post("/consumer/messages/${message.id}/report") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportMessageRequest.serializer(), ReportMessageRequest(message.id, "Spam")))
+        }
+        assertEquals(HttpStatusCode.OK, reported.status)
+        val reports = client.okGet("/admin/message-reports", admin).bodyAsText()
+            .let { json.decodeFromString<List<MessageReportDto>>(it) }
+        assertTrue(reports.any { it.messageId == message.id })
+
+        val reportId = reports.first { it.messageId == message.id }.id
+        val resolved = client.post("/admin/message-reports/$reportId/resolve") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody("{\"hideMessage\":true}")
+        }
+        assertEquals(HttpStatusCode.OK, resolved.status)
+        val hidden = client.okGet("/technician/direct-messages/$consumerId", tech).bodyAsText()
+        assertTrue(hidden.contains("pesan disembunyikan oleh admin"))
+
+        val ordersCsv = client.okGet("/admin/export/orders", admin).bodyAsText()
+        assertTrue(ordersCsv.contains("kode"))
+        val walletCsv = client.okGet("/admin/export/wallet", admin).bodyAsText()
+        assertTrue(walletCsv.contains("pengguna_id"))
     }
 
 }

@@ -4,7 +4,9 @@ import id.tukangkilat.shared.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
 
 /** Services for the v3 ecosystem: wallet, loyalty, subscriptions and technician workbench. */
 object EcosystemService {
@@ -389,5 +391,219 @@ object EcosystemService {
                     if (total > 0) accepted * 100 / total else 0
                 )
             }
+    }
+
+    // ---------- Platform polish (v3.1.0) ----------
+
+    private fun csvCell(value: Any?): String {
+        var text = value?.toString() ?: ""
+        if (text.isNotEmpty() && text.first() in listOf('=', '+', '-', '@')) text = "'$text"
+        return "\"" + text.replace("\"", "\"\"") + "\""
+    }
+
+    private fun csv(rows: List<List<Any?>>): String = buildString {
+        rows.forEach { row ->
+            append(row.joinToString(",") { csvCell(it) })
+            append('\n')
+        }
+    }
+
+    fun ordersCsv(from: String?, to: String?): String = transaction {
+        val rows = OrdersTable.selectAll().orderBy(OrdersTable.createdAt to SortOrder.DESC).map { row ->
+            listOf(
+                row[OrdersTable.code], row[OrdersTable.status], row[OrdersTable.serviceId],
+                row[OrdersTable.scheduledDate], row[OrdersTable.total], row[OrdersTable.paymentStatus],
+                row[OrdersTable.createdAt]
+            )
+        }.filter { row ->
+            val day = row.last().toString().take(10)
+            (from.isNullOrBlank() || day >= from) && (to.isNullOrBlank() || day <= to)
+        }
+        csv(listOf(listOf("kode", "status", "layanan_id", "tanggal", "total", "pembayaran", "dibuat")) + rows)
+    }
+
+    fun walletCsv(): String = transaction {
+        val rows = WalletTransactionsTable.selectAll()
+            .orderBy(WalletTransactionsTable.createdAt to SortOrder.DESC).map { row ->
+                listOf(row[WalletTransactionsTable.userId], row[WalletTransactionsTable.amount],
+                    row[WalletTransactionsTable.type], row[WalletTransactionsTable.reference],
+                    row[WalletTransactionsTable.createdAt])
+            }
+        csv(listOf(listOf("pengguna_id", "jumlah", "jenis", "referensi", "dibuat")) + rows)
+    }
+
+    fun directPeers(userId: Long, consumerSide: Boolean): List<DirectPeerDto> = transaction {
+        val peerColumn = if (consumerSide) DirectMessagesTable.technicianId else DirectMessagesTable.consumerId
+        val peerIds = DirectMessagesTable.select(peerColumn).where {
+            if (consumerSide) DirectMessagesTable.consumerId eq userId else DirectMessagesTable.technicianId eq userId
+        }.map { it[peerColumn] }.distinct().take(50)
+        peerIds.map { peerId ->
+            val rows = DirectMessagesTable.selectAll().where {
+                ((DirectMessagesTable.consumerId eq userId) and (DirectMessagesTable.technicianId eq peerId)) or
+                    ((DirectMessagesTable.consumerId eq peerId) and (DirectMessagesTable.technicianId eq userId))
+            }.orderBy(DirectMessagesTable.createdAt to SortOrder.DESC).toList()
+            val unread = rows.count { row ->
+                row[DirectMessagesTable.senderId] != userId && row[DirectMessagesTable.readAt] == null
+            }
+            DirectPeerDto(
+                peerId = peerId,
+                unreadCount = unread,
+                lastMessage = rows.firstOrNull()?.get(DirectMessagesTable.body)?.take(80) ?: "",
+                lastAt = rows.firstOrNull()?.get(DirectMessagesTable.createdAt)?.toString() ?: ""
+            )
+        }
+    }
+
+    fun markDirectRead(userId: Long, peerId: Long) = transaction {
+        DirectMessagesTable.update({
+            ((DirectMessagesTable.consumerId eq userId) and (DirectMessagesTable.technicianId eq peerId)) or
+                ((DirectMessagesTable.consumerId eq peerId) and (DirectMessagesTable.technicianId eq userId))
+        }) { it[readAt] = OffsetDateTime.now() }
+    }
+
+    private fun messageReportDto(row: ResultRow): MessageReportDto {
+        val messageId = row[MessageReportsTable.messageId]
+        val message = DirectMessagesTable.selectAll()
+            .where { DirectMessagesTable.id eq messageId }.singleOrNull()
+        val reporterId = row[MessageReportsTable.reporterId]
+        val reporter = UsersTable.selectAll().where { UsersTable.id eq reporterId }
+            .singleOrNull()?.get(UsersTable.fullName) ?: "Pengguna"
+        return MessageReportDto(
+            row[MessageReportsTable.id], messageId, reporterId, reporter,
+            message?.get(DirectMessagesTable.body) ?: "[pesan tidak ditemukan]",
+            row[MessageReportsTable.reason], row[MessageReportsTable.status],
+            row[MessageReportsTable.createdAt].toString()
+        )
+    }
+
+    fun reportMessage(userId: Long, req: ReportMessageRequest): MessageReportDto {
+        val message = transaction {
+            DirectMessagesTable.selectAll().where { DirectMessagesTable.id eq req.messageId }
+                .singleOrNull() ?: throw NotFoundException("Pesan tidak ditemukan")
+        }
+        if (message[DirectMessagesTable.senderId] == userId) throw BadRequestException("Tidak bisa melaporkan pesan sendiri")
+        if (message[DirectMessagesTable.consumerId] != userId && message[DirectMessagesTable.technicianId] != userId) {
+            throw ForbiddenException("Anda bukan peserta percakapan ini")
+        }
+        return transaction {
+            val existing = MessageReportsTable.selectAll().where {
+                (MessageReportsTable.messageId eq req.messageId) and (MessageReportsTable.reporterId eq userId)
+            }.singleOrNull()
+            val id = if (existing == null) {
+                MessageReportsTable.insert {
+                    it[messageId] = req.messageId
+                    it[reporterId] = userId
+                    it[reason] = req.reason.trim().take(255)
+                    it[status] = "OPEN"
+                    it[createdAt] = OffsetDateTime.now()
+                } get MessageReportsTable.id
+            } else existing[MessageReportsTable.id]
+            messageReportDto(MessageReportsTable.selectAll().where { MessageReportsTable.id eq id }.single())
+        }
+    }
+
+    fun messageReports(): List<MessageReportDto> = transaction {
+        MessageReportsTable.selectAll().orderBy(MessageReportsTable.createdAt to SortOrder.DESC).limit(100).map(::messageReportDto)
+    }
+
+    fun resolveMessageReport(adminId: Long, id: Long, hideMessage: Boolean) = transaction {
+        val row = MessageReportsTable.selectAll().where { MessageReportsTable.id eq id }
+            .singleOrNull() ?: throw NotFoundException("Laporan tidak ditemukan")
+        if (row[MessageReportsTable.status] != "OPEN") throw ConflictException("Laporan sudah diproses")
+        MessageReportsTable.update({ MessageReportsTable.id eq id }) {
+            it[status] = if (hideMessage) "DISEMBUNYIKAN" else "DITOLAK"
+            it[resolvedBy] = adminId
+        }
+        if (hideMessage) {
+            DirectMessagesTable.update({ DirectMessagesTable.id eq row[MessageReportsTable.messageId] }) {
+                it[body] = "[pesan disembunyikan oleh admin]"
+                it[readAt] = OffsetDateTime.now()
+            }
+        }
+    }
+
+    fun autoSchedules(technicianId: Long): List<AutoOnlineScheduleDto> = transaction {
+        AutoOnlineSchedulesTable.selectAll()
+            .where { AutoOnlineSchedulesTable.technicianId eq technicianId }
+            .orderBy(AutoOnlineSchedulesTable.dayOfWeek to SortOrder.ASC)
+            .map {
+                AutoOnlineScheduleDto(
+                    it[AutoOnlineSchedulesTable.id], it[AutoOnlineSchedulesTable.dayOfWeek],
+                    it[AutoOnlineSchedulesTable.startTime], it[AutoOnlineSchedulesTable.endTime],
+                    it[AutoOnlineSchedulesTable.enabled]
+                )
+            }
+    }
+
+    fun saveAutoSchedule(technicianId: Long, req: CreateAutoScheduleRequest): AutoOnlineScheduleDto {
+        if (req.dayOfWeek !in 1..7) throw BadRequestException("Hari harus antara 1 dan 7")
+        val start = try { LocalTime.parse(req.startTime) } catch (e: Exception) { throw BadRequestException("Format jam mulai tidak valid") }
+        val end = try { LocalTime.parse(req.endTime) } catch (e: Exception) { throw BadRequestException("Format jam selesai tidak valid") }
+        if (!end.isAfter(start)) throw BadRequestException("Jam selesai harus setelah jam mulai")
+        return transaction {
+            val existing = AutoOnlineSchedulesTable.selectAll().where {
+                (AutoOnlineSchedulesTable.technicianId eq technicianId) and
+                    (AutoOnlineSchedulesTable.dayOfWeek eq req.dayOfWeek)
+            }.singleOrNull()
+            val id = if (existing == null) {
+                AutoOnlineSchedulesTable.insert {
+                    it[this.technicianId] = technicianId
+                    it[dayOfWeek] = req.dayOfWeek
+                    it[startTime] = start.toString().take(5)
+                    it[endTime] = end.toString().take(5)
+                    it[enabled] = req.enabled
+                    it[createdAt] = OffsetDateTime.now()
+                } get AutoOnlineSchedulesTable.id
+            } else {
+                AutoOnlineSchedulesTable.update({ AutoOnlineSchedulesTable.id eq existing[AutoOnlineSchedulesTable.id] }) {
+                    it[startTime] = start.toString().take(5)
+                    it[endTime] = end.toString().take(5)
+                    it[enabled] = req.enabled
+                }
+                existing[AutoOnlineSchedulesTable.id]
+            }
+            AutoOnlineScheduleDto(id, req.dayOfWeek, start.toString().take(5), end.toString().take(5), req.enabled)
+        }
+    }
+
+    fun deleteAutoSchedule(technicianId: Long, id: Long) = transaction {
+        val deleted = AutoOnlineSchedulesTable.deleteWhere {
+            with(SqlExpressionBuilder) {
+                (AutoOnlineSchedulesTable.id eq id) and (AutoOnlineSchedulesTable.technicianId eq technicianId)
+            }
+        }
+        if (deleted == 0) throw NotFoundException("Jadwal tidak ditemukan")
+    }
+
+    /** Called from the maintenance tick. Only technicians with a schedule for today are toggled. */
+    fun applyAutoSchedules(): Int {
+        val zone = ZoneId.of("Asia/Jakarta")
+        val today = LocalDate.now(zone).dayOfWeek.value
+        val now = LocalTime.now(zone)
+        val schedules = transaction {
+            AutoOnlineSchedulesTable.selectAll()
+                .where { AutoOnlineSchedulesTable.dayOfWeek eq today }
+                .map {
+                    Triple(
+                        it[AutoOnlineSchedulesTable.technicianId],
+                        it[AutoOnlineSchedulesTable.enabled],
+                        LocalTime.parse(it[AutoOnlineSchedulesTable.startTime]) to LocalTime.parse(it[AutoOnlineSchedulesTable.endTime])
+                    )
+                }
+        }
+        var changed = 0
+        schedules.groupBy { it.first }.forEach { (technicianId, entries) ->
+            val enabled = entries.filter { it.second }
+            if (enabled.isEmpty()) return@forEach
+            val active = enabled.any { (_, _, window) ->
+                !now.isBefore(window.first) && now.isBefore(window.second)
+            }
+            changed += transaction {
+                TechnicianProfilesTable.update({ TechnicianProfilesTable.userId eq technicianId }) {
+                    it[isOnline] = active
+                }
+            }
+        }
+        return changed
     }
 }
