@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-11-28
+
+### Added
+
+- **Technician reputation**: quality, response, punctuality and satisfaction breakdown.
+- **Certifications**: expiry tracking and a simulated exam to renew status.
+- **Academy**: courses with progress and loyalty point rewards.
+- **Gear shop**: equipment purchased with loyalty points.
+- **Teams and helpers**: create a team and add approved helpers.
+- **Availability heatmap** and **digital work permits** for field work.
+- **Economy tools**: earnings forecast, tax simulation, payout schedule, quality scores and a customizable storefront.
+- Migration V15 backs the new tables and is included in export/import.
+
 ## [5.1.0] - 2026-11-27
 
 ### Added
@@ -463,6 +476,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[5.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.2.0
 [5.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.1.0
 [5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0

@@ -1991,4 +1991,53 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.OK, accepted.status)
     }
 
+
+    @Test
+    fun `technician economy endpoints work`() = testApplication {
+        setupApp()
+        val tech = client.loginToken("budi", "budi12345")
+        val reputation = client.okGet("/technician/economy/reputation", tech).bodyAsText()
+            .let { json.decodeFromString<ReputationDto>(it) }
+        assertTrue(reputation.overall in 0..100)
+
+        val courses = client.okGet("/technician/economy/courses", tech).bodyAsText()
+            .let { json.decodeFromString<List<CourseDto>>(it) }
+        assertTrue(courses.isNotEmpty())
+        val enrolled = client.post("/technician/economy/courses/${courses.first().code}/enroll") { bearer(tech) }
+        assertEquals(HttpStatusCode.Created, enrolled.status)
+        val completed = client.post("/technician/economy/courses/${courses.first().code}/complete") { bearer(tech) }
+        assertEquals(HttpStatusCode.OK, completed.status)
+        assertTrue(json.decodeFromString<EnrollmentDto>(completed.bodyAsText()).completed)
+
+        val gear = client.okGet("/technician/economy/gear", tech).bodyAsText()
+            .let { json.decodeFromString<List<GearDto>>(it) }
+        assertTrue(gear.isNotEmpty())
+
+        val team = client.post("/technician/economy/teams") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(CreateTeamRequest.serializer(), CreateTeamRequest("Tim Budi")))
+        }
+        assertEquals(HttpStatusCode.Created, team.status)
+        val tax = client.post("/technician/economy/tax") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SimulateTaxRequest.serializer(), SimulateTaxRequest(1_000_000, 10)))
+        }
+        assertEquals(HttpStatusCode.OK, tax.status)
+        assertEquals(100_000L, json.decodeFromString<TaxDto>(tax.bodyAsText()).taxAmount)
+        val schedule = client.put("/technician/economy/payout-schedule") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody("{\"frequency\":\"MINGGUAN\",\"minAmount\":100000,\"enabled\":true}")
+        }
+        assertEquals(HttpStatusCode.OK, schedule.status)
+        val store = client.put("/technician/economy/storefront") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody("{\"headline\":\"Teknisi handal\",\"description\":\"Listrik dan AC\",\"customPrice\":0}")
+        }
+        assertEquals(HttpStatusCode.OK, store.status)
+    }
+
 }

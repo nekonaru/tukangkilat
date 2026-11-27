@@ -4,6 +4,19 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-11-28
+
+### Ditambahkan
+
+- **Reputasi teknisi**: rincian kualitas, respons, ketepatan, dan kepuasan.
+- **Sertifikasi**: pemantauan masa berlaku dan ujian simulasi untuk memperbarui status.
+- **Akademi**: kursus dengan progres dan hadiah poin loyalitas.
+- **Toko peralatan**: alat yang dibeli memakai poin loyalitas.
+- **Tim dan pembantu**: membuat tim serta menambahkan pembantu yang disetujui.
+- **Heatmap ketersediaan** dan **izin kerja digital** untuk pekerjaan lapangan.
+- **Alat ekonomi**: perkiraan pendapatan, simulasi pajak, jadwal penarikan, skor kualitas, dan toko yang bisa diubah.
+- Migrasi V15 mendukung tabel baru dan ikut dalam ekspor serta impor.
+
 ## [5.1.0] - 2026-11-27
 
 ### Ditambahkan
@@ -463,6 +476,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[5.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.2.0
 [5.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.1.0
 [5.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v5.0.0
 [4.3.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.3.0

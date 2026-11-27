@@ -75,6 +75,7 @@ object Routes {
     const val A_TRUST = "admin/trust"
     const val MARKET = "market"
     const val A_MARKET = "admin/market"
+    const val T_ECONOMY = "technician/economy"
     const val C_CATALOG = "consumer/catalog"
     const val C_COMMERCE = "consumer/commerce"
     const val C_ORDER_NEW = "consumer/new"
@@ -358,6 +359,7 @@ fun TukangKilatApp(
             composable(Routes.A_TRUST) { AdminTrustScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.MARKET) { MarketplaceScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_MARKET) { AdminMarketScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.T_ECONOMY) { TechEconomyScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
                 ChatListScreen(
@@ -449,7 +451,8 @@ fun TukangKilatApp(
                     onGoEarnings = { navController.navigate(Routes.T_EARNINGS) },
                     onOpenChats = { navController.navigate(Routes.T_DIRECT_PEERS) },
                     onWorkbench = { navController.navigate(Routes.T_WORKBENCH) },
-                    onOperations = { navController.navigate(Routes.T_OPS) }
+                    onOperations = { navController.navigate(Routes.T_OPS) },
+                    onEconomy = { navController.navigate(Routes.T_ECONOMY) }
                 )
             }
             composable(Routes.T_JOBS) {

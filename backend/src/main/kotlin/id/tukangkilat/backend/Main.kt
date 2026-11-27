@@ -99,8 +99,8 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             call.respond(mapOf(
                 "status" to "ok",
                 "mode" to if (config.h2InMemory) "embedded" else "lan",
-                "version" to "5.1.0",
-                "migrations" to "14"
+                "version" to "5.2.0",
+                "migrations" to "15"
             ))
         }
         get("/announcements") { call.respond(EcosystemService.announcements()) }
@@ -751,6 +751,73 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(TechnicianService.withdraw(call.authUser().id, call.receive()))
                 }
                 get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
+            // ---------- v5 technician economy ----------
+            get("/economy/reputation") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.reputation(call.authUser().id)) }
+            get("/economy/certifications") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.certifications(call.authUser().id)) }
+            post("/economy/certifications/{code}/complete") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechEconomyService.completeCertification(call.authUser().id, call.parameters["code"]!!, call.receive()))
+            }
+            get("/economy/courses") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.courses()) }
+            get("/economy/enrollments") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.enrollments(call.authUser().id)) }
+            post("/economy/courses/{code}/enroll") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechEconomyService.enroll(call.authUser().id, call.parameters["code"]!!))
+            }
+            post("/economy/courses/{code}/complete") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechEconomyService.completeCourse(call.authUser().id, call.parameters["code"]!!))
+            }
+            get("/economy/gear") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.gear(call.authUser().id)) }
+            post("/economy/gear/{id}/buy") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechEconomyService.buyGear(call.authUser().id, call.parameters["id"]!!.toLong()))
+            }
+            get("/economy/teams") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.teams(call.authUser().id)) }
+            post("/economy/teams") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechEconomyService.createTeam(call.authUser().id, call.receive()))
+            }
+            get("/economy/helpers") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.helpers(call.authUser().id)) }
+            post("/economy/helpers") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechEconomyService.addHelper(call.authUser().id, call.receive()))
+            }
+            get("/economy/heatmap") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.heatmap(call.authUser().id)) }
+            put("/economy/heatmap") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechEconomyService.saveHeatmap(call.authUser().id, call.receive()))
+            }
+            post("/economy/permits/{orderId}") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechEconomyService.issuePermit(call.authUser().id, call.parameters["orderId"]!!.toLong()))
+            }
+            post("/economy/forecast") {
+                call.requireRole(Role.TUKANG)
+                val body = call.receive<Map<String, String>>()
+                call.respond(TechEconomyService.forecast(call.authUser().id, body["period"] ?: "MINGGUAN"))
+            }
+            post("/economy/tax") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechEconomyService.simulateTax(call.authUser().id, call.receive()))
+            }
+            get("/economy/payout-schedule") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.payoutSchedule(call.authUser().id)) }
+            put("/economy/payout-schedule") {
+                call.requireRole(Role.TUKANG)
+                TechEconomyService.savePayoutSchedule(call.authUser().id, call.receive())
+                call.respond(mapOf("status" to "ok"))
+            }
+            get("/economy/quality") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.qualityScores(call.authUser().id)) }
+            post("/economy/quality") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechEconomyService.saveQuality(call.authUser().id, call.receive()))
+            }
+            get("/economy/storefront") { call.requireRole(Role.TUKANG); call.respond(TechEconomyService.storefront(call.authUser().id)) }
+            put("/economy/storefront") {
+                call.requireRole(Role.TUKANG)
+                TechEconomyService.saveStorefront(call.authUser().id, call.receive())
+                call.respond(mapOf("status" to "ok"))
+            }
             // ---------- v5 marketplace (technician) ----------
             get("/market/bids/{orderId}") {
                 call.requireRole(Role.TUKANG)
