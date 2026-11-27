@@ -1647,4 +1647,107 @@ class ApiIntegrationTest {
         assertEquals(HttpStatusCode.Forbidden, materialForbidden.status)
     }
 
+
+    @Test
+    fun `platform flags content broadcast moderation and sla work`() = testApplication {
+        setupApp()
+        val admin = client.loginToken("admin", "admin12345")
+
+        val flag = client.put("/admin/flags/chat_v2") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveFeatureFlagRequest.serializer(), SaveFeatureFlagRequest(true, "KONSUMEN", "Uji")))
+        }
+        assertEquals(HttpStatusCode.OK, flag.status)
+        val publicFlags = client.get("/flags?role=KONSUMEN").bodyAsText()
+            .let { json.decodeFromString<List<FeatureFlagDto>>(it) }
+        assertTrue(publicFlags.any { it.key == "chat_v2" && it.enabled })
+
+        val page = client.put("/admin/content") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveContentRequest.serializer(), SaveContentRequest("faq", "FAQ", "Isi FAQ")))
+        }
+        assertEquals(HttpStatusCode.OK, page.status)
+        val publicPage = client.get("/content/faq").bodyAsText()
+            .let { json.decodeFromString<ContentDto>(it) }
+        assertEquals("FAQ", publicPage.title)
+
+        val broadcast = client.post("/admin/broadcasts") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(
+                CreateBroadcastRequest.serializer(),
+                CreateBroadcastRequest("Siaran uji", "Isi siaran", "KONSUMEN", OffsetDateTime.now().plusDays(1).toString())
+            ))
+        }
+        assertEquals(HttpStatusCode.Created, broadcast.status)
+
+        val policy = client.put("/admin/sla-policies/CONFIRM") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveSlaPolicyRequest.serializer(), SaveSlaPolicyRequest(60, 5000, true)))
+        }
+        assertEquals(HttpStatusCode.OK, policy.status)
+        assertTrue(client.okGet("/admin/sla-policies", admin).bodyAsText().contains("CONFIRM"))
+
+        val weekly = client.post("/admin/weekly-reports/generate") { bearer(admin) }
+        assertEquals(HttpStatusCode.OK, weekly.status)
+        val summary = client.okGet("/admin/platform-summary", admin).bodyAsText()
+            .let { json.decodeFromString<PlatformSummaryDto>(it) }
+        assertTrue(summary.totalUsers >= 3)
+    }
+
+    @Test
+    fun `review report requires party and admin can resolve`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val admin = client.loginToken("admin", "admin12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+        transaction {
+            RatingsTable.insert {
+                it[RatingsTable.orderId] = orderId
+                it[stars] = 4
+                it[tags] = ""
+                it[comment] = "Ulasan uji"
+                it[createdAt] = OffsetDateTime.now()
+            }
+        }
+        client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(RegisterRequest.serializer(), RegisterRequest(
+                "Outsider", "outsider42", "outsider4242", "081237776666"
+            )))
+        }
+        val outsider = client.loginToken("outsider42", "outsider4242")
+        val forbidden = client.post("/consumer/reviews/$orderId/report") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportReviewRequest.serializer(), ReportReviewRequest("Tidak pantas")))
+        }
+        assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+
+        val report = client.post("/consumer/reviews/$orderId/report") {
+            bearer(consumer)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ReportReviewRequest.serializer(), ReportReviewRequest("Tidak pantas")))
+        }
+        assertEquals(HttpStatusCode.OK, report.status)
+        val reports = client.okGet("/admin/review-reports", admin).bodyAsText()
+            .let { json.decodeFromString<List<ReviewReportDto>>(it) }
+        val found = reports.first { it.reviewOrderId == orderId }
+        val resolved = client.post("/admin/review-reports/${found.id}/resolve") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ResolveReviewReportRequest.serializer(), ResolveReviewReportRequest(true)))
+        }
+        assertEquals(HttpStatusCode.OK, resolved.status)
+    }
+
 }

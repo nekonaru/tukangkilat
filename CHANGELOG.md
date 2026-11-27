@@ -4,6 +4,19 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Ringkasan platform**: pengguna, pesanan, pendapatan, sengketa terbuka, pelanggaran SLA, dan ulasan dilaporkan dalam satu layar.
+- **Feature flag**: sakelar per peran yang bisa dibaca aplikasi lewat endpoint publik.
+- **Halaman konten**: FAQ dan informasi lain yang bisa diubah, dengan endpoint baca publik.
+- **Siaran terjadwal**: pengumuman bertarget peran yang dikirim otomatis pada waktu tertentu.
+- **Moderasi ulasan**: konsumen bisa melaporkan ulasan; admin bisa menyembunyikan atau menolak laporan.
+- **Kebijakan dan pelanggaran SLA**: target yang bisa diatur, deteksi otomatis, dan kompensasi dompet simulasi.
+- **Catatan admin dan laporan mingguan**: catatan internal dan ringkasan mingguan otomatis.
+- Migrasi V12 mendukung tabel baru dan ikut dalam ekspor serta impor.
+
 ## [4.1.0] - 2026-11-27
 
 ### Ditambahkan
@@ -417,6 +430,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[4.2.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.2.0
 [4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
 [4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0

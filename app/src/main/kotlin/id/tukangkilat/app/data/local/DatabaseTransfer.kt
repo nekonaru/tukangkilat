@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 5
+    private const val VERSION = 6
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -36,7 +36,9 @@ object DatabaseTransfer {
         "review_votes", "technician_replies", "signatures", "checklist_templates",
         "checklist_items", "refund_requests", "user_preferences", "offline_queue",
         "tech_documents", "service_areas", "auto_accept_rules", "checkins", "job_materials",
-        "tech_badges", "chat_templates", "leave_requests", "work_journals", "equipment_items"
+        "tech_badges", "chat_templates", "leave_requests", "work_journals", "equipment_items",
+        "feature_flags", "content_pages", "scheduled_broadcasts", "review_reports", "sla_policies",
+        "sla_breaches", "admin_notes", "weekly_reports"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -55,7 +57,8 @@ object DatabaseTransfer {
         "promo_campaigns", "vouchers", "referrals", "installment_plans", "signatures",
         "checklist_templates", "checklist_items", "refund_requests", "offline_queue",
         "tech_documents", "service_areas", "checkins", "job_materials", "tech_badges",
-        "chat_templates", "leave_requests", "work_journals", "equipment_items"
+        "chat_templates", "leave_requests", "work_journals", "equipment_items", "content_pages", "scheduled_broadcasts", "review_reports", "sla_breaches",
+        "admin_notes", "weekly_reports"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

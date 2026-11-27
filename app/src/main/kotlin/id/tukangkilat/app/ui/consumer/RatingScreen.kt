@@ -47,6 +47,7 @@ import id.tukangkilat.shared.OrderStatus
 import id.tukangkilat.shared.PaymentMethod
 import id.tukangkilat.shared.PaymentStatus
 import id.tukangkilat.shared.RatingRequest
+import id.tukangkilat.shared.ReportReviewRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,6 +100,15 @@ class RatingViewModel @Inject constructor(
         viewModelScope.launch {
             favoriteRepository.toggle(technician)
             _state.value = _state.value.copy(isFavorite = favoriteRepository.isFavorite(technician.id))
+        }
+    }
+
+    fun reportReview(orderId: Long) {
+        viewModelScope.launch {
+            try {
+                api.reportReview(orderId, ReportReviewRequest("Ulasan tidak pantas"))
+                _state.value = _state.value.copy(error = "Ulasan dilaporkan")
+            } catch (e: Exception) { _state.value = _state.value.copy(error = e.cleanApiError()) }
         }
     }
 
@@ -175,7 +185,7 @@ fun RatingScreen(
     when {
         state.isLoading -> LoadingView()
         state.error != null && state.order == null -> ErrorView(message = state.error!!, onRetry = { viewModel.load(orderId) })
-        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone, isFavorite = state.isFavorite, onToggleFavorite = { viewModel.toggleFavorite() }, onReorder = onReorder)
+        state.submitted -> ReceiptContent(order = state.order!!, onBack = onDone, isFavorite = state.isFavorite, onToggleFavorite = { viewModel.toggleFavorite() }, onReorder = onReorder, onReportReview = viewModel::reportReview)
         else -> RatingForm(
             state = state,
             onStars = viewModel::onStars,
@@ -327,7 +337,7 @@ private fun RatingForm(
 
 /** Struk ringkas (layar 08 bagian bawah). Juga dipakai untuk pesanan SELESAI. */
 @Composable
-internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boolean = false, onToggleFavorite: () -> Unit = {}, onReorder: (Long) -> Unit = {}) {
+internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boolean = false, onToggleFavorite: () -> Unit = {}, onReorder: (Long) -> Unit = {}, onReportReview: (Long) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -420,6 +430,7 @@ internal fun ReceiptContent(order: OrderDto, onBack: () -> Unit, isFavorite: Boo
                 Text("Pesan lagi layanan ini", fontWeight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(10.dp))
+            TextButton(onClick = { onReportReview(order.id) }) { Text("Laporkan ulasan", color = TKColor.Red) }
             TKPrimaryButton("Kembali ke Beranda", onClick = onBack)
             Spacer(Modifier.height(24.dp))
         }

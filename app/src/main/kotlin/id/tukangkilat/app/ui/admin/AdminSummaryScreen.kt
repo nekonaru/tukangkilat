@@ -128,6 +128,7 @@ fun AdminSummaryScreen(
     onPromo: () -> Unit,
     onNotifications: () -> Unit,
     onControl: () -> Unit = {},
+    onPlatform: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -318,6 +319,7 @@ fun AdminSummaryScreen(
                     }
                     item { SectionLabel("Kelola") }
                     item { AdminMenuCard(Icons.Filled.VerifiedUser, "Verifikasi tukang", "Setujui atau tolak pendaftaran tukang", onVerify) }
+                    item { AdminMenuCard(Icons.Filled.Dashboard, "Platform", "Fitur, konten, siaran, moderasi, dan SLA", onPlatform) }
                     item { AdminMenuCard(Icons.Filled.ReportProblem, "Laporan masalah", "Tinjau dan jadwalkan kunjungan ulang", onReports) }
                     item { AdminMenuCard(Icons.Filled.ReceiptLong, "Semua pesanan", "Filter status dan simulasi pembayaran", onOrders) }
                     item { AdminMenuCard(Icons.Filled.Build, "Layanan", "Ubah harga, biaya kunjungan, dan status", onServices) }

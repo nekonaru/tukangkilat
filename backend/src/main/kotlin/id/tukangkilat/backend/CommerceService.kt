@@ -574,7 +574,12 @@ object CommerceService {
         val rows = (RatingsTable innerJoin OrdersTable).selectAll()
             .where { OrdersTable.technicianId eq technicianId }
             .orderBy(RatingsTable.createdAt to SortOrder.DESC).toList()
-        rows.map { row ->
+        rows.filter { row ->
+            ReviewReportsTable.selectAll().where {
+                (ReviewReportsTable.reviewOrderId eq row[RatingsTable.orderId]) and
+                    (ReviewReportsTable.status eq "DISEMBUNYIKAN")
+            }.none()
+        }.map { row ->
             val orderId = row[RatingsTable.orderId]
             val votes = ReviewVotesTable.selectAll().where { ReviewVotesTable.reviewOrderId eq orderId }.toList()
             val photos = ReviewPhotosTable.selectAll().where { ReviewPhotosTable.orderId eq orderId }
