@@ -67,6 +67,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val WALLET = "wallet"
     const val T_WORKBENCH = "technician/workbench"
+    const val T_OPS = "technician/operations"
     const val A_CONTROL = "admin/control"
     const val C_CATALOG = "consumer/catalog"
     const val C_COMMERCE = "consumer/commerce"
@@ -334,6 +335,7 @@ fun TukangKilatApp(
             composable(Routes.C_COMMERCE) { CommerceScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.WALLET) { WalletScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.T_WORKBENCH) { WorkbenchScreen(onBack = { navController.navigateUp() }) }
+            composable(Routes.T_OPS) { OpsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.A_CONTROL) { ControlScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.SETTINGS) { SettingsScreen(onBack = { navController.navigateUp() }) }
             composable(Routes.C_CHATS) {
@@ -422,7 +424,8 @@ fun TukangKilatApp(
                     onOpenJob = { orderId -> navController.navigate(Routes.techJob(orderId)) },
                     onGoEarnings = { navController.navigate(Routes.T_EARNINGS) },
                     onOpenChats = { navController.navigate(Routes.T_DIRECT_PEERS) },
-                    onWorkbench = { navController.navigate(Routes.T_WORKBENCH) }
+                    onWorkbench = { navController.navigate(Routes.T_WORKBENCH) },
+                    onOperations = { navController.navigate(Routes.T_OPS) }
                 )
             }
             composable(Routes.T_JOBS) {

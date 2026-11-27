@@ -4,6 +4,21 @@ Semua perubahan penting proyek ini didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-11-27
+
+### Ditambahkan
+
+- **Dokumen teknisi**: unggah KTP, sertifikat, dan dokumen lain dengan tanggal kedaluwarsa serta verifikasi admin.
+- **Wilayah layanan**: menentukan area cakupan atau area pengecualian. Dispatcher melewati lokasi yang dikecualikan.
+- **Aturan terima otomatis**: menerima tawaran di atas batas harga dengan batas jarak tertentu.
+- **Rencana rute**: pekerjaan hari ini diurutkan berdasarkan jarak dari lokasi terakhir teknisi.
+- **Check-in dan check-out**: kedatangan hanya dalam radius 500 meter dari alamat pekerjaan.
+- **Material dan biaya**: mencatat barang yang dipakai per pesanan.
+- **Badge dan level**: badge dari jumlah pekerjaan, rating, dan tingkat penerimaan tawaran.
+- **Template chat, pengajuan libur, jurnal kerja, dan checklist peralatan** untuk operasional harian.
+- **Statistik performa**: waktu respons, waktu selesai, tingkat pembatalan, dan progres level.
+- Migrasi V11 mendukung tabel baru dan ikut dalam ekspor serta impor.
+
 ## [4.0.0] - 2026-11-27
 
 ### Ditambahkan
@@ -402,6 +417,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan p
 - **Data demo**: layanan (Perbaikan Listrik, Pipa Bocor, Servis AC), slot (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, akun demo untuk admin, konsumen, dan dua teknisi.
 - **Verifikasi**: tes integrasi backend mencakup autentikasi, RBAC, siklus pesanan lengkap, simulator pembayaran, aturan pembatalan, dan isolasi akses; tes unit state machine; build debug Android di CI; scan rahasia gitleaks.
 
+[4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
 [4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0
 [3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0

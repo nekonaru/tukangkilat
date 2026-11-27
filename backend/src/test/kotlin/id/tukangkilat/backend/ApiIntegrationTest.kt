@@ -1519,4 +1519,132 @@ class ApiIntegrationTest {
         assertEquals(before + 10_000L, after)
     }
 
+
+    @Test
+    fun `technician operations endpoints work`() = testApplication {
+        setupApp()
+        val tech = client.loginToken("budi", "budi12345")
+        val admin = client.loginToken("admin", "admin12345")
+
+        val document = client.post("/technician/documents") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddDocumentRequest.serializer(), AddDocumentRequest("KTP", "/photos/ktp.jpg")))
+        }
+        assertEquals(HttpStatusCode.Created, document.status, document.bodyAsText())
+        val docId = json.decodeFromString<TechDocumentDto>(document.bodyAsText()).id
+        val verified = client.post("/admin/technician-documents/$docId/verify") {
+            bearer(admin)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(VerifyDocumentRequest.serializer(), VerifyDocumentRequest(true, "Valid")))
+        }
+        assertEquals(HttpStatusCode.OK, verified.status)
+        assertEquals("TERVERIFIKASI", json.decodeFromString<TechDocumentDto>(verified.bodyAsText()).status)
+
+        val area = client.post("/technician/areas") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddServiceAreaRequest.serializer(), AddServiceAreaRequest("Jakarta Selatan", -6.26, 106.80, 15, false)))
+        }
+        assertEquals(HttpStatusCode.Created, area.status)
+        val areas = client.okGet("/technician/areas", tech).bodyAsText()
+            .let { json.decodeFromString<List<ServiceAreaDto>>(it) }
+        assertTrue(areas.any { it.areaName == "Jakarta Selatan" })
+
+        val rule = client.put("/technician/auto-accept") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(SaveAutoAcceptRequest.serializer(), SaveAutoAcceptRequest(false, 150_000, 25, "")))
+        }
+        assertEquals(HttpStatusCode.OK, rule.status)
+        val saved = json.decodeFromString<AutoAcceptDto>(rule.bodyAsText())
+        assertTrue(!saved.enabled)
+
+        val template = client.post("/technician/chat-templates") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddTemplateRequest.serializer(), AddTemplateRequest("Salam", "Halo, saya teknisi terverifikasi")))
+        }
+        assertEquals(HttpStatusCode.Created, template.status)
+        val journal = client.post("/technician/journal") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddJournalRequest.serializer(), AddJournalRequest(
+                java.time.LocalDate.now().toString(), "Menyiapkan peralatan"
+            )))
+        }
+        assertEquals(HttpStatusCode.Created, journal.status)
+        val leave = client.post("/technician/leaves") {
+            bearer(tech)
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(AddLeaveRequest.serializer(), AddLeaveRequest(
+                java.time.LocalDate.now().plusDays(5).toString(),
+                java.time.LocalDate.now().plusDays(6).toString(), "Libur"
+            )))
+        }
+        assertEquals(HttpStatusCode.Created, leave.status)
+        val equipment = client.okGet("/technician/equipment", tech).bodyAsText()
+            .let { json.decodeFromString<List<EquipmentDto>>(it) }
+        assertTrue(equipment.isNotEmpty())
+        val badges = client.okGet("/technician/badges", tech).bodyAsText()
+            .let { json.decodeFromString<List<BadgeDto>>(it) }
+        assertTrue(badges.isNotEmpty())
+        val stats = client.okGet("/technician/ops-stats", tech).bodyAsText()
+            .let { json.decodeFromString<OpsStatsDto>(it) }
+        assertTrue(stats.level in 1..3)
+    }
+
+    @Test
+    fun `checkin and material require technician ownership`() = testApplication {
+        setupApp()
+        val consumer = client.loginToken("rina", "rina12345")
+        val outsider = client.loginToken("sari", "sari12345")
+        val serviceId = client.okGet("/consumer/services", consumer).bodyAsText()
+            .let { json.decodeFromString<List<ServiceDto>>(it).first().id }
+        val addressId = client.okGet("/consumer/addresses", consumer).bodyAsText()
+            .let { json.decodeFromString<List<AddressDto>>(it).first().id }
+        val slotId = client.okGet("/consumer/slots?date=${java.time.LocalDate.now().plusDays(3)}", consumer).bodyAsText()
+            .let { json.decodeFromString<List<SlotDto>>(it).first().id }
+        val orderId = client.createTestOrder(consumer, serviceId, addressId, slotId)
+        val ownerId = transaction {
+            val id = UsersTable.selectAll().where { UsersTable.username eq "budi" }.single()[UsersTable.id]
+            OrdersTable.update({ OrdersTable.id eq orderId }) {
+                it[technicianId] = id
+                it[status] = OrderStatus.DALAM_PERJALANAN.name
+            }
+            id
+        }
+        val owner = client.loginToken("budi", "budi12345")
+        val address = transaction {
+            val addressIdRow = OrdersTable.selectAll().where { OrdersTable.id eq orderId }.single()[OrdersTable.addressId]
+            val row = AddressesTable.selectAll().where { AddressesTable.id eq addressIdRow }.single()
+            row[AddressesTable.lat] to row[AddressesTable.lng]
+        }
+        val success = client.post("/technician/orders/$orderId/checkin") {
+            bearer(owner)
+            contentType(ContentType.Application.Json)
+            setBody("{\"kind\":\"DATANG\",\"lat\":${address.first},\"lng\":${address.second}}")
+        }
+        assertEquals(HttpStatusCode.OK, success.status, success.bodyAsText())
+        val history = client.okGet("/technician/orders/$orderId/checkins", owner).bodyAsText()
+            .let { json.decodeFromString<List<CheckinDto>>(it) }
+        assertTrue(history.any { it.kind == "DATANG" })
+        val historyForbidden = client.get("/technician/orders/$orderId/checkins") { bearer(outsider) }
+        assertEquals(HttpStatusCode.Forbidden, historyForbidden.status)
+
+        val forbidden = client.post("/technician/orders/$orderId/checkin") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody("{\"kind\":\"DATANG\",\"lat\":-6.26,\"lng\":106.80}")
+        }
+        assertEquals(HttpStatusCode.Forbidden, forbidden.status)
+        assertTrue(ownerId > 0)
+        val materialForbidden = client.post("/technician/materials") {
+            bearer(outsider)
+            contentType(ContentType.Application.Json)
+            setBody("{\"orderId\":$orderId,\"name\":\"Kabel\",\"quantity\":1,\"cost\":10000}")
+        }
+        assertEquals(HttpStatusCode.Forbidden, materialForbidden.status)
+    }
+
 }

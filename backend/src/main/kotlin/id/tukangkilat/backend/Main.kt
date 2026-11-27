@@ -404,7 +404,7 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     CommerceService.voteReview(call.authUser().id, call.parameters["orderId"]!!.toLong(), call.receive<ReviewVoteRequest>().helpful)
                     call.respond(mapOf("status" to "ok"))
                 }
-                get("/refunds") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.refunds(call.authUser().id)) }
+            get("/refunds") { call.requireRole(Role.KONSUMEN); call.respond(CommerceService.refunds(call.authUser().id)) }
                 post("/refunds") {
                     call.requireRole(Role.KONSUMEN)
                     val orderId = call.request.queryParameters["orderId"]!!.toLong()
@@ -560,6 +560,106 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
                     call.respond(TechnicianService.withdraw(call.authUser().id, call.receive()))
                 }
                 get("/reviews") { call.requireRole(Role.TUKANG); call.respond(TechnicianService.reviews(call.authUser().id)) }
+            // ---------- v4 technician operations ----------
+            get("/documents") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.documents(call.authUser().id))
+            }
+            post("/documents") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addDocument(call.authUser().id, call.receive()))
+            }
+            get("/documents/expiring") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.expiringDocuments(call.authUser().id))
+            }
+            get("/areas") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.areas(call.authUser().id))
+            }
+            post("/areas") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addArea(call.authUser().id, call.receive()))
+            }
+            delete("/areas/{id}") {
+                call.requireRole(Role.TUKANG)
+                TechnicianOpsService.deleteArea(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(HttpStatusCode.NoContent)
+            }
+            get("/auto-accept") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.autoAccept(call.authUser().id))
+            }
+            put("/auto-accept") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.saveAutoAccept(call.authUser().id, call.receive()))
+            }
+            get("/route") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.route(call.authUser().id))
+            }
+            post("/orders/{id}/checkin") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.checkin(call.authUser().id, call.parameters["id"]!!.toLong(), call.receive()))
+            }
+            get("/orders/{id}/checkins") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.checkins(call.authUser().id, call.parameters["id"]!!.toLong()))
+            }
+            get("/materials") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.materials(call.authUser().id, call.request.queryParameters["orderId"]?.toLongOrNull()))
+            }
+            post("/materials") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addMaterial(call.authUser().id, call.receive()))
+            }
+            get("/badges") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.badges(call.authUser().id))
+            }
+            get("/ops-stats") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.opsStats(call.authUser().id))
+            }
+            get("/chat-templates") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.templates(call.authUser().id))
+            }
+            post("/chat-templates") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addTemplate(call.authUser().id, call.receive()))
+            }
+            delete("/chat-templates/{id}") {
+                call.requireRole(Role.TUKANG)
+                TechnicianOpsService.deleteTemplate(call.authUser().id, call.parameters["id"]!!.toLong())
+                call.respond(HttpStatusCode.NoContent)
+            }
+            get("/leaves") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.leaves(call.authUser().id))
+            }
+            post("/leaves") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addLeave(call.authUser().id, call.receive()))
+            }
+            get("/journal") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.journal(call.authUser().id))
+            }
+            post("/journal") {
+                call.requireRole(Role.TUKANG)
+                call.respond(HttpStatusCode.Created, TechnicianOpsService.addJournal(call.authUser().id, call.receive()))
+            }
+            get("/equipment") {
+                call.requireRole(Role.TUKANG)
+                call.respond(TechnicianOpsService.equipment(call.authUser().id))
+            }
+            put("/equipment") {
+                call.requireRole(Role.TUKANG)
+                TechnicianOpsService.setEquipment(call.authUser().id, call.receive())
+                call.respond(mapOf("status" to "ok"))
+            }
             // ---------- v4 commerce (technician) ----------
             get("/review-details") {
                 call.requireRole(Role.TUKANG)
@@ -625,6 +725,35 @@ fun Application.module(config: AppConfig = AppConfig.fromEnv()) {
             get("/leaders") {
                 call.requireRole(Role.ADMIN)
                 call.respond(EcosystemService.leaders())
+            }
+            get("/technician-documents") {
+                call.requireRole(Role.ADMIN)
+                call.respond(TechnicianOpsService.adminDocuments(call.request.queryParameters["status"]))
+            }
+            post("/technician-documents/{id}/verify") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<VerifyDocumentRequest>()
+                call.respond(TechnicianOpsService.verifyDocument(
+                    call.authUser().id, call.parameters["id"]!!.toLong(), body.approve, body.note
+                ))
+            }
+            get("/technician-leaves") {
+                call.requireRole(Role.ADMIN)
+                call.respond(transaction {
+                    LeaveRequestsTable.selectAll().orderBy(LeaveRequestsTable.createdAt to SortOrder.DESC)
+                        .limit(100).map {
+                            LeaveDto(it[LeaveRequestsTable.id], it[LeaveRequestsTable.startDate].toString(),
+                                it[LeaveRequestsTable.endDate].toString(), it[LeaveRequestsTable.reason], it[LeaveRequestsTable.status])
+                        }
+                })
+            }
+            post("/technician-leaves/{id}/resolve") {
+                call.requireRole(Role.ADMIN)
+                val body = call.receive<Map<String, Boolean>>()
+                TechnicianOpsService.resolveLeave(
+                    call.authUser().id, call.parameters["id"]!!.toLong(), body["approve"] ?: false
+                )
+                call.respond(mapOf("status" to "ok"))
             }
             get("/refunds") {
                 call.requireRole(Role.ADMIN)

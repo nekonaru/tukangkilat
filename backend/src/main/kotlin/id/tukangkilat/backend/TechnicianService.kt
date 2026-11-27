@@ -147,7 +147,10 @@ object TechnicianService {
             }
             val orderId = offer[JobOffersTable.orderId]
             val now = OffsetDateTime.now()
-            JobOffersTable.update({ JobOffersTable.id eq offerId }) { it[JobOffersTable.status] = OfferStatus.DITERIMA.name }
+            JobOffersTable.update({ JobOffersTable.id eq offerId }) {
+                it[JobOffersTable.status] = OfferStatus.DITERIMA.name
+                it[JobOffersTable.respondedAt] = OffsetDateTime.now()
+            }
             // other active offers for the same order are expired
             JobOffersTable.update({
                 (JobOffersTable.orderId eq orderId) and
@@ -183,6 +186,7 @@ object TechnicianService {
             JobOffersTable.update({ JobOffersTable.id eq offerId }) {
                 it[JobOffersTable.status] = OfferStatus.DITOLAK.name
                 it[JobOffersTable.rejectReason] = req.reason.trim().take(250).ifBlank { null }
+                it[JobOffersTable.respondedAt] = OffsetDateTime.now()
             }
             offer[JobOffersTable.orderId]
         }
