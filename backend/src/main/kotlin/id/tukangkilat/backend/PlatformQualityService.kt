@@ -74,6 +74,11 @@ object PlatformQualityService {
         if (publicKey.isBlank() || publicKey.length > 512) throw BadRequestException("Kunci tidak valid")
         val fingerprint = MessageDigest.getInstance("SHA-256")
             .digest(publicKey.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }.take(16)
+        if (ChatKeysTable.selectAll().where {
+                (ChatKeysTable.userId eq userId) and (ChatKeysTable.fingerprint eq fingerprint)
+            }.any()) {
+            throw BadRequestException("Kunci yang sama sudah ada")
+        }
         ChatKeysTable.update({ ChatKeysTable.userId eq userId }) { it[active] = false }
         val id = ChatKeysTable.insert {
             it[this.userId] = userId
@@ -94,9 +99,10 @@ object PlatformQualityService {
 
     fun saveRateLimit(code: String, req: SaveRateLimitRequest): RateLimitDto = transaction {
         if (req.maxCalls !in 1..10000 || req.windowSeconds !in 1..86400) throw BadRequestException("Batas tidak valid")
-        val exists = RateLimitsTable.selectAll().where { RateLimitsTable.code eq code }.any()
+        val normalizedCode = code.trim().take(64)
+        val exists = RateLimitsTable.selectAll().where { RateLimitsTable.code eq normalizedCode }.any()
         if (exists) {
-            RateLimitsTable.update({ RateLimitsTable.code eq code }) {
+            RateLimitsTable.update({ RateLimitsTable.code eq normalizedCode }) {
                 it[maxCalls] = req.maxCalls
                 it[windowSeconds] = req.windowSeconds
                 it[enabled] = req.enabled
@@ -104,14 +110,14 @@ object PlatformQualityService {
             }
         } else {
             RateLimitsTable.insert {
-                it[this.code] = code.trim().take(64)
+                it[this.code] = normalizedCode
                 it[maxCalls] = req.maxCalls
                 it[windowSeconds] = req.windowSeconds
                 it[enabled] = req.enabled
                 it[updatedAt] = OffsetDateTime.now()
             }
         }
-        rateLimits().first { it.code == code.trim().take(64) }
+        rateLimits().first { it.code == normalizedCode }
     }
 
     fun apiVersions(): List<ApiVersionDto> = transaction {
@@ -131,21 +137,22 @@ object PlatformQualityService {
 
     fun saveApiVersion(version: String, req: SaveApiVersionRequest): ApiVersionDto = transaction {
         if (req.status !in listOf("AKTIF", "DEPREKATED", "NONAKTIF")) throw BadRequestException("Status tidak valid")
-        val exists = ApiVersionsTable.selectAll().where { ApiVersionsTable.version eq version }.any()
+        val normalizedVersion = version.trim().take(16)
+        val exists = ApiVersionsTable.selectAll().where { ApiVersionsTable.version eq normalizedVersion }.any()
         if (exists) {
-            ApiVersionsTable.update({ ApiVersionsTable.version eq version }) {
+            ApiVersionsTable.update({ ApiVersionsTable.version eq normalizedVersion }) {
                 it[status] = req.status
                 it[note] = req.note.take(255)
             }
         } else {
             ApiVersionsTable.insert {
-                it[this.version] = version.trim().take(16)
+                it[this.version] = normalizedVersion
                 it[status] = req.status
                 it[note] = req.note.take(255)
                 it[releasedAt] = OffsetDateTime.now()
             }
         }
-        apiVersions().first { it.version == version.trim().take(16) }
+        apiVersions().first { it.version == normalizedVersion }
     }
 
     fun widgets(userId: Long): List<WidgetConfigDto> = transaction {
@@ -199,23 +206,24 @@ object PlatformQualityService {
 
     fun saveJob(req: SaveJobRequest): ScheduledJobDto = transaction {
         if (req.intervalMs !in 1000..86_400_000) throw BadRequestException("Interval tidak valid")
-        val exists = ScheduledJobsTable.selectAll().where { ScheduledJobsTable.code eq req.code }.any()
+        val normalizedCode = req.code.trim().take(64)
+        val exists = ScheduledJobsTable.selectAll().where { ScheduledJobsTable.code eq normalizedCode }.any()
         if (exists) {
-            ScheduledJobsTable.update({ ScheduledJobsTable.code eq req.code }) {
+            ScheduledJobsTable.update({ ScheduledJobsTable.code eq normalizedCode }) {
                 it[name] = req.name.take(120)
                 it[intervalMs] = req.intervalMs
                 it[enabled] = req.enabled
             }
         } else {
             ScheduledJobsTable.insert {
-                it[this.code] = req.code.trim().take(64)
+                it[this.code] = normalizedCode
                 it[name] = req.name.trim().take(120)
                 it[intervalMs] = req.intervalMs
                 it[enabled] = req.enabled
                 it[createdAt] = OffsetDateTime.now()
             }
         }
-        jobs().first { it.code == req.code.trim().take(64) }
+        jobs().first { it.code == normalizedCode }
     }
 
     fun runJob(code: String): ScheduledJobDto = transaction {

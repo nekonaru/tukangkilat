@@ -47,7 +47,8 @@ object DatabaseTransfer {
         "price_history", "ledger_entries", "commission_rules",
         "reputation_scores", "certifications", "courses", "enrollments", "gear_items", "teams",
         "team_helpers", "availability_heatmap", "work_permits", "earnings_forecasts",
-        "tax_simulations", "payout_schedules", "quality_scores", "storefronts"
+        "tax_simulations", "payout_schedules", "quality_scores", "storefronts",
+        "sync_operations", "chat_keys", "rate_limits", "api_versions", "widget_configs", "scheduled_jobs"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -70,7 +71,8 @@ object DatabaseTransfer {
         "admin_notes", "weekly_reports", "custom_bundles", "flash_sales", "group_buys",
         "job_bids", "gift_cards", "point_redemptions", "tips", "wishlists", "price_alerts",
         "price_history", "ledger_entries", "certifications", "enrollments", "gear_items",
-        "teams", "team_helpers", "work_permits", "tax_simulations", "quality_scores", "availability_heatmap", "earnings_forecasts"
+        "teams", "team_helpers", "work_permits", "tax_simulations", "quality_scores", "availability_heatmap", "earnings_forecasts",
+        "sync_operations", "chat_keys", "scheduled_jobs"
     )
 
     private val SAFE_TABLES = TABLES.toSet()
