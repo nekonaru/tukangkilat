@@ -47,6 +47,19 @@ object TechEconomyService {
     }
 
     fun certifications(technicianId: Long): List<CertificationDto> = transaction {
+        if (!CertificationsTable.selectAll().where { CertificationsTable.technicianId eq technicianId }.any()) {
+            listOf("KTP" to "Identitas teknisi", "SERTIFIKAT" to "Sertifikat keahlian").forEach { (code, title) ->
+                CertificationsTable.insert {
+                    it[this.technicianId] = technicianId
+                    it[this.code] = code
+                    it[this.title] = title
+                    it[expiresAt] = LocalDate.now().plusYears(1)
+                    it[status] = "AKTIF"
+                    it[score] = 0
+                    it[createdAt] = OffsetDateTime.now()
+                }
+            }
+        }
         CertificationStatus.expireIfNeeded(technicianId)
         CertificationsTable.selectAll().where { CertificationsTable.technicianId eq technicianId }
             .orderBy(CertificationsTable.expiresAt to SortOrder.ASC).map {
@@ -76,6 +89,7 @@ object TechEconomyService {
         CertificationsTable.update({ CertificationsTable.id eq row[CertificationsTable.id] }) {
             it[score] = req.score
             it[this.status] = status
+            if (status == "AKTIF") it[expiresAt] = LocalDate.now().plusYears(1)
         }
         certifications(technicianId).first { it.id == row[CertificationsTable.id] }
     }

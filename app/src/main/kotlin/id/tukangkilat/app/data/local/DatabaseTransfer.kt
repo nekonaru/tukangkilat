@@ -70,7 +70,7 @@ object DatabaseTransfer {
         "admin_notes", "weekly_reports", "custom_bundles", "flash_sales", "group_buys",
         "job_bids", "gift_cards", "point_redemptions", "tips", "wishlists", "price_alerts",
         "price_history", "ledger_entries", "certifications", "enrollments", "gear_items",
-        "teams", "team_helpers", "work_permits", "tax_simulations", "quality_scores"
+        "teams", "team_helpers", "work_permits", "tax_simulations", "quality_scores", "availability_heatmap", "earnings_forecasts"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

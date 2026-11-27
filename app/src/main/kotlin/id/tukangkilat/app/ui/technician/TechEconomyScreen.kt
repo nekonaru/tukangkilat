@@ -39,6 +39,10 @@ data class TechEconomyUiState(
     val amount: String = "",
     val headline: String = "",
     val description: String = "",
+    val price: String = "",
+    val helperId: String = "",
+    val dayOfWeek: String = "1",
+    val hour: String = "9",
     val notice: String? = null
 )
 
@@ -54,6 +58,7 @@ class TechEconomyViewModel @Inject constructor(private val api: ApiService) : Vi
                 _state.value = TechEconomyUiState(
                     tab = current.tab, notice = current.notice, coarse = current.coarse,
                     amount = current.amount, headline = current.headline, description = current.description,
+                    price = current.price, helperId = current.helperId, dayOfWeek = current.dayOfWeek, hour = current.hour,
                     reputation = runCatching { api.reputation() }.getOrNull(),
                     certifications = runCatching { api.certifications() }.getOrDefault(emptyList()),
                     courses = runCatching { api.courses() }.getOrDefault(emptyList()),
@@ -78,6 +83,10 @@ class TechEconomyViewModel @Inject constructor(private val api: ApiService) : Vi
             "amount" -> _state.value.copy(amount = value)
             "headline" -> _state.value.copy(headline = value)
             "description" -> _state.value.copy(description = value)
+            "price" -> _state.value.copy(price = value)
+            "helperId" -> _state.value.copy(helperId = value)
+            "dayOfWeek" -> _state.value.copy(dayOfWeek = value)
+            "hour" -> _state.value.copy(hour = value)
             else -> _state.value
         }
     }
@@ -128,10 +137,54 @@ class TechEconomyViewModel @Inject constructor(private val api: ApiService) : Vi
         val s = _state.value
         viewModelScope.launch {
             try {
-                api.saveStorefront(SaveStorefrontRequest(s.headline, s.description, 0))
+                api.saveStorefront(SaveStorefrontRequest(s.headline, s.description, s.price.toLongOrNull() ?: 0))
                 _state.value = s.copy(notice = "Toko disimpan")
                 refresh()
             } catch (e: Exception) { _state.value = s.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun addHelper(teamId: Long) {
+        val id = _state.value.helperId.toLongOrNull()
+        if (id == null) { _state.value = _state.value.copy(notice = "ID pembantu tidak valid"); return }
+        viewModelScope.launch {
+            try {
+                api.addHelper(AddHelperRequest(teamId, id))
+                _state.value = _state.value.copy(notice = "Pembantu ditambahkan", helperId = "")
+                refresh()
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun saveHeatmap() {
+        val s = _state.value
+        val day = s.dayOfWeek.toIntOrNull()
+        val hour = s.hour.toIntOrNull()
+        if (day == null || hour == null) { _state.value = s.copy(notice = "Hari dan jam tidak valid"); return }
+        viewModelScope.launch {
+            try {
+                api.saveHeatmap(SaveHeatmapRequest(day, hour, 3))
+                _state.value = s.copy(notice = "Heatmap disimpan")
+                refresh()
+            } catch (e: Exception) { _state.value = s.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun forecast() {
+        viewModelScope.launch {
+            try {
+                val result = api.forecast(mapOf("period" to "MINGGUAN"))
+                _state.value = _state.value.copy(notice = "Perkiraan Rp${result.expected}")
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
+        }
+    }
+
+    fun payout() {
+        viewModelScope.launch {
+            try {
+                api.savePayoutSchedule(SavePayoutScheduleRequest("MINGGUAN", 100_000, true))
+                _state.value = _state.value.copy(notice = "Jadwal penarikan disimpan")
+            } catch (e: Exception) { _state.value = _state.value.copy(notice = e.cleanApiError()) }
         }
     }
 
@@ -153,7 +206,7 @@ fun TechEconomyScreen(onBack: () -> Unit, viewModel: TechEconomyViewModel = hilt
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ScrollableTabRow(selectedTabIndex = state.tab) {
-                listOf("Reputasi", "Sertifikat", "Akademi", "Alat", "Tim", "Pajak", "Toko").forEachIndexed { i, title ->
+                listOf("Reputasi", "Sertifikat", "Akademi", "Alat", "Tim", "Pajak", "Toko", "Jadwal", "Kualitas").forEachIndexed { i, title ->
                     Tab(selected = state.tab == i, onClick = { viewModel.tab(i) }, text = { Text(title) })
                 }
             }
@@ -196,18 +249,37 @@ fun TechEconomyScreen(onBack: () -> Unit, viewModel: TechEconomyViewModel = hilt
                 4 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     TKOutlinedField(state.coarse, { viewModel.field("coarse", it) }, label = "Nama tim")
                     TKButton("Buat tim", viewModel::createTeam, variant = TKButtonVariant.Tonal)
-                    state.teams.forEach { Text("${it.name} · anggota ${state.helpers.size}") }
+                    TKOutlinedField(state.helperId, { viewModel.field("helperId", it) }, label = "ID pembantu")
+                    state.teams.forEach { team ->
+                        Column {
+                            Text("${team.name} · ${state.helpers.count { it.teamId == team.id }} pembantu")
+                            TKButton("Tambah pembantu", { viewModel.addHelper(team.id) }, variant = TKButtonVariant.Outlined)
+                        }
+                    }
                 }
                 5 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     TKOutlinedField(state.amount, { viewModel.field("amount", it) }, label = "Penghasilan kotor")
                     TKButton("Simulasi pajak 10%", viewModel::simulateTax, variant = TKButtonVariant.Tonal)
                     state.tax?.let { Text("Pajak Rp${it.taxAmount} · bersih Rp${it.net}") }
                 }
-                else -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
+                6 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
                     TKOutlinedField(state.headline, { viewModel.field("headline", it) }, label = "Judul toko")
                     TKOutlinedField(state.description, { viewModel.field("description", it) }, label = "Deskripsi")
+                    TKOutlinedField(state.price, { viewModel.field("price", it) }, label = "Tarif khusus")
                     TKButton("Simpan toko", viewModel::saveStorefront, variant = TKButtonVariant.Tonal)
-                    state.storefront?.let { Text("${it.headline}: ${it.description}") }
+                    state.storefront?.let { Text("${it.headline}: ${it.description} · Rp${it.customPrice}") }
+                }
+                7 -> Column(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
+                    TKButton("Hitung perkiraan pendapatan", viewModel::forecast, variant = TKButtonVariant.Tonal)
+                    TKButton("Aktifkan penarikan mingguan", viewModel::payout, variant = TKButtonVariant.Outlined)
+                    TKOutlinedField(state.dayOfWeek, { viewModel.field("dayOfWeek", it) }, label = "Hari heatmap (1-7)")
+                    TKOutlinedField(state.hour, { viewModel.field("hour", it) }, label = "Jam heatmap (0-23)")
+                    TKButton("Simpan heatmap", viewModel::saveHeatmap)
+                }
+                else -> LazyColumn(Modifier.fillMaxSize().padding(TKSpacing.Sm)) {
+                    items(state.quality, key = { it.id }) { item ->
+                        Text("Pesanan ${item.orderId} · skor ${item.score} · ${item.note}", modifier = Modifier.padding(vertical = 4.dp))
+                    }
                 }
             }
         }
