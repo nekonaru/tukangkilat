@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-11-27
+
+### Added
+
+- **Technician documents**: upload KTP, certificates and other documents, with expiry dates and admin verification.
+- **Service areas**: define covered areas or excluded zones; dispatch skips excluded locations.
+- **Auto accept rules**: accept offers automatically above a price threshold, with a distance limit.
+- **Route planner**: today's jobs sorted by distance from the technician's last location.
+- **Check-in and check-out**: arrival is limited to 500 meters from the job address.
+- **Materials and costs**: record parts used per job.
+- **Badges and levels**: earn badges from completed jobs, rating and acceptance rate.
+- **Chat templates, leave requests, work journal and equipment checklist** for daily operations.
+- **Performance stats**: response time, completion time, cancellation rate and level progress.
+- Migration V11 backs the new tables and is included in export/import.
+
 ## [4.0.0] - 2026-11-27
 
 ### Added
@@ -402,6 +417,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Demo data**: seeded services (Perbaikan Listrik, Pipa Bocor, Servis AC), slots (09.00, 10.00-11.00, 13.00), promo `HEMAT25`, demo accounts for admin, consumer, and two technicians.
 - **Verification**: backend integration tests covering auth, RBAC, full order lifecycle, payment simulator, cancellation rules, and access isolation; shared module state machine tests; Android debug build in CI; gitleaks secret scan.
 
+[4.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.1.0
 [4.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v4.0.0
 [3.1.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.1.0
 [3.0.0]: https://github.com/nekonaru/tukangkilat/releases/tag/v3.0.0

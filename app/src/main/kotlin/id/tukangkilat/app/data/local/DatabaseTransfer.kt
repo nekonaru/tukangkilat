@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
 /** Portable snapshot of the embedded backend: all rows as JSON plus uploaded photos. */
 object DatabaseTransfer {
 
-    private const val VERSION = 4
+    private const val VERSION = 5
     private const val DATA_FILE = "database.json"
     private const val MAX_JSON_BYTES = 64 * 1024 * 1024
     private const val MAX_PHOTO_BYTES = 8 * 1024 * 1024
@@ -34,7 +34,9 @@ object DatabaseTransfer {
         "auto_online_schedules", "message_reports", "service_bundles", "promo_campaigns",
         "vouchers", "referrals", "installment_plans", "membership_tiers", "wallet_settings",
         "review_votes", "technician_replies", "signatures", "checklist_templates",
-        "checklist_items", "refund_requests", "user_preferences", "offline_queue"
+        "checklist_items", "refund_requests", "user_preferences", "offline_queue",
+        "tech_documents", "service_areas", "auto_accept_rules", "checkins", "job_materials",
+        "tech_badges", "chat_templates", "leave_requests", "work_journals", "equipment_items"
     )
 
     /** Tables present in every snapshot format, used to validate older archives. */
@@ -51,7 +53,9 @@ object DatabaseTransfer {
         "technician_portfolios", "disputes", "audit_logs", "announcements", "review_photos",
         "auto_online_schedules", "message_reports", "service_categories", "service_bundles",
         "promo_campaigns", "vouchers", "referrals", "installment_plans", "signatures",
-        "checklist_templates", "checklist_items", "refund_requests", "offline_queue"
+        "checklist_templates", "checklist_items", "refund_requests", "offline_queue",
+        "tech_documents", "service_areas", "checkins", "job_materials", "tech_badges",
+        "chat_templates", "leave_requests", "work_journals", "equipment_items"
     )
 
     private val SAFE_TABLES = TABLES.toSet()

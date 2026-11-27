@@ -216,6 +216,110 @@ object OfflineQueueTable : Table("offline_queue") {
     override val primaryKey = PrimaryKey(id)
 }
 
+object TechDocumentsTable : Table("tech_documents") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val docType = varchar("doc_type", 32)
+    val fileUrl = varchar("file_url", 512)
+    val expiresAt = date("expires_at").nullable()
+    val status = varchar("status", 16)
+    val note = varchar("note", 255)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ServiceAreasTable : Table("service_areas") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val areaName = varchar("area_name", 120)
+    val lat = double("lat")
+    val lng = double("lng")
+    val radiusKm = integer("radius_km")
+    val isExcluded = bool("is_excluded")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AutoAcceptRulesTable : Table("auto_accept_rules") {
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val enabled = bool("enabled")
+    val minPrice = long("min_price")
+    val maxDistance = integer("max_distance")
+    val serviceIds = varchar("service_ids", 255)
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(technicianId)
+}
+
+object CheckinsTable : Table("checkins") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val kind = varchar("kind", 16)
+    val lat = double("lat")
+    val lng = double("lng")
+    val distanceM = integer("distance_m")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object JobMaterialsTable : Table("job_materials") {
+    val id = long("id").autoIncrement()
+    val orderId = long("order_id").references(OrdersTable.id)
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val name = varchar("name", 120)
+    val quantity = integer("quantity")
+    val cost = long("cost")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object TechBadgesTable : Table("tech_badges") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val code = varchar("code", 48)
+    val title = varchar("title", 120)
+    val earnedAt = safeTimestampWithTimeZone("earned_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ChatTemplatesTable : Table("chat_templates") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val title = varchar("title", 80)
+    val body = varchar("body", 500)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object LeaveRequestsTable : Table("leave_requests") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val startDate = date("start_date")
+    val endDate = date("end_date")
+    val reason = varchar("reason", 255)
+    val status = varchar("status", 16)
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object WorkJournalsTable : Table("work_journals") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val entryDate = date("entry_date")
+    val note = text("note")
+    val createdAt = safeTimestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object EquipmentItemsTable : Table("equipment_items") {
+    val id = long("id").autoIncrement()
+    val technicianId = long("technician_id").references(UsersTable.id)
+    val name = varchar("name", 120)
+    val checked = bool("checked")
+    val updatedAt = safeTimestampWithTimeZone("updated_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
 object ProposalsTable : Table("proposals") {
     val id = long("id").autoIncrement()
     val consumerId = long("consumer_id")

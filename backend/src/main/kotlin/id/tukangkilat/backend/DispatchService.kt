@@ -88,6 +88,7 @@ object DispatchService {
             return
         }
 
+        var createdOfferId: Long? = null
         val inserted = transaction {
             val now = OffsetDateTime.now()
             // Re-check inside the insert transaction: the scheduled tick and a manual dispatch
@@ -101,18 +102,23 @@ object DispatchService {
             if (hasActive || alreadyOffered) {
                 false
             } else {
-                JobOffersTable.insert {
+                createdOfferId = JobOffersTable.insert {
                     it[JobOffersTable.orderId] = orderId
                     it[JobOffersTable.technicianId] = next
                     it[JobOffersTable.status] = OfferStatus.MENUNGGU.name
                     it[JobOffersTable.expiresAt] = now.plusSeconds(OFFER_TTL_SECONDS)
                     it[JobOffersTable.isRevisit] = (orderStatus == OrderStatus.KUNJUNGAN_ULANG)
                     it[JobOffersTable.createdAt] = now
-                }
+                } get JobOffersTable.id
                 true
             }
         }
-        if (inserted) WsHub.sendTo(next, WsEvent(WsEventType.OFFER_NEW, orderId))
+        if (inserted) {
+            if (createdOfferId != null && TechnicianOpsService.shouldAutoAccept(next, orderId)) {
+                runCatching { TechnicianService.acceptOffer(next, createdOfferId!!) }
+            }
+            WsHub.sendTo(next, WsEvent(WsEventType.OFFER_NEW, orderId))
+        }
     }
 
     private suspend fun notifyNoTechnician(orderId: Long) {
@@ -187,6 +193,10 @@ object DispatchService {
                         (AvailabilityBlocksTable.technicianId eq techId) and
                             (AvailabilityBlocksTable.blockDate eq scheduledDate)
                     }.none()
+                }
+                .filter { row ->
+                    // v4 service areas can exclude a technician from this location
+                    !TechnicianOpsService.isAreaBlocked(row[UsersTable.id], addressLat, addressLng)
                 }
                 .filter { row ->
                     // no schedule conflict: no other order at the same date+slot assigned to this technician

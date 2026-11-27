@@ -357,6 +357,80 @@ interface ApiService {
     @GET("/technician/reviews")
     suspend fun technicianReviews(): List<ReviewDto>
 
+
+    // ----- v4 technician operations -----
+    @GET("/technician/documents")
+    suspend fun techDocuments(): List<TechDocumentDto>
+
+    @POST("/technician/documents")
+    suspend fun addTechDocument(@Body req: AddDocumentRequest): TechDocumentDto
+
+    @GET("/technician/documents/expiring")
+    suspend fun expiringDocuments(): List<TechDocumentDto>
+
+    @GET("/technician/areas")
+    suspend fun serviceAreas(): List<ServiceAreaDto>
+
+    @POST("/technician/areas")
+    suspend fun addServiceArea(@Body req: AddServiceAreaRequest): ServiceAreaDto
+
+    @DELETE("/technician/areas/{id}")
+    suspend fun deleteServiceArea(@Path("id") id: Long)
+
+    @GET("/technician/auto-accept")
+    suspend fun autoAccept(): AutoAcceptDto
+
+    @PUT("/technician/auto-accept")
+    suspend fun saveAutoAccept(@Body req: SaveAutoAcceptRequest): AutoAcceptDto
+
+    @GET("/technician/route")
+    suspend fun route(): List<RouteStopDto>
+
+    @POST("/technician/orders/{id}/checkin")
+    suspend fun checkin(@Path("id") id: Long, @Body req: CheckinRequest): CheckinDto
+
+    @GET("/technician/orders/{id}/checkins")
+    suspend fun checkins(@Path("id") id: Long): List<CheckinDto>
+
+    @GET("/technician/materials")
+    suspend fun materials(@Query("orderId") orderId: Long? = null): List<MaterialDto>
+
+    @POST("/technician/materials")
+    suspend fun addMaterial(@Body req: AddMaterialRequest): MaterialDto
+
+    @GET("/technician/badges")
+    suspend fun badges(): List<BadgeDto>
+
+    @GET("/technician/ops-stats")
+    suspend fun opsStats(): OpsStatsDto
+
+    @GET("/technician/chat-templates")
+    suspend fun chatTemplates(): List<TemplateDto>
+
+    @POST("/technician/chat-templates")
+    suspend fun addChatTemplate(@Body req: AddTemplateRequest): TemplateDto
+
+    @DELETE("/technician/chat-templates/{id}")
+    suspend fun deleteChatTemplate(@Path("id") id: Long)
+
+    @GET("/technician/leaves")
+    suspend fun leaves(): List<LeaveDto>
+
+    @POST("/technician/leaves")
+    suspend fun addLeave(@Body req: AddLeaveRequest): LeaveDto
+
+    @GET("/technician/journal")
+    suspend fun journal(): List<JournalDto>
+
+    @POST("/technician/journal")
+    suspend fun addJournal(@Body req: AddJournalRequest): JournalDto
+
+    @GET("/technician/equipment")
+    suspend fun equipment(): List<EquipmentDto>
+
+    @PUT("/technician/equipment")
+    suspend fun setEquipment(@Body req: SetEquipmentRequest): Map<String, String>
+
     @GET("/technician/review-details")
     suspend fun reviewDetails(): List<ReviewDetailDto>
 
@@ -400,6 +474,13 @@ interface ApiService {
     @GET("/admin/leaders")
     suspend fun leaders(): List<TechnicianLeaderDto>
 
+
+
+    @GET("/admin/technician-documents")
+    suspend fun adminDocuments(@Query("status") status: String? = null): List<TechDocumentDto>
+
+    @POST("/admin/technician-documents/{id}/verify")
+    suspend fun verifyDocument(@Path("id") id: Long, @Body req: VerifyDocumentRequest): TechDocumentDto
 
     @GET("/admin/refunds")
     suspend fun adminRefunds(): List<RefundRequestDto>
